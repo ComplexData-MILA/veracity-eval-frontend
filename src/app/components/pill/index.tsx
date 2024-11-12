@@ -1,7 +1,7 @@
 import styles from "./pill.module.scss";
 
 type Props = {
-    text:String
+    text:string
   };
 
 const Pill= ({ text }: Props) =>  {
