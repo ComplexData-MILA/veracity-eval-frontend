@@ -2,6 +2,7 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
+import styles from "./login.module.scss";
 
 export default function LoginButton() {
   const { user, error, isLoading } = useUser();
@@ -12,15 +13,16 @@ export default function LoginButton() {
 
   const handleAuth = (action: 'login' | 'logout') => (e: React.MouseEvent) => {
     e.preventDefault();
-    {action === 'login' ? router.push(`/api/auth/login?returnTo=/chat`) : router.push(`/api/auth/logout`)}
+    if (action === 'login') {router.push(`/api/auth/login?returnTo=/chat`)} else {router.push(`/api/auth/logout`)}
   };
 
   if (user) {
-    return (
+    return (<div className={styles.logout}>
+    <p>{user.name}</p>
       <button onClick={handleAuth('logout')}>
-        <p>{user.name}</p>
         logout
       </button>
+      </div>
     );
   }
 
