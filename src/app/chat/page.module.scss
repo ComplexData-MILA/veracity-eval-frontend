@@ -7,46 +7,28 @@ background-color: white;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-    .textWrapper{
-      max-width: 600px;
-      text-align: center;
-      margin:50px 0px;
-      font-family: 'Roboto', Arial, Helvetica, sans-serif;
-      .heading{
-        margin:20px 0px;
-        font-weight: 500;
-        font-size: 46px;
-      }
-      .subheading{
-        max-width: 500px;
-        margin: 20px auto;
-        color: #333;
-      }
-    }
-  .screenshotWrapper{
-    padding:10px;
-    background-color: #ffffff66;
-    align-items: center;
-    border: 1px solid white;
-    border-radius: 6px;
-    .screenshot{
-      border-radius: 6px;
-      background-color: lightseagreen;
-      width:1000px;
-      height:563px;
-    }
-  }
-  height: 750px;
-}
-
-.footer{
-  .footerContent{
-    max-width:1000px;
+  justify-content: end;
+  height: 100vh;
+  .inputWrapper{
     margin: auto;
-    display: flex;
-  justify-content: space-evenly;
+  .input{
+    width:400px;
+    padding:5px;
+    border: 1px solid gray;
+    border-radius: 6px;
+    &:focus{
+      outline: none;
+    }
+  }
+  .submit{
+    padding:5px;
+    position: relative;
+    right:42px;
+    border-radius: 5px;
+    border:0;
+    cursor: pointer;
+    background: #D1C2FD;
   }
 }
-
+}
 }

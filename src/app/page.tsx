@@ -2,11 +2,14 @@ import Image from "next/image";
 import styles from "./page.module.scss";
 import Pill from "./components/pill";
 import Link from "next/link";
+import LoginButton from "./components/login";
 
 export default function Home() {
   return (
     <div className={styles.page}>
+      <LoginButton />
       <main className={styles.main}>
+      
         <div className={styles.textWrapper}>
           <div className="center" >
             <Pill text="UNLOCK CONVERSATIONAL POWER" />
