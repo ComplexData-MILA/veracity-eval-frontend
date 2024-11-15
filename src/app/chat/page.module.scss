@@ -9,6 +9,10 @@ background-color: white;
   flex-direction: column;
   justify-content: end;
   height: 100vh;
+  .userWrapper{
+    margin: auto;
+    text-align: center;
+  }
   .inputWrapper{
     margin: auto;
   .input{
@@ -21,9 +25,9 @@ background-color: white;
     }
   }
   .submit{
-    padding:5px;
     position: relative;
     right:42px;
+    padding:5px;
     border-radius: 5px;
     border:0;
     cursor: pointer;

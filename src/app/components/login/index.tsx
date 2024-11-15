@@ -17,19 +17,18 @@ export default function LoginButton() {
   };
 
   if (user) {
-    return (<div className={styles.logout}>
-    <p>{user.name}</p>
-      <button onClick={handleAuth('logout')}>
-        logout
+    return (<div className={styles.userBlock}>
+    <p className={styles.userName}>{user.name}</p>
+      <button className={styles.authButton} onClick={handleAuth('logout')}>
+        Logout
       </button>
       </div>
     );
   }
 
   return (
-    <div
-      onClick={handleAuth('login')}>
-      <button>login</button>
+    <div>
+      <button className={styles.authButton} onClick={handleAuth('login')}>Login</button>
     </div>
   );
 }

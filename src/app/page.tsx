@@ -1,13 +1,12 @@
 import Image from "next/image";
 import styles from "./page.module.scss";
 import Pill from "./components/pill";
-import Link from "next/link";
 import LoginButton from "./components/login";
 
 export default function Home() {
   return (
     <div className={styles.page}>
-      <LoginButton />
+      
       <main className={styles.main}>
       
         <div className={styles.textWrapper}>
@@ -17,9 +16,7 @@ export default function Home() {
           <h1 className={styles.heading}>Empower Your Conversations with Next-Gen Messaging Dashboard</h1>
           <p className={styles.subheading}>Unlock seamless communication and streamline your messaging experience with our innovative dashboard solution</p>
           <div className="center" >
-            <Link href="/chat" >
-              <Pill text="Get Started" />
-            </Link>
+            <LoginButton />
           </div>
         </div>
         <div className={styles.screenshotWrapper}>

@@ -1,0 +1,20 @@
+.userBlock{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .userName{
+        margin:20px;
+    }
+}
+
+.authButton{
+    cursor: pointer;
+    cursor: pointer;
+    background: #FFFDFE;
+    border:0;
+    border-radius: 40px;
+    width: fit-content;
+    padding:6px 12px;
+    font-family: 'roboto', sans-serif;
+    font-weight: 500;
+}
