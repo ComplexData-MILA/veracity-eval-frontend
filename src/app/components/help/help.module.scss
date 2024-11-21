@@ -1,0 +1,22 @@
+.helpWrapper{
+display: flex;
+}
+.helpButton{
+    cursor: pointer;
+    cursor: pointer;
+    border:0;
+    text-align: center;
+    padding:7px;
+    margin: 0px 20px;
+    background-color: #fff;
+    font-family: 'figtree', sans-serif;
+    font-weight: 400;
+    margin-right: 10px;
+}
+.close{
+    height: fit-content;
+    margin-top:5px;
+    background: #fff;
+    border: 0;
+    cursor: pointer;
+}

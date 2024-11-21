@@ -1,38 +1,102 @@
 .page{
 background-color: white;
-.main{
-  margin:5px 10px;
-  background: linear-gradient(350deg, rgba(225,237,240,1) 0%, rgba(253,210,194,1) 21%, rgba(250,176,197,1) 37%, rgba(246,184,221,1) 41%, rgba(225,237,240,1) 71%);
-  border-radius: 6px;
-  overflow-y: hidden;
+.mainWrapper{
+padding: 10px 0px;
+height: 100vh;
+background-color: #f5f5f5;
+display: flex;
+.controlColumn{
+  background-color: #f5f5f5;
+  width:5%;
   display: flex;
   flex-direction: column;
-  justify-content: end;
-  height: 100vh;
-  .userWrapper{
-    margin: auto;
-    text-align: center;
+  justify-content:space-between;
+  .profileWrapper{
+    margin-bottom: 50px;
+    align-self: center;
   }
-  .inputWrapper{
-    margin: auto;
-  .input{
-    width:400px;
-    padding:5px;
-    border: 1px solid gray;
-    border-radius: 6px;
-    &:focus{
-      outline: none;
+}
+.helpSection{
+  background: #E9F3FF;
+  padding:30px;
+  border-radius: 20px;
+  width:400px;
+  height: 100%;
+  .helpHeading{
+  font-family: Figtree, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  }
+  .helpText{
+    font-size: 12px;
+    margin:20px 0px;
+  }
+}
+.mainSection{
+width:80%;
+background-color: #fff;
+display: flex;
+flex-direction: column;
+border-radius: 30px;
+box-shadow: 2px 2px 10px 0px #0000001A;
+.titleBar, .inputBar{
+  height:50px;
+  width:100%;
+  
+}
+.titleBar{
+  border-radius: 20px 20px 0px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding:0px 30px;
+  border-bottom: 1px solid #E5E5E5;
+  background: #fff;
+  .title{
+    font-family: 'figtree', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 30px;
+  }
+  .learnMoreWrapper{
+font-size: 16px;
+font-weight: 400;
+line-height: 18px;
+display: flex;
+align-items: center;
+.learnMoreText{
+  margin:0px 5px;
+}
+  }
+}
+.chatWindow{
+  height: 100%;
+  padding:20px;
+}
+}
+.sourceInspectColumn{
+  width:15%;
+  background-color: #fff;
+  margin:0px 30px;
+  padding:20px;
+  border-radius: 20px;
+}
+.inputBar{
+  display: flex;
+  justify-content: space-between;
+  border-radius: 0px 0px 20px 20px;
     }
   }
-  .submit{
-    position: relative;
-    right:42px;
-    padding:5px;
-    border-radius: 5px;
-    border:0;
-    cursor: pointer;
-    background: #D1C2FD;
+  .disclaimer{
+    text-align: center;
+    font-size:10px;
+    margin:10px 0px;
   }
-}
-}
+  .sourceHeading{
+    font-family: Figtree;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #636363;
+  }
 }

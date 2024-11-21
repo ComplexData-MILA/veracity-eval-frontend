@@ -2,7 +2,6 @@
 background-color: white;
 .main{
   margin:5px 10px;
-  background: linear-gradient(350deg, rgba(225,237,240,1) 0%, rgba(253,210,194,1) 21%, rgba(250,176,197,1) 37%, rgba(246,184,221,1) 41%, rgba(225,237,240,1) 71%);
   border-radius: 6px;
   overflow-y: hidden;
   display: flex;
@@ -12,7 +11,7 @@ background-color: white;
       max-width: 600px;
       text-align: center;
       margin:50px 0px;
-      font-family: 'Roboto', Arial, Helvetica, sans-serif;
+      font-family: 'figtree', Arial, Helvetica, sans-serif;
       .heading{
         margin:20px 0px;
         font-weight: 500;
