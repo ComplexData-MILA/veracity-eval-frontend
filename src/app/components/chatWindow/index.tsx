@@ -5,11 +5,12 @@ import Image from 'next/image';
 import { useState } from 'react';
 import Help from '../help';
 import Input from '../input';
+import HelpWindow from "../helpWindow";
 
 
 export default function ChatWindow() {
 
-  const [helpIsOpen, setHelpIsOpen] = useState(true)
+  const [helpIsOpen, setHelpIsOpen] = useState(false)
   return (
     <section className={styles.mainSection}>
     <div className={styles.titleBar}>
@@ -20,17 +21,7 @@ export default function ChatWindow() {
       </div>
     </div>
     <div className={styles.chatWindow}>
-      {helpIsOpen === true ?
-       <div className={styles.helpSection}>
-        <h2 className={styles.helpHeading}>Ressources d&apos;aide populaires</h2>
-        <p className={styles.helpText}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br />
-        <br />
-        <a href="www.google.ca">Link out</a>
-        </p>
-       </div>:
-        ""}
-      
+      {helpIsOpen === true ? <HelpWindow />:""}
     </div>
     <div className={styles.inputBar}>
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />

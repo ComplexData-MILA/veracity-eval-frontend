@@ -23,29 +23,5 @@ background-color: white;
         color: #333;
       }
     }
-  .screenshotWrapper{
-    padding:10px;
-    background-color: #ffffff66;
-    align-items: center;
-    border: 1px solid white;
-    border-radius: 6px;
-    .screenshot{
-      border-radius: 6px;
-      background-color: lightseagreen;
-      width:1000px;
-      height:563px;
-    }
   }
-  height: 750px;
-}
-
-.footer{
-  .footerContent{
-    max-width:1000px;
-    margin: auto;
-    display: flex;
-  justify-content: space-evenly;
-  }
-}
-
 }

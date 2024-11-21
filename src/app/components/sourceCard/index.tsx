@@ -7,6 +7,6 @@ export default function SourceCard() {
   return (
     <div className={styles.sourceCard}>
           
-        </div>
+    </div>
   );
 }

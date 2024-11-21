@@ -18,7 +18,9 @@ export default function LoginButton() {
 
   if (user) {
     return (<div className={styles.userBlock}>
+      
     <p className={styles.userName}>{user.name}</p>
+    <img src={user.picture ?? ""} alt={user.name ?? ""}/>
       <button className={styles.authButton} onClick={handleAuth('logout')}>
         Logout
       </button>
