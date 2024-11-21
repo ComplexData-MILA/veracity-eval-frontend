@@ -1,6 +1,4 @@
-import Image from "next/image";
 import styles from "./page.module.scss";
-import Pill from "./components/pill";
 import LoginButton from "./components/login";
 
 export default function Home() {
