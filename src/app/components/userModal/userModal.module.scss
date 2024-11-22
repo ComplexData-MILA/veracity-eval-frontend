@@ -10,5 +10,30 @@
         left:10px;
         background-color: white;
         padding:30px;
+        border-radius: 20px;
+        .linkList, .linkListLast{
+        list-style: none;
+        padding:10px;
+        text-align: left;
+        font-weight: 600;
+        li{
+            margin-left: -10px;
+            margin-bottom:5px;
+        }
+        }
+        .linkList{
+        border-bottom: 1px solid black;
+        }
+        
     }
+}
+.littleTriangle{
+    width: 0; 
+    height: 0; 
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+    position: fixed;
+    bottom: 140px;
+    left:30px;
 }
