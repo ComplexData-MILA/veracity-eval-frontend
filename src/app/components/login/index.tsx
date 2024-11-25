@@ -30,7 +30,7 @@ export default function LoginButton() {
 
   return (
     <div>
-      <button className={styles.authButton} onClick={handleAuth('login')}>Login</button>
+      <button className={styles.login} onClick={handleAuth('login')}>Login</button>
     </div>
   );
 }

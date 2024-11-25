@@ -1,26 +1,60 @@
 .page{
 background-color: white;
+flex-direction: column;
+justify-content: space-between;
 .main{
-  margin:5px 10px;
+  margin:0px 7vw;
   border-radius: 6px;
-  overflow-y: hidden;
   display: flex;
+  min-height: 90vh;
   flex-direction: column;
-  align-items: center;
+  justify-content: center;
     .textWrapper{
-      max-width: 600px;
-      text-align: center;
-      margin:50px 0px;
       font-family: 'figtree', Arial, Helvetica, sans-serif;
       .heading{
-        margin:20px 0px;
-        font-weight: 500;
-        font-size: 46px;
+        margin:15px 0px 25px 0px;
+        font-family: Figtree;
+        font-size: 52px;
+        font-weight: 600;
+        line-height: 56px;
+        color: #aaa;
       }
       .subheading{
-        max-width: 500px;
-        margin: 20px auto;
-        color: #333;
+        font-family: Figtree;
+font-size: 70px;
+font-weight: 600;
+line-height: 80px;
+margin:25px 0px;
+.fancyText{
+  background: linear-gradient(269.47deg, #11F90E 3.4%, #1683FF 99.98%);
+  color: transparent;
+  background-clip: text;
+}
+      }
+      .description{
+      font-family: Figtree;
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 32px;
+      color: #aaa;
+      margin:20px 0px 35px 0px;
+      }
+    }
+  }
+  .footer{
+    margin:0px 7vw;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    .logoRow{
+      padding-left: 4vw;
+      img{
+        margin:0px 1vw;
+      }
+      .mila{
+        margin-bottom: -8px;
       }
     }
   }
