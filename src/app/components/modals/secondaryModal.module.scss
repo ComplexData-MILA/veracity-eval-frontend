@@ -1,0 +1,75 @@
+.tintedWrapper{
+    position: fixed;
+    height: 100vh;
+    width:100vw;
+    background-color: #000000cc;
+    z-index: 200;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .modal{
+        background-color: white;
+        width: 100%;
+        height: 500px;
+        max-width: 800px;
+        border-radius: 20px;
+        padding: 50px;
+        position: relative;
+        .exitWrapper{
+            position: absolute;
+            top:20px;
+            right:30px;
+            cursor: pointer;
+        }
+        .modalTitle{
+        font-family: 'inter', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        }
+        .modalRow{
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0px;
+            .rowTitle{
+                font-family: 'inter', sans-serif;
+                font-size: 18px;
+                font-weight: 600;
+            }
+            .rowDescription, .timeZone{
+                font-family: 'inter', sans-serif;
+                font-size: 18px;
+                font-weight: 600;
+                color:#999;
+            }
+            .timeZone{
+                padding-top:20px;
+            }
+        }
+        .problemInput{
+            width: 100%;
+            min-height: 250px;
+            padding: 20px;
+            background: #D9D9D9;
+        }
+        .problemButtonRow{
+            display: flex;
+            justify-content: end;
+            .problemCancel, .problemSubmit{
+                width:120px;
+                height: 40px;
+                margin-top:10px;
+                margin-left:20px;
+                font-family: 'inter', sans-serif;
+                font-weight: 600;
+                border: 1px solid #1683ff;
+            }
+            .problemCancel{
+                background: transparent;
+            }
+            .problemSubmit{
+                background: #1683ff;
+            }
+        }
+    }
+}
