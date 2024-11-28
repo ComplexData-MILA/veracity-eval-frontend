@@ -1,0 +1,22 @@
+{
+    "en":{
+        "title": "Welcome to Veracity",
+        "subtitle": "Navigate information with clarity and confidence guided by",
+        "styledSubtitle": "a conversational assistant.",
+        "description": "Sign up or log in to verify information and build trust with those you share it with.",
+        "signUpButton": "Sign up",
+        "loginButton": "Log in",
+        "ourTrustedPartners": "Our trusted partners",
+        "privacy": "Privacy and Security"
+    },
+    "fr": {
+        "title": "Bienvenue sur Veracity",
+        "subtitle": "Vérifier vos informations avec clarté et confiance, guidé·e par",
+        "styledSubtitle": "un assistant conversationnel.",
+        "description": "Inscrivez-vous ou connectez-vous pour vérifier des infos et partager en toute confiance.",
+        "signUpButton": "S&#39;inscrire",
+        "loginButton": "Se connecter",
+        "ourTrustedPartners": "Nos partenaires de confiance",
+        "privacy": "Privacy and Security"
+    }
+}
