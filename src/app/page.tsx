@@ -5,7 +5,7 @@ import translation from "./translations/homepage.json"
 
 export default function Home() {
 
-  let text = translation.en
+  const text = translation.en
 
   return (
     <div className={styles.page}>
