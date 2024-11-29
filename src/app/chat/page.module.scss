@@ -76,6 +76,24 @@ align-items: center;
 .chatWindow{
   height: 100%;
   padding:20px;
+  display: flex;
+  .mainChatColumn{
+    display: flex;
+    width:100%;
+    flex-direction: column;
+    overflow-y: scroll;
+    .placeholder{
+      width:80%;
+      height:400px;
+      margin: auto;
+      background: #636363;
+      color:white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius:20px;
+    }
+  }
 }
 }
 .sourceInspectColumn{

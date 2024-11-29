@@ -6,6 +6,8 @@ import { useState } from 'react';
 import Help from '../help';
 import Input from '../input';
 import HelpWindow from "../helpWindow";
+import ChatIn from "../chatBubbles/chatIn";
+import ChatOut from "../chatBubbles/chatOut";
 
 
 export default function ChatWindow() {
@@ -21,7 +23,15 @@ export default function ChatWindow() {
       </div>
     </div>
     <div className={styles.chatWindow}>
-      {helpIsOpen === true ? <HelpWindow />:""}
+    {helpIsOpen === true ? <HelpWindow />:""}
+      <div className={styles.mainChatColumn}>
+        <ChatIn text="What would you like to verify today?" />
+        <ChatOut text="Correlation implies causation" />
+        <ChatIn text="Here is my analysis:" />
+        <div className={styles.placeholder}>
+          <h1>Design en route</h1>
+        </div>
+      </div>
     </div>
     <div className={styles.inputBar}>
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />

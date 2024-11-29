@@ -1,14 +1,23 @@
 import styles from "./page.module.scss";
+import "/node_modules/flag-icons/css/flag-icons.min.css";
 import LoginButton from "./components/login";
 import Image from "next/image";
 import translation from "./translations/homepage.json"
+import Link from "next/link";
 
 export default function Home() {
 
-  const text = translation.en
+  let text = translation.fr
+  if (true) text = translation.en
 
   return (
     <div className={styles.page}>
+      <header className={styles.header}>
+        <Link href="/privacy" className={styles.headerItem}>{text.privacy}</Link>
+        <button className={`fi-gb fi ${styles.langSelect} ${styles.headerItem}`}>
+        </button>
+        
+      </header>
       <main className={styles.main}>
         <div className={styles.textWrapper}>
         <Image src="/assets/logoLarge.png" alt="me" width="80" height="80" />
