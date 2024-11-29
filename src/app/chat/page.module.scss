@@ -77,11 +77,11 @@ align-items: center;
   height: 100%;
   padding:20px;
   display: flex;
+  overflow-y: scroll;
   .mainChatColumn{
     display: flex;
     width:100%;
     flex-direction: column;
-    overflow-y: scroll;
     .placeholder{
       width:80%;
       height:400px;

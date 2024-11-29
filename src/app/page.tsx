@@ -14,9 +14,7 @@ export default function Home() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link href="/privacy" className={styles.headerItem}>{text.privacy}</Link>
-        <button className={`fi-gb fi ${styles.langSelect} ${styles.headerItem}`}>
-        </button>
-        
+        <Link href="/" locale="fr"><button className={`fi-gb fi ${styles.langSelect} ${styles.headerItem}`} /></Link>
       </header>
       <main className={styles.main}>
         <div className={styles.textWrapper}>
