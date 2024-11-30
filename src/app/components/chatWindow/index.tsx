@@ -8,9 +8,12 @@ import Input from '../input';
 import HelpWindow from "../helpWindow";
 import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
+import { useTranslations } from "next-intl";
 
 
 export default function ChatWindow() {
+
+  const t = useTranslations('chatpage');
 
   const [helpIsOpen, setHelpIsOpen] = useState(false)
   return (
@@ -19,15 +22,15 @@ export default function ChatWindow() {
       <h1 className={styles.title}>Veracity AI</h1>
       <div className={styles.learnMoreWrapper}>
       <Image src="/assets/info.svg" alt="me" width="20" height="20" />
-        <p className={styles.learnMoreText}>Learn more about the model</p>
+        <p className={styles.learnMoreText}>{t('learnMore')}</p>
       </div>
     </div>
     <div className={styles.chatWindow}>
     {helpIsOpen === true ? <HelpWindow />:""}
       <div className={styles.mainChatColumn}>
-        <ChatIn text="What would you like to verify today?" />
+        <ChatIn text={t('outputOne')}/>
         <ChatOut text="Correlation implies causation" />
-        <ChatIn text="Here is my analysis:" />
+        <ChatIn text={t('outputTwo')} />
         <div className={styles.placeholder}>
           <h1>Design en route</h1>
         </div>
@@ -37,7 +40,7 @@ export default function ChatWindow() {
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
       <Input />
     </div>
-    <p className={styles.disclaimer}>While we strive for accuracy, some AI responses may vary.</p>
+    <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
   );
 }

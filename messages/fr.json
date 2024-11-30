@@ -8,5 +8,16 @@
         "loginButton": "Se connecter",
         "ourTrustedPartners": "Nos partenaires de confiance",
         "privacy": "Confidentialité et Sécurité"
+    },
+    "chatpage": {
+        "learnMore": "En savoir plus sur ce modele",
+        "help": "Aide",
+        "disclaimer": "Bien que nous nous efforcions d'être précis, certaines réponses de l'IA peuvent varier",
+        "inputPlaceholder": "Commencer a taper our verifier un lien",
+        "outputOne": "Que souhaitez-vous verifier ajourd'hui?",
+        "outputTwo": "Voici mon analyse:",
+        "preferences": "Préférences",
+        "language": "Langue",
+        "languageDescription": "Changer la langue utilisée dans l'interface utilisateur"
     }
 }

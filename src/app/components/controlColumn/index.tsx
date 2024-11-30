@@ -15,7 +15,7 @@ export default function ControlColumn() {
 
   return (
     <section className={styles.controlColumn}>
-          <div>
+          <div className={styles.tabSection}>
             <AddTab />
           </div>
           <div className={styles.profileWrapper}>

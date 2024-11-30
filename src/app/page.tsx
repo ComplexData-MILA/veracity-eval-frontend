@@ -8,7 +8,6 @@ import LangSwitcherHome from "./components/langSelect/homepage";
 
 export default function Home() {
   const locale = useLocale();
-  console.log(locale)
   const t = useTranslations('homepage');
 
   return (

@@ -9,5 +9,16 @@
         "loginButton": "Log in",
         "ourTrustedPartners": "Our trusted partners",
         "privacy": "Privacy and Security"
+    },
+    "chatpage": {
+        "learnMore": "Learn more about this model",
+        "help": "Help",
+        "disclaimer": "While we strive for accuracy, some AI responses may vary.",
+        "inputPlaceholder": "Start typing or share a link",
+        "outputOne": "What would you like to verify today?",
+        "outputTwo": "Here is my analysis:",
+        "preferences": "Preferences",
+        "language": "Language",
+        "languageDescription": "Change the language used in the user interface"
     }
 }
