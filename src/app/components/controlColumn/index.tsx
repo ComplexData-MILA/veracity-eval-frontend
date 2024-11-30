@@ -7,7 +7,6 @@ import { useState } from "react";
 import UserModal from "../modals/userModal";
 import PreferencesModal from "../modals/preferences";
 import ReportModal from "../modals/report";
-import OpenTab from "../openTab";
 
 
 export default function ControlColumn() {
