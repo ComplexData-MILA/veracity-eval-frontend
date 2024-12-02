@@ -1,20 +1,62 @@
 .analysis{
     width:100%;
-    height:400px;
+
     display: flex;
     .score{
+        .heading{
+            font-size: 18px;
+            font-weight: 600;
+            }
+            .subheading{
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 16px;
+            color: #8C8C8C;
+            }
         width:67%;
-        background:red;
+        margin-left: 60px;
         padding: 20px;
         border-radius: 8px;
-        border: 1px solid #B1B1B1
+        border: 1px solid #B1B1B1;
+        box-shadow: 0px 4px 4px 0px #0000001A;
     }
     .sources{
         width:33%;
-        background: blue;
         margin-left: 20px;
         padding: 20px;
         border-radius: 8px;
-        border: 1px solid #B1B1B1
+        border: 1px solid #B1B1B1;
+        box-shadow: 0px 4px 4px 0px #0000001A;
+        .heading{
+        font-size: 18px;
+        font-weight: 600;
+        }
+        .subheading{
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 16px;
+        color: #8C8C8C;
+        }
+        .barGraph{
+            width:100%;
+            height:80px;
+            border-radius: 40px;
+            background-color: blue;
+            margin:30px 0px;
+        }
+        .sourceSummary{
+            background-color: #F1F1F1;
+            padding:15px;
+            border-radius:12px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 22px;
+            color:#636363;
+
+            .readMore{
+                font-weight: bold;
+                text-decoration: underline;
+            }
+        }
     }
 }

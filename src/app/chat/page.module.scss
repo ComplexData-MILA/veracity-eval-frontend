@@ -82,9 +82,7 @@ align-items: center;
   display: flex;
   overflow-y: scroll;
   .mainChatColumn{
-    display: flex;
     width:100%;
-    flex-direction: column;
     .placeholder{
       width:80%;
       height:400px;
