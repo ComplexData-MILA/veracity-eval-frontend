@@ -9,13 +9,14 @@ import HelpWindow from "../helpWindow";
 import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
 import { useTranslations } from "next-intl";
+import Analysis from "../analysis";
 
 
 export default function ChatWindow() {
 
   const t = useTranslations('chatpage');
+  const [helpIsOpen, setHelpIsOpen] = useState(false);
 
-  const [helpIsOpen, setHelpIsOpen] = useState(false)
   return (
     <section className={styles.mainSection}>
     <div className={styles.titleBar}>
@@ -31,9 +32,7 @@ export default function ChatWindow() {
         <ChatIn text={t('outputOne')}/>
         <ChatOut text="Correlation implies causation" />
         <ChatIn text={t('outputTwo')} />
-        <div className={styles.placeholder}>
-          <h1>Design en route</h1>
-        </div>
+        <Analysis />
       </div>
     </div>
     <div className={styles.inputBar}>
