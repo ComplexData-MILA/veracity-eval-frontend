@@ -1,6 +1,5 @@
 .analysis{
     width:100%;
-
     display: flex;
     .score{
         width:67%;
@@ -24,20 +23,60 @@
             color: #8C8C8C;
             }
         }
+        .donutSection{
+            display: flex;
+            flex-direction: column;
+        }
         .scoreMain{
             display: flex;
             margin:25px 0px;
-            .scoreGraph{
-                height: 200px;
-                width: 40%;
-                background-color: pink;
+            position: relative;
+            margin-bottom:-50px;
+            .arcText{
+                position: relative;
+                bottom:150px;
+                text-align: center;
+                .reliabilityLabel{
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 24px;
+                color: #727272;
+                }
+                .reliabilityScoreLarge{
+                font-size: 50px;
+                font-weight: 900;
+                line-height: 50px;
+                }
             }
             .scoreText{
                 width: 60%;
-                height: 200px;
-                background-color: #aaaaff;
+                margin-left:30px;
+                .firstHeading{
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 24px;
+                margin-bottom: 5px;
+                }
+                .largeHeading{
+                font-size: 40px;
+                font-weight: 800;
+                line-height: 44px;
+                margin-bottom: 15px;
+                }
+                .reliabilitySummary{
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 24px;
+                }
             }
         }
+        .how{
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 16px;
+            color: #8C8C8C;
+            text-decoration: underline;
+    }
     }
     .sources{
         width:33%;
@@ -62,10 +101,23 @@
             display: flex;
             align-items: center;
             justify-content: space-evenly;
-            /*temp*/
-            height:80px;
-            background-color: silver;
-            /*endtemp*/
+            position: relative;
+            .credibilityRatingWrapper{
+                text-align: center;
+            }
+            .backgroundBar, .foregroundBar{
+                height:25px;
+                width: 100%;
+            }
+            .foregroundBar{
+                background: linear-gradient(90deg, #11F90E -7.41%, #1683FF 100%);
+                position: relative;
+                bottom:25px;
+            }
+            .backgroundBar{
+                background: #E8E8E8;
+                border-radius: 0px 40px 40px 0px;
+            }
             .valueHeadingOne{
             font-size: 50px;
             font-weight: 900;
@@ -77,7 +129,10 @@
             line-height: 24px;
             }
             .averageText{
-                margin-bottom: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
             }
         }
         .sourceSummary{
@@ -88,11 +143,28 @@
             font-weight: 500;
             line-height: 22px;
             color:#636363;
-
             .readMore{
                 font-weight: bold;
                 text-decoration: underline;
             }
+        }
+    }
+}
+.feedbackWrapper{
+    display: flex;
+    color: #727272;
+    font-size: 14px;
+    padding-bottom:20px;
+    margin:20px 60px;
+    width:300px;
+    justify-content: space-evenly;
+    .feedbackThumb{
+        padding:2px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color .3s ease-in;
+        &:hover{
+            background-color:#1683FF55;
         }
     }
 }
