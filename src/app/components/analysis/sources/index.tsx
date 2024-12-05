@@ -11,7 +11,7 @@ export default function Sources() {
         <p className={styles.subheading}>Indicates how confident we are in its reliability.</p>
         <BarGraph />
         <div className={styles.sourceSummary}>
-          <p>Source 1 indicates gremlins in the Kremlin. It's unadvisable to accept the premise of this argument at face value.</p>
+          <p>Source 1 indicates gremlins in the Kremlin. It is unadvisable to accept the premise of this argument at face value.</p>
           <p className={styles.readMore}>Read more...</p>
         </div>
       </div>
