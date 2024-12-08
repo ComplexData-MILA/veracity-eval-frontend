@@ -1,7 +1,7 @@
 "use client"
 import styles from "../analysis.module.scss";
 
-const data = 90
+const data = 77
 
 export default function BarGraph() {
 

@@ -8,7 +8,7 @@ Chart.register(ArcElement);
 const data = {
   datasets: [
     {
-      data: [60, 40],
+      data: [55, 45],
       backgroundColor: [
         "#1683FF",
         "#ffffff",

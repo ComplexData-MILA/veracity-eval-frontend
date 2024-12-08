@@ -39,13 +39,16 @@ display: flex;
   }
 }
 .mainSection{
-width:80%;
+width:75%;
 margin: 10px 0px;
 background-color: #fff;
 display: flex;
 flex-direction: column;
 border-radius: 30px;
 box-shadow: 2px 2px 10px 0px #0000001A;
+@media screen and (max-width: 1200px)  {
+  width:100%;
+}
 .titleBar, .inputBar{
   height:50px;
   width:100%;
@@ -83,27 +86,20 @@ align-items: center;
   overflow-y: scroll;
   .mainChatColumn{
     width:100%;
-    .placeholder{
-      width:80%;
-      height:400px;
-      margin: auto;
-      background: #636363;
-      color:white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius:20px;
-    }
   }
 }
 }
 .sourceInspectColumn{
-  width:15%;
+  width:20%;
   background-color: #fff;
+  overflow-y: scroll;
   margin:10px 30px;
   padding:20px;
   border-radius: 20px;
   box-shadow: 2px 2px 10px 0px #0000001A;
+  @media screen and (max-width: 1200px)  {
+    display: none;
+}
 }
 .inputBar{
   display: flex;
@@ -117,10 +113,9 @@ align-items: center;
     margin:10px 0px;
   }
   .sourceHeading{
-    font-family: Figtree;
     font-size: 18px;
     font-weight: 500;
     line-height: 20px;
-    color: #636363;
+    color: #282828;
   }
 }

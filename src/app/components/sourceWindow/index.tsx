@@ -9,7 +9,7 @@ export default function SourceWindow() {
 
   return (
     <section className={styles.sourceInspectColumn}>
-          <h2 className={styles.sourceHeading}>Source</h2>
+          <h2 className={styles.sourceHeading}>Prompt Interpretation</h2>
           <SourceCard />
           <SourceCard />
           <SourceCard />

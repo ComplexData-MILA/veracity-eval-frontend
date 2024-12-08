@@ -50,23 +50,33 @@
             }
             .scoreText{
                 width: 60%;
-                margin-left:30px;
+                margin-left:0px;
                 .firstHeading{
                 font-size: 16px;
                 font-weight: 500;
                 line-height: 24px;
                 margin-bottom: 5px;
+                @media screen and (max-width: 1350px)  {
+                    font-size:14px;
+                }
                 }
                 .largeHeading{
                 font-size: 40px;
                 font-weight: 800;
                 line-height: 44px;
                 margin-bottom: 15px;
+                @media screen and (max-width: 1350px)  {
+                    font-size:30px;
+                    line-height: 33px;
+                }
                 }
                 .reliabilitySummary{
                 font-size: 16px;
                 font-weight: 500;
                 line-height: 24px;
+                @media screen and (max-width: 1350px)  {
+                    font-size:14px;
+                }
                 }
             }
         }
@@ -102,6 +112,9 @@
             align-items: center;
             justify-content: space-evenly;
             position: relative;
+            @media screen and (max-width: 1350px)  {
+                flex-direction: column;
+            }
             .credibilityRatingWrapper{
                 text-align: center;
             }
