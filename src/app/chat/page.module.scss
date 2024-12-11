@@ -10,6 +10,9 @@ display: flex;
   display: flex;
   flex-direction: column;
   justify-content:space-between;
+  @media screen and (max-width: 1200px)  {
+    display: none;
+}
   .tabSection{
     margin-top:50px;
   }
@@ -84,6 +87,9 @@ align-items: center;
   padding:20px;
   display: flex;
   overflow-y: scroll;
+  @media screen and (max-width: 1200px)  {
+    padding-left: 0px;
+}
   .mainChatColumn{
     width:100%;
   }
