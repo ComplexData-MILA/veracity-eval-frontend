@@ -209,16 +209,40 @@
     color: #727272;
     font-size: 14px;
     padding-bottom:20px;
-    margin:20px 60px;
+    margin:20px 60px 0px 60px;
     width:300px;
     justify-content: space-evenly;
     .feedbackThumb{
         padding:2px;
         border-radius: 10px;
         cursor: pointer;
-        transition: background-color .3s ease-in;
+        transition: background-color .2s ease-in;
         &:hover{
-            background-color:#1683FF55;
+            background-color:#1683FF1A;
         }
+    }
+}
+.feedbackDrawer{
+    background-color: #1683FF1A;
+    width:67%;
+    margin-left: 60px;
+    padding:15px;
+    border-radius: 12px;
+    .feedbackDrawerHeading{
+        margin:10px 0px;
+    }
+    .feedbackTextInput{
+        width:100%;
+    }
+    
+    .bottomRow{
+        display: flex;
+        .feedbackDisclaimer{
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 16px;
+            color:#9B9B9B;
+            width:80%;
+            }
     }
 }

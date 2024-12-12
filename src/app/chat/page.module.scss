@@ -75,11 +75,13 @@ box-shadow: 2px 2px 10px 0px #0000001A;
     line-height: 30px;
   }
   .learnMoreWrapper{
-font-size: 16px;
-font-weight: 400;
-line-height: 18px;
-display: flex;
-align-items: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  /*TEMP: hide this until the modal is built or link is decided*/
+  visibility: hidden;
 .learnMoreText{
   margin:0px 5px;
 }
