@@ -1,0 +1,15 @@
+.sourceCard{
+    width: 100%;
+    margin: 25px 0px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 16px;
+    .searchHeading, .summaryHeading{
+        font-weight: bold;
+        color:black;
+    }
+    .searchContent, .summaryContent{
+        margin-bottom:12px;
+        color: #757575;
+    }
+}

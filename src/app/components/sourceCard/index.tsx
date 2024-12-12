@@ -1,14 +1,18 @@
 import styles from "./sourceCard.module.scss";
 
-
-const searchTerm = "price of oil June 2008"
-
 export default function SourceCard() {
 
   return (
-    <div className={styles.sourceCard}>
-          <p className={styles.searchLine}> SEARCH: {searchTerm}</p>
-          <p className={styles.summaryLine}>SUMMARY: The statement simplistically attributes the high prices in June 2008 and March 2022 directly to price gouging by oil companies without considering the complexities surrounding global oil prices, including major geopolitical events and supply-demand dynamics. While the prices were indeed high in both periods, attributing these solely to price gouging without further evidence oversimplifies the issue. False statement.</p>
+    <div className={styles.sourceCardWrapper}>
+      <div className={styles.topText}>
+        <p><span className={styles.sourceNumberBlock}>Source X</span> mentions the Kremlin saying the strike was designed to warn the the Kremlin saying the strike was strike was designed to warn.</p>
+      </div>
+      <div className={styles.sourceCard}>
+          <p className={styles.sourceNumberParagraph}><span className={styles.sourceColorBlock}>Credibility: 50%</span></p>
+          <h3 className={styles.sourceHeading}>Russia-Ukraine war live: real risk of escalating war turning into ...</h3>
+          <p className={styles.sourcesDescription}>15 hours ago - missiles they have supplied to Ukraine to be used to strike targets in Russia. In a televised address, Putin said: We consider ourselves ...</p>
+          <p className={styles.sourceName}>The Guardian</p>
+      </div>
     </div>
   );
 }

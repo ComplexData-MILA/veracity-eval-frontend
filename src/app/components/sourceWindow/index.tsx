@@ -1,18 +1,46 @@
 "use client"
-
 import styles from "../../chat/page.module.scss";
+import SearchCard from "../searchCard";
 import SourceCard from "../sourceCard";
 
+type Props = {
+  sourceWindow: number;
+  setSourceWindow: (arg0: number) => void;
+}
 
+export default function SourceWindow({ sourceWindow, setSourceWindow }: Props) {
 
-export default function SourceWindow() {
-
+  if (sourceWindow===1){
   return (
     <section className={styles.sourceInspectColumn}>
-          <h2 className={styles.sourceHeading}>Prompt Interpretation</h2>
+          <div className={styles.controlRow}>
+            <h2 className={styles.sourceHeading}>Sources</h2>
+            <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
+          </div>
           <SourceCard />
           <SourceCard />
           <SourceCard />
         </section>
   );
+  }
+  else {
+    if (sourceWindow === 2){
+    return (
+      <section className={styles.sourceInspectColumn}>
+        <div className={styles.controlRow}>
+          <h2 className={styles.sourceHeading}>Prompt Interpretation</h2>
+          <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
+        </div>
+      <SearchCard />
+      <SearchCard />
+      <SearchCard />
+    </section>
+    );
+    }
+    else {
+      return (
+        <></>
+      );
+    }
+  }
 }

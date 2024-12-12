@@ -13,9 +13,9 @@ export default function Score() {
         <div className={styles.scoreHeader}>
           <div>
             <h4 className={styles.heading}>Reliability score</h4>
-            <p className={styles.subheading}>Based on word analysis from verified sources.</p>
+            <Link href="#" className={styles.how}>How is this calculated?</Link>
           </div>
-          <p className={styles.subheading}>How Veracity interpreted your prompt</p>
+          
         </div>
         <div className={styles.scoreMain} >
           <Donut />
@@ -25,7 +25,7 @@ export default function Score() {
             <p className={styles.reliabilitySummary}>Oil prices soared to heights not seen since 2008 due to the Russia-Ukraine war, with ICE Brent oil futures sliding to around $100/bbl intraday. </p>
           </div>
         </div>
-        <Link href="#" className={styles.how}>How is this calculated?</Link>
+        
       </section>
   );
 }

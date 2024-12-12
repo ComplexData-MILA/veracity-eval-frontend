@@ -1,6 +1,5 @@
 import ChatWindow from "../components/chatWindow";
 import ControlColumn from "../components/controlColumn";
-import SourceWindow from "../components/sourceWindow";
 import styles from "./page.module.scss";
 
 
@@ -10,7 +9,6 @@ export default function Home() {
       <main className={styles.mainWrapper}>
         <ControlColumn />
         <ChatWindow />
-        <SourceWindow />
       </main>
     </div>
   );

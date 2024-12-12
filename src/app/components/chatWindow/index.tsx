@@ -10,14 +10,17 @@ import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
 import { useTranslations } from "next-intl";
 import Analysis from "../analysis";
+import SourceWindow from "../sourceWindow";
 
 
 export default function ChatWindow() {
 
   const t = useTranslations('chatpage');
   const [helpIsOpen, setHelpIsOpen] = useState(false);
+  const [sourceWindow, setSourceWindow] = useState(2);
 
   return (
+    <div className={styles.mainWrapper}>
     <section className={styles.mainSection}>
     <div className={styles.titleBar}>
       <h1 className={styles.title}>Veracity AI</h1>
@@ -32,7 +35,7 @@ export default function ChatWindow() {
         <ChatIn text={t('outputOne')}/>
         <ChatOut text="Correlation implies causation" />
         <ChatIn text={t('outputTwo')} />
-        <Analysis />
+        <Analysis setSourceWindow={setSourceWindow} />
       </div>
     </div>
     <div className={styles.inputBar}>
@@ -41,5 +44,7 @@ export default function ChatWindow() {
     </div>
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
+  <SourceWindow sourceWindow={sourceWindow} setSourceWindow={setSourceWindow} />
+  </div>
   );
 }

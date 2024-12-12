@@ -11,6 +11,7 @@
         border-radius: 8px;
         border: 1px solid #B1B1B1;
         box-shadow: 0px 4px 4px 0px #0000001A;
+        min-height:435px;
         @media screen and (max-width: 850px)  {
             width:95%;
             margin:auto;
@@ -59,8 +60,9 @@
                 }
             }
             .scoreText{
-                width: 60%;
+                width: 70%;
                 margin-left:0px;
+                margin-top:20px;
                 .firstHeading{
                 font-size: 16px;
                 font-weight: 500;
@@ -181,8 +183,25 @@
             .readMore{
                 font-weight: bold;
                 text-decoration: underline;
+                cursor: pointer;
             }
         }
+    }
+}
+.feedbackRow{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    .interpretedLink{
+        cursor: pointer;
+        font-size: 14px;
+        color: #727272;
+        font-weight: 500;
+        text-decoration-line: underline;
+        text-decoration-style: solid;
+        text-underline-position: from-font;
+        text-decoration-skip-ink: auto;
+        margin:20px;
     }
 }
 .feedbackWrapper{

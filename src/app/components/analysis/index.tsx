@@ -4,16 +4,19 @@ import Feedback from "./feedback";
 import Score from "./score";
 import Sources from "./sources";
 
+type Props = {
+  setSourceWindow: (arg0: number) => void;
+};
 
-export default function Analysis() {
+export default function Analysis({ setSourceWindow }: Props) {
 
   return (
     <>
     <section className={styles.analysis}>
       <Score />
-      <Sources />
+      <Sources setSourceWindow={setSourceWindow} />
     </section>
-    <Feedback />
+    <Feedback setSourceWindow={setSourceWindow} />
     </>
   );
 }

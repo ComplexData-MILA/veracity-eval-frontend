@@ -1,11 +1,44 @@
+.topText{
+    margin-top:25px;
+    font-size: 14px;
+    .sourceNumberBlock{
+        background-color: black;
+        color:white;
+        font-weight: bold;
+        padding:0px 5px;
+        border-radius: 6px;
+    }
+}
 .sourceCard{
-    width: 100%;
-    margin: 25px 0px;
+    border: 1px solid #E5E5E5;
+    border-radius: 10px;
+    margin-top: 12px;
+    padding: 15px;
     font-size: 13px;
     font-weight: 400;
     line-height: 16px;
-    color: #757575;
-    .searchLine{
-        margin-bottom:10px;
+    .sourceNumberParagraph{
+        margin-bottom: 5px;
+    }
+    .sourceColorBlock{
+        background: linear-gradient(268.88deg, #11F90E -27.27%, #1683FF 94.82%);
+        color:white;
+        padding:0px 7px;
+        border-radius: 2px;
+        font-weight: bold;
+    }
+    .sourceHeading{
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 22px;
+    }
+    .sourcesDescription{
+        font-size: 14px;
+        line-height: 16px;
+        margin:5px 0px;
+    }
+    .sourceName{
+        color: #727272;
+        font-size: 14px;
     }
 }

@@ -6,10 +6,11 @@ background-color: #f5f5f5;
 display: flex;
 .controlColumn{
   background-color: #f5f5f5;
-  width:5%;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content:space-between;
+  padding-left:10px;
   @media screen and (max-width: 1200px)  {
     display: none;
 }
@@ -43,7 +44,9 @@ display: flex;
 }
 .mainSection{
 width:75%;
-margin: 10px 0px;
+max-width: 1500px;
+flex-grow: 1;
+margin: 10px 30px 10px 10px;
 background-color: #fff;
 display: flex;
 flex-direction: column;
@@ -99,12 +102,22 @@ align-items: center;
   width:20%;
   background-color: #fff;
   overflow-y: scroll;
-  margin:10px 30px;
+  margin:10px 30px 10px 0px;
   padding:20px;
   border-radius: 20px;
   box-shadow: 2px 2px 10px 0px #0000001A;
   @media screen and (max-width: 1200px)  {
     display: none;
+}
+.controlRow{
+  display: flex;
+  justify-content: space-between;
+  .exit{
+    cursor: pointer;
+    font-weight: bolder;
+    font-size: 30px;
+    line-height: 10px;
+  }
 }
 }
 .inputBar{
@@ -118,6 +131,7 @@ align-items: center;
     font-size:10px;
     margin:10px 0px;
   }
+
   .sourceHeading{
     font-size: 18px;
     font-weight: 500;
