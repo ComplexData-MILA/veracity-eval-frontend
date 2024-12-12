@@ -29,6 +29,9 @@ const Donut = () => {
             legend: {
               display: false
             },
+            title: {
+              display: false
+            },
             tooltip: {
               enabled: false
             }

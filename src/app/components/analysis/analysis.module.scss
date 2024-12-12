@@ -32,8 +32,6 @@
             }
         }
         .donutSection{
-            display: flex;
-            flex-direction: column;
             @media screen and (max-width: 550px)  {
             margin-bottom: -100px;
             }
@@ -228,6 +226,7 @@
 .feedbackDrawer{
     background-color: #1683FF1A;
     margin-left: 60px;
+    margin-bottom:300px;
     padding:15px;
     border-radius: 12px;
     @media screen and (max-width: 850px)  {
@@ -239,6 +238,12 @@
     }
     .feedbackTextInput{
         width:100%;
+        height:200px;
+        margin:20px 0px;
+        padding:10px;
+        &:focus{
+            outline: 3px solid black;
+        }
     }
     
     .bottomRow{
@@ -251,5 +256,22 @@
             width:80%;
             margin-right:30px;
             }
+        .cancelButton, .submitButton{
+            width: fit-content;
+            padding:10px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cancelButton{
+            border: 2px solid black;
+            color: black;
+            background-color: transparent;
+        }
+        .submitButton{
+            background-color: black;
+            color: white;
+            margin: 0px 10px;
+        }
     }
 }
