@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./analysis.module.scss";
 import Image from "next/image";
 
@@ -10,12 +10,15 @@ type Props = {
 export default function Feedback({ setSourceWindow }: Props) {
 
   const [feedbacklIsOpen, setfeedbacklIsOpen] = useState(false)
-  const [voteSignal, setVoteSignal] = useState(0)
+  //const [voteSignal, setVoteSignal] = useState(0)
+  const drawerRef = useRef<HTMLDivElement>(null)
 
   function vote(voteSignal: number){
-    setVoteSignal(voteSignal)
+    console.log(voteSignal)
     setfeedbacklIsOpen(true)
+    setTimeout(() => drawerRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }
+
   const drawer = 
     (<div className={styles.feedbackDrawer}>
         <h4 className={styles.feedbackDrawerHeading}>Why did you select this feedback?</h4>
@@ -34,11 +37,11 @@ export default function Feedback({ setSourceWindow }: Props) {
             <p>Give us feedback on this answer</p>
             <Image className={styles.feedbackThumb} src="/assets/thumbUp.svg" alt="me" width="20" height="20" onClick={()=> vote(1)} />
             <Image className={styles.feedbackThumb} src="/assets/thumbDown.svg" alt="me" width="20" height="20" onClick={()=> vote(-1)} />
-            <p>{voteSignal}</p>
         </div>
         <p className={styles.interpretedLink} onClick={()=> setSourceWindow(2)}>How Veracity interpreted your prompt</p>
       </div>
       {feedbacklIsOpen ? drawer : <></>}
+      <div ref={drawerRef} />
     </section>
   );
 }

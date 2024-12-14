@@ -11,13 +11,226 @@ import ChatOut from "../chatBubbles/chatOut";
 import { useTranslations } from "next-intl";
 import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
+import { useAuthApi } from "@/app/hooks/useAuthApi";
+import { redirect } from "next/navigation";
 
+const API_URL = 'https://api.veri-fact.ai';
+
+interface Source {
+  id: string;
+  url: string;
+  title: string;
+  snippet: string;
+  credibility_score: number;
+  domain_id?: string;
+}
+
+interface FinalAnalysis {
+  id: string;
+  veracity_score: number;
+  confidence_score: number;
+  analysis_text: string;
+  status: string;
+}
 
 export default function ChatWindow() {
+  
 
   const t = useTranslations('chatpage');
-  const [helpIsOpen, setHelpIsOpen] = useState(false);
-  const [sourceWindow, setSourceWindow] = useState(2);
+  const [helpIsOpen, setHelpIsOpen] = useState<boolean>(false);
+  const [sourceWindow, setSourceWindow] = useState<number>(1);
+  const [claim, setClaim] = useState<string>("");
+  const [isClaimSent, setIsClaimSent] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
+  const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
+  
+  const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
+  
+  /*not integrated*/
+  const [sources, setSources] = useState<Source[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [claimConversationId, setClaimConversationId] = useState<string | null>(null);
+  const [claimId, setClaimId] = useState<string | null>(null);
+  /*end not integrated*/
+
+  if (authLoading) return <div>Loading authentication...</div>;
+  if (authError) return <div>Authentication error: {authError.message}</div>;
+  if (!user) redirect('/');
+
+  /*Obviously these should be extracted to another file...*/
+  const fetchSources = async (analysisId: string) => {
+    try {
+      setIsLoadingSources(true);
+      const sourcesResponse = await fetchWithAuth(
+        `${API_URL}/v1/sources/analysis/${analysisId}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+
+      if (!sourcesResponse.ok) {
+        throw new Error(`Failed to fetch sources: ${await sourcesResponse.text()}`);
+      }
+
+      const sourcesData = await sourcesResponse.json();
+      setSources(sourcesData);
+    } catch (err) {
+      console.error('Error fetching sources:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load sources');
+    } finally {
+      setIsLoadingSources(false);
+    }
+  };
+
+  const verifyClaim = async () => {
+    let eventSource: EventSource | null = null;
+    
+    try {
+      setIsVerifying(true);
+      setFinalAnalysis(null);
+      setSources([]);
+      setError(null);
+      setIsClaimSent(true);
+  
+      const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          claim_text: claim,
+          context: claim
+        })
+      });
+  
+      if (!claimResponse.ok) {
+        throw new Error(`Failed to create claim: ${await claimResponse.text()}`);
+      }
+  
+      const claimData = await claimResponse.json();
+      setClaimId(claimData.id);
+      
+      const tokenResponse = await fetch('/api/auth/token');
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get authentication token');
+      }
+      const { accessToken } = await tokenResponse.json();
+  
+      const streamUrl = `${API_URL}/v1/analysis/claim/${claimData.id}/stream`;
+
+      const urlWithToken = new URL(streamUrl);
+      urlWithToken.searchParams.append('access_token', accessToken);
+      eventSource = new EventSource(urlWithToken.toString(), { withCredentials: true });
+  
+      eventSource.onopen = () => {
+        console.log('EventSource connection established');
+      };
+  
+      eventSource.onmessage = async (event) => {
+        if (event.data === '[DONE]') {
+          eventSource?.close();
+          setIsVerifying(false);
+          return;
+        }
+  
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'error') {
+            throw new Error(data.content);
+          }
+            
+          if (data.type === 'analysis_complete' && data.content?.analysis_id) {
+            await handleAnalysisComplete(data, eventSource);
+          }
+        } catch (err: unknown) {
+          console.error('Error handling stream data:', err);
+          if (err instanceof Error) {
+            setError(err.message);
+          }
+          eventSource?.close();
+          setIsVerifying(false);
+        }
+      };
+  
+      eventSource.onerror = (err) => {
+        console.error('EventSource error:', err);
+        let errorMessage = 'Connection to analysis stream failed. Please try again.';
+        
+        switch (eventSource?.readyState) {
+          case EventSource.CONNECTING:
+            errorMessage = 'Connection failed. Please check your internet connection.';
+            break;
+          case EventSource.CLOSED:
+            errorMessage = 'Connection closed unexpectedly. Please try again.';
+            break;
+        }
+        
+        setError(errorMessage);
+        eventSource?.close();
+        setIsVerifying(false);
+      };
+  
+      return () => {
+        if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+          eventSource.close();
+        }
+      };
+  
+    } catch (err) {
+      console.error('Verification error:', err);
+      setError(err instanceof Error ? err.message : 'Error verifying claim');
+      eventSource?.close();
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+  
+  const handleAnalysisComplete = async (data: {
+    type: 'analysis_complete';
+    content: {
+      analysis_id: string;
+      claim_conversation_id: string;
+      conversation_id: string;
+    }
+  }, eventSource: EventSource | null) => {
+    try {
+      if (data.content.conversation_id) {
+        setConversationId(data.content.conversation_id);
+      }
+      if (data.content.claim_conversation_id) {
+        setClaimConversationId(data.content.claim_conversation_id);
+      }
+  
+      const analysisResponse = await fetchWithAuth(
+        `${API_URL}/v1/analysis/${data.content.analysis_id}`
+      );
+      
+      if (!analysisResponse.ok) {
+        throw new Error(`Failed to fetch final analysis: ${await analysisResponse.text()}`);
+      }
+      
+      const analysisData = await analysisResponse.json();
+      setFinalAnalysis(analysisData);
+  
+      await fetchSources(data.content.analysis_id);
+    } catch (err) {
+      console.error('Error handling analysis completion:', err);
+      setError(err instanceof Error ? err.message : 'Failed to complete analysis');
+    } finally {
+      eventSource?.close();
+      setIsVerifying(false);
+    }
+  };
+  /* end abstract these*/
+
 
   return (
     <div className={styles.mainWrapper}>
@@ -33,18 +246,34 @@ export default function ChatWindow() {
     {helpIsOpen === true ? <HelpWindow />:""}
       <div className={styles.mainChatColumn}>
         <ChatIn text={t('outputOne')}/>
-        <ChatOut text="Correlation implies causation" />
+       {isClaimSent?
+       <>
+        <ChatOut text={claim} />
+        {isVerifying? <ChatIn text={'...'} /> : 
+        <>
         <ChatIn text={t('outputTwo')} />
         <Analysis setSourceWindow={setSourceWindow} />
+        </>
+      }
+      {/*dirty print*/}
+        {finalAnalysis && <p>{finalAnalysis.analysis_text}</p>}
+        </>
+        : ''}
+        {error? <p>{error}</p> : ""}
+        {sources? <p>{sources.toString()}</p> : ""}
+        {conversationId? <p>{conversationId}</p> : ""}
+        {claimId? <p>{claimId}</p> : ""}
+        {claimConversationId? <p>{claimConversationId}</p> : ""}
+
       </div>
     </div>
     <div className={styles.inputBar}>
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
-      <Input />
+      <Input setClaim={setClaim} verifyClaim={verifyClaim} />
     </div>
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
-  <SourceWindow sourceWindow={sourceWindow} setSourceWindow={setSourceWindow} />
+  <SourceWindow sourceWindow={sourceWindow} setSourceWindow={setSourceWindow} isLoadingSources={isLoadingSources} />
   </div>
   );
 }
