@@ -5,10 +5,11 @@ import SourceCard from "../sourceCard";
 
 type Props = {
   sourceWindow: number;
+  isLoadingSources: boolean;
   setSourceWindow: (arg0: number) => void;
 }
 
-export default function SourceWindow({ sourceWindow, setSourceWindow }: Props) {
+export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources }: Props) {
 
   if (sourceWindow===1){
   return (
@@ -17,9 +18,13 @@ export default function SourceWindow({ sourceWindow, setSourceWindow }: Props) {
             <h2 className={styles.sourceHeading}>Sources</h2>
             <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
           </div>
+          {isLoadingSources? <p>loading...</p>: 
+          <>
           <SourceCard />
           <SourceCard />
           <SourceCard />
+          </>
+          }
         </section>
   );
   }
