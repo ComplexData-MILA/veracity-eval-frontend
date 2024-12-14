@@ -1,6 +1,8 @@
 
+import { useUser } from "@auth0/nextjs-auth0/client";
 import styles from "../chatBubbles.module.scss";
-import Image from 'next/image';
+
+
 
 
 type Props = {
@@ -8,13 +10,14 @@ type Props = {
 };
 
 export default function ChatOut(props: Props) {
+  const { user } = useUser();
 
   return (
       <div className={styles.chatRowReverse}>
         <div className={styles.chatBubbleOut}>
           <p>{props.text}</p>
         </div>
-        <Image src={'/assets/profile.png'} alt='veri-fact logo' height={40} width={40} />
+        <img src={user?user.picture:"/assets/profile.svg"} alt="me" width="40" height="40" className={styles.profilePic}/>
       </div>
   );
 }
