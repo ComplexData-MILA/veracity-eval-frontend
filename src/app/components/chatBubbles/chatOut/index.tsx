@@ -1,4 +1,3 @@
-
 import { useUser } from "@auth0/nextjs-auth0/client";
 import styles from "../chatBubbles.module.scss";
 
@@ -17,7 +16,8 @@ export default function ChatOut(props: Props) {
         <div className={styles.chatBubbleOut}>
           <p>{props.text}</p>
         </div>
-        <img src={user?user.picture:"/assets/profile.svg"} alt="me" width="40" height="40" className={styles.profilePic}/>
+        {//@ts-expect-error
+        }<img src={user?user.picture:"/assets/profile.svg"} alt="me" width="40" height="40" />
       </div>
   );
 }
