@@ -13,25 +13,9 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
+import { FinalAnalysis, Source } from "@/app/types";
 
 const API_URL = 'https://api.veri-fact.ai';
-
-interface Source {
-  id: string;
-  url: string;
-  title: string;
-  snippet: string;
-  credibility_score: number;
-  domain_id?: string;
-}
-
-interface FinalAnalysis {
-  id: string;
-  veracity_score: number;
-  confidence_score: number;
-  analysis_text: string;
-  status: string;
-}
 
 export default function ChatWindow() {
   
@@ -246,7 +230,7 @@ export default function ChatWindow() {
     {helpIsOpen === true ? <HelpWindow />:""}
       <div className={styles.mainChatColumn}>
         <ChatIn text={t('outputOne')}/>
-       {isClaimSent?
+       {isClaimSent ?
        <>
         <ChatOut text={claim} />
         {isVerifying? <ChatIn text={'...'} /> : 
@@ -256,7 +240,14 @@ export default function ChatWindow() {
         </>
       }
       {/*dirty print*/}
-        {finalAnalysis && <p>{finalAnalysis.analysis_text}</p>}
+        {finalAnalysis && 
+        <>
+        <p>{finalAnalysis.id}</p>
+        <p>{finalAnalysis.status}</p>
+        <p>{finalAnalysis.analysis_text}</p>
+        <p>{finalAnalysis.confidence_score}</p>
+        <p>{finalAnalysis.veracity_score}</p>
+        </>}
         </>
         : ''}
         {error? <p>{error}</p> : ""}
