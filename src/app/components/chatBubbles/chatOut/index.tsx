@@ -16,7 +16,7 @@ export default function ChatOut(props: Props) {
         <div className={styles.chatBubbleOut}>
           <p>{props.text}</p>
         </div>
-        {//@ts-expect-error
+        {//@ts-expect-error user void case not handled yet
         }<img src={user?user.picture:"/assets/profile.svg"} alt="me" width="40" height="40" />
       </div>
   );

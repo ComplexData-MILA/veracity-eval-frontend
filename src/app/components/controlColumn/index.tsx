@@ -19,7 +19,7 @@ export default function ControlColumn() {
           <div className={styles.tabSection}>
             <AddTab />
           </div>
-          <div className={styles.profileWrapper}>{//@ts-expect-error
+          <div className={styles.profileWrapper}>{//@ts-expect-error user void case not handled yet
           }<img src={user?user.picture:"/assets/profile.svg"} alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/><p>{user?user.name.split(" ")[0]:""}</p>
           </div>
           {accountControlIsOpen === true ? <UserModal setAccountControlIsOpen={setAccountControlIsOpen} setActiveModal={setActiveModal} /> : ""}
