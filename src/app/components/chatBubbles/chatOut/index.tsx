@@ -1,5 +1,5 @@
 import styles from "../chatBubbles.module.scss";
-import { getUserPhoto } from "@/app/hooks/getUserPhoto";
+import { GetUserPhoto } from "@/services/getUserPhoto";
 
 
 
@@ -15,7 +15,7 @@ export default function ChatOut(props: Props) {
         <div className={styles.chatBubbleOut}>
           <p>{props.text}</p>
         </div>
-        <img className={styles.profilePic} src={getUserPhoto()} alt="me" width="40" height="40" />
+        <img className={styles.profilePic} src={GetUserPhoto()} alt="me" width="40" height="40" />
       </div>
   );
 }

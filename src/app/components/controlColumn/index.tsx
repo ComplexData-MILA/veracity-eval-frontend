@@ -6,7 +6,7 @@ import { useState } from "react";
 import UserModal from "../modals/userModal";
 import PreferencesModal from "../modals/preferences";
 import ReportModal from "../modals/report";
-import { getUserFirstName, getUserPhoto } from "@/app/hooks/getUserPhoto";
+import { GetUserFirstName, GetUserPhoto } from "@/services/getUserPhoto";
 
 
 export default function ControlColumn() {
@@ -19,8 +19,8 @@ export default function ControlColumn() {
             <AddTab />
           </div>
           <div className={styles.profileWrapper}>
-            <img src={getUserPhoto()} alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/>
-            <p>{getUserFirstName()}</p>
+            <img src={GetUserPhoto()} alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/>
+            <p>{GetUserFirstName()}</p>
           </div>
           {accountControlIsOpen === true ? <UserModal setAccountControlIsOpen={setAccountControlIsOpen} setActiveModal={setActiveModal} /> : ""}
           {activeModal === 1 ? <PreferencesModal setActiveModal={setActiveModal} />: ""}

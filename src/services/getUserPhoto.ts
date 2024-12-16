@@ -1,7 +1,7 @@
 "use client"
 import { useUser } from '@auth0/nextjs-auth0/client';
 
-export function getUserPhoto() {
+export function GetUserPhoto() {
   const { user } = useUser();
     if (user && user.picture !== null){
       return user.picture
@@ -9,7 +9,7 @@ export function getUserPhoto() {
     else return "/assets/profile.svg"
 }
 
-export function getUserFirstName() {
+export function GetUserFirstName() {
   const { user } = useUser();
   if (user && user.name !== undefined && user.name !== null){
     return user.name.split(" ")[0]
