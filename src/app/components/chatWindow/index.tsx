@@ -20,26 +20,31 @@ const API_URL = 'https://api.veri-fact.ai';
 export default function ChatWindow() {
   const t = useTranslations('chatpage');
   const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
-  
+  /*UI window states*/
   const [helpIsOpen, setHelpIsOpen] = useState<boolean>(false);
   const [sourceWindow, setSourceWindow] = useState<number>(1);
+  /*input state*/
   const [claim, setClaim] = useState<string>("");
-  const [analysisStream, setAnalysisStream] = useState<AnalysisStreamEvent[]>([]);
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
-  const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  /*not integrated*/
+  /*verification states*/
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [analysisStream, setAnalysisStream] = useState<AnalysisStreamEvent[]>([]);
+  const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
+  const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
   const [sources, setSources] = useState<Source[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  /*not integrated MAY ONLY NEED FOR CONTINUING CONVERSATION \/*/
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [claimConversationId, setClaimConversationId] = useState<string | null>(null);
   const [claimId, setClaimId] = useState<string | null>(null);
   /*end not integrated*/
 
+  /*check auth0 user, send back to homepage if user is not logged in*/
   if (authLoading) return <div>Loading authentication...</div>;
   if (authError) return <div>Authentication error: {authError.message}</div>;
   if (!user) redirect('/');
+
 
   /*Obviously these should be extracted to another file...*/
   const fetchSources = async (analysisId: string) => {
@@ -253,7 +258,10 @@ export default function ChatWindow() {
     </div>
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
-  <SourceWindow sourceWindow={sourceWindow} setSourceWindow={setSourceWindow} isLoadingSources={isLoadingSources} />
+  <SourceWindow sourceWindow={sourceWindow} 
+                setSourceWindow={setSourceWindow}  
+                isLoadingSources={isLoadingSources}
+                sources={sources} />
   </div>
   );
 }

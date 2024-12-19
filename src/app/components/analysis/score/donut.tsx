@@ -39,7 +39,7 @@ const Donut = ({reliability}: Props) => {
           circumference: 180,
           cutout: "90%",
           maintainAspectRatio: true,
-          responsive: true
+          responsive: false
         }}
       />
     <div className={styles.arcText}>

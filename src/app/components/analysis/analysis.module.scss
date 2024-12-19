@@ -32,17 +32,20 @@
             }
         }
         .donutSection{
+            margin-top:50px;
             @media screen and (max-width: 550px)  {
-            margin-bottom: -100px;
+            canvas{
+                margin: auto;
+            }
+            margin-bottom: -50px;
             }
         }
         .scoreMain{
             display: flex;
-            margin:25px 0px;
             position: relative;
             .arcText{
                 position: relative;
-                bottom:150px;
+                bottom:70px;
                 text-align: center;
                 .reliabilityLabel{
                 font-size: 12px;
@@ -57,11 +60,9 @@
                 }
             }
             .scoreText{
-                width: 80%;
                 margin-left:20px;
-                margin-top:20px;
-                margin-bottom: 20px;
                 margin-top:50px;
+                margin-bottom: 20px;
                 .firstHeading{
                 font-size: 16px;
                 font-weight: 500;
@@ -179,6 +180,9 @@
             font-weight: 500;
             line-height: 22px;
             color:#636363;
+            .sourceSummaryParagraph{
+                margin-bottom:8px;
+            }
             .readMore{
                 font-weight: bold;
                 text-decoration: underline;

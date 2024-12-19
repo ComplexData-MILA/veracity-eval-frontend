@@ -1,4 +1,5 @@
 "use client"
+import { Source } from "@/app/types";
 import styles from "../../chat/page.module.scss";
 import SearchCard from "../searchCard";
 import SourceCard from "../sourceCard";
@@ -7,9 +8,14 @@ type Props = {
   sourceWindow: number;
   isLoadingSources: boolean;
   setSourceWindow: (arg0: number) => void;
+  sources: Source[]
 }
 
-export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources }: Props) {
+export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources, sources }: Props) {
+
+  const sourceData = sources.map((source, index) =>
+  <SourceCard title={source.title} snippet={source.snippet} number={index+1} key={source.id} />
+  );
 
   if (sourceWindow===1){
   return (
@@ -20,9 +26,7 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
           </div>
           {isLoadingSources? <p>loading...</p>: 
           <>
-          <SourceCard />
-          <SourceCard />
-          <SourceCard />
+          {sourceData}
           </>
           }
         </section>

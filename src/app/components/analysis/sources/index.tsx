@@ -23,8 +23,7 @@ export default function Sources({ setSourceWindow, sources }: Props) {
         <p className={styles.subheading}>Indicates how confident we are in its reliability.</p>
         <BarGraph numberOfSources={sources.length} averageScore={averageCredibilityScore(sources)}  />
         <div className={styles.sourceSummary}>
-          <p>Source 1: {JSON.stringify(sources[0]?.snippet)}</p>
-          <p>Source 2: {JSON.stringify(sources[1]?.snippet)}</p>
+          <p className={styles.sourceSummaryParagraph}>Source 1: {JSON.stringify(sources[0]?.snippet)}</p>
           <p className={styles.readMore} onClick={()=> setSourceWindow(1)}>Show all sources</p>
         </div>
       </div>
