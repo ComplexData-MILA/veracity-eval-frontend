@@ -1,12 +1,12 @@
 "use client"
 
-import Image from "next/image";
 import AddTab from "../../components/addTab";
 import styles from "../../chat/page.module.scss";
 import { useState } from "react";
 import UserModal from "../modals/userModal";
 import PreferencesModal from "../modals/preferences";
 import ReportModal from "../modals/report";
+import { GetUserFirstName, GetUserPhoto } from "@/services/getUserPhoto";
 
 
 export default function ControlColumn() {
@@ -19,8 +19,8 @@ export default function ControlColumn() {
             <AddTab />
           </div>
           <div className={styles.profileWrapper}>
-           <Image src="/assets/profile.png" alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/>
-           <p>David</p>
+            <img src={GetUserPhoto()} alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/>
+            <p>{GetUserFirstName()}</p>
           </div>
           {accountControlIsOpen === true ? <UserModal setAccountControlIsOpen={setAccountControlIsOpen} setActiveModal={setActiveModal} /> : ""}
           {activeModal === 1 ? <PreferencesModal setActiveModal={setActiveModal} />: ""}

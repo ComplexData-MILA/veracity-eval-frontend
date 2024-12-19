@@ -1,6 +1,7 @@
-
 import styles from "../chatBubbles.module.scss";
-import Image from 'next/image';
+import { GetUserPhoto } from "@/services/getUserPhoto";
+
+
 
 
 type Props = {
@@ -14,7 +15,7 @@ export default function ChatOut(props: Props) {
         <div className={styles.chatBubbleOut}>
           <p>{props.text}</p>
         </div>
-        <Image src={'/assets/profile.png'} alt='veri-fact logo' height={40} width={40} />
+        <img className={styles.profilePic} src={GetUserPhoto()} alt="me" width="40" height="40" />
       </div>
   );
 }
