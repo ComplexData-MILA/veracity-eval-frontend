@@ -1,8 +1,6 @@
 "use client"
 import styles from "../analysis.module.scss";
 
-const data = 59
-
 type Props = {
   numberOfSources: number;
   averageScore: number;
