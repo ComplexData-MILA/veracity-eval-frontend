@@ -13,27 +13,25 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
-import { FinalAnalysis, Source } from "@/app/types";
+import { FinalAnalysis, Source, AnalysisStreamEvent } from "@/app/types";
 
 const API_URL = 'https://api.veri-fact.ai';
 
 export default function ChatWindow() {
-  
-
   const t = useTranslations('chatpage');
+  const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
+  
   const [helpIsOpen, setHelpIsOpen] = useState<boolean>(false);
   const [sourceWindow, setSourceWindow] = useState<number>(1);
   const [claim, setClaim] = useState<string>("");
-  const [isClaimSent, setIsClaimSent] = useState<boolean>(false);
+  const [analysisStream, setAnalysisStream] = useState<AnalysisStreamEvent[]>([]);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
-  
-  const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
-  
+  const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   /*not integrated*/
   const [sources, setSources] = useState<Source[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [claimConversationId, setClaimConversationId] = useState<string | null>(null);
   const [claimId, setClaimId] = useState<string | null>(null);
@@ -77,10 +75,11 @@ export default function ChatWindow() {
     
     try {
       setIsVerifying(true);
+      setClaimIsSent(true);
+      setAnalysisStream([]);
       setFinalAnalysis(null);
       setSources([]);
       setError(null);
-      setIsClaimSent(true);
   
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
@@ -130,7 +129,9 @@ export default function ChatWindow() {
           if (data.type === 'error') {
             throw new Error(data.content);
           }
-            
+          
+          setAnalysisStream(prev => [...prev, data]);
+  
           if (data.type === 'analysis_complete' && data.content?.analysis_id) {
             await handleAnalysisComplete(data, eventSource);
           }
@@ -230,32 +231,20 @@ export default function ChatWindow() {
     {helpIsOpen === true ? <HelpWindow />:""}
       <div className={styles.mainChatColumn}>
         <ChatIn text={t('outputOne')}/>
-       {isClaimSent ?
-       <>
-        <ChatOut text={claim} />
-        {isVerifying? <ChatIn text={'...'} /> : 
+        {isVerifying? <ChatIn text="..."/> : ""}
+        {claimIsSent === true ? <ChatOut text={claim} /> : <></>}
+        {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
-        <Analysis setSourceWindow={setSourceWindow} />
-        </>
-      }
+        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} /></>
+        :<></>}
+      {error? <p>{error}</p> : ""}
       {/*dirty print*/}
-        {finalAnalysis && 
-        <>
-        <p>{finalAnalysis.id}</p>
-        <p>{finalAnalysis.status}</p>
-        <p>{finalAnalysis.analysis_text}</p>
-        <p>{finalAnalysis.confidence_score}</p>
-        <p>{finalAnalysis.veracity_score}</p>
-        </>}
-        </>
-        : ''}
-        {error? <p>{error}</p> : ""}
-        {sources? <p>{sources.toString()}</p> : ""}
-        {conversationId? <p>{conversationId}</p> : ""}
+        {analysisStream && <p>{analysisStream.toString()}</p>}
         {claimId? <p>{claimId}</p> : ""}
+        {sources.length > 0? <p>{JSON.stringify(sources)}</p> : ""}
+        {conversationId? <p>{conversationId}</p> : ""}
         {claimConversationId? <p>{claimConversationId}</p> : ""}
-
       </div>
     </div>
     <div className={styles.inputBar}>

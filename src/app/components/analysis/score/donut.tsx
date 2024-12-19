@@ -4,26 +4,25 @@ import styles from "../analysis.module.scss";
 
 Chart.register(ArcElement);
 
-
-const data = {
-  datasets: [
-    {
-      data: [55, 45],
-      backgroundColor: [
-        "#1683FF",
-        "#ffffff",
-      ],
-      display: false,
-      
-    }
-  ],
+type Props = {
+  reliability: number;
 };
 
-const Donut = () => {
+const Donut = ({reliability}: Props) => {
   return (
     <div className={styles.donutSection}>
       <Doughnut
-        data={data}
+        data={{
+          datasets: [
+            {
+              data: [reliability, (100-reliability)],
+              backgroundColor: [
+                "#1683FF",
+                "#ffffff",
+              ]
+            }
+          ],
+        }}
         options={{
           plugins: {
             legend: {
@@ -45,7 +44,7 @@ const Donut = () => {
       />
     <div className={styles.arcText}>
         <h2 className={styles.reliabilityLabel}>Reliability</h2>
-        <h2 className={styles.reliabilityScoreLarge}>{`${data.datasets[0].data[0].toString()}%`}</h2>
+        <h2 className={styles.reliabilityScoreLarge}>{`${reliability.toString()}%`}</h2>
     </div>
     </div>
   );
