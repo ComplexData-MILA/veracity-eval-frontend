@@ -13,7 +13,7 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
-import { FinalAnalysis, Source, AnalysisStreamEvent } from "@/app/types";
+import { FinalAnalysis, Source } from "@/app/types";
 
 const API_URL = 'https://api.veri-fact.ai';
 
@@ -27,19 +27,10 @@ export default function ChatWindow() {
   const [claim, setClaim] = useState<string>("");
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
   /*verification states*/
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [analysisStream, setAnalysisStream] = useState<AnalysisStreamEvent[]>([]);
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
   const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
   const [sources, setSources] = useState<Source[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  /*not integrated MAY ONLY NEED FOR CONTINUING CONVERSATION \/*/
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [claimConversationId, setClaimConversationId] = useState<string | null>(null);
-  const [claimId, setClaimId] = useState<string | null>(null);
-  /*end not integrated*/
-
   /*check auth0 user, send back to homepage if user is not logged in*/
   if (authLoading) return <div>Loading authentication...</div>;
   if (authError) return <div>Authentication error: {authError.message}</div>;
@@ -79,9 +70,7 @@ export default function ChatWindow() {
     let eventSource: EventSource | null = null;
     
     try {
-      setIsVerifying(true);
       setClaimIsSent(true);
-      setAnalysisStream([]);
       setFinalAnalysis(null);
       setSources([]);
       setError(null);
@@ -103,7 +92,6 @@ export default function ChatWindow() {
       }
   
       const claimData = await claimResponse.json();
-      setClaimId(claimData.id);
       
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
@@ -124,7 +112,6 @@ export default function ChatWindow() {
       eventSource.onmessage = async (event) => {
         if (event.data === '[DONE]') {
           eventSource?.close();
-          setIsVerifying(false);
           return;
         }
   
@@ -135,7 +122,6 @@ export default function ChatWindow() {
             throw new Error(data.content);
           }
           
-          setAnalysisStream(prev => [...prev, data]);
   
           if (data.type === 'analysis_complete' && data.content?.analysis_id) {
             await handleAnalysisComplete(data, eventSource);
@@ -146,7 +132,6 @@ export default function ChatWindow() {
             setError(err.message);
           }
           eventSource?.close();
-          setIsVerifying(false);
         }
       };
   
@@ -165,7 +150,6 @@ export default function ChatWindow() {
         
         setError(errorMessage);
         eventSource?.close();
-        setIsVerifying(false);
       };
   
       return () => {
@@ -178,8 +162,6 @@ export default function ChatWindow() {
       console.error('Verification error:', err);
       setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
-    } finally {
-      setIsVerifying(false);
     }
   };
   
@@ -192,13 +174,6 @@ export default function ChatWindow() {
     }
   }, eventSource: EventSource | null) => {
     try {
-      if (data.content.conversation_id) {
-        setConversationId(data.content.conversation_id);
-      }
-      if (data.content.claim_conversation_id) {
-        setClaimConversationId(data.content.claim_conversation_id);
-      }
-  
       const analysisResponse = await fetchWithAuth(
         `${API_URL}/v1/analysis/${data.content.analysis_id}`
       );
@@ -216,7 +191,6 @@ export default function ChatWindow() {
       setError(err instanceof Error ? err.message : 'Failed to complete analysis');
     } finally {
       eventSource?.close();
-      setIsVerifying(false);
     }
   };
   /* end abstract these*/
@@ -236,20 +210,14 @@ export default function ChatWindow() {
     {helpIsOpen === true ? <HelpWindow />:""}
       <div className={styles.mainChatColumn}>
         <ChatIn text={t('outputOne')}/>
-        {isVerifying? <ChatIn text="..."/> : ""}
         {claimIsSent === true ? <ChatOut text={claim} /> : <></>}
+        {claimIsSent && !finalAnalysis ? <ChatIn text="..."/> : ""}
         {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
         <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} /></>
         :<></>}
       {error? <p>{error}</p> : ""}
-      {/*dirty print*/}
-        {analysisStream && <p>{analysisStream.toString()}</p>}
-        {claimId? <p>{claimId}</p> : ""}
-        {sources.length > 0? <p>{JSON.stringify(sources)}</p> : ""}
-        {conversationId? <p>{conversationId}</p> : ""}
-        {claimConversationId? <p>{claimConversationId}</p> : ""}
       </div>
     </div>
     <div className={styles.inputBar}>

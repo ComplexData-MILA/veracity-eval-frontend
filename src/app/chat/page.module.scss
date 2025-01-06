@@ -97,7 +97,7 @@ box-shadow: 2px 2px 10px 0px #0000001A;
   height: 100%;
   padding:20px;
   display: flex;
-  overflow-y: scroll;
+  overflow-y: auto;
   @media screen and (max-width: 1200px)  {
     padding-left: 0px;
 }
@@ -109,7 +109,7 @@ box-shadow: 2px 2px 10px 0px #0000001A;
 .sourceInspectColumn{
   width:20%;
   background-color: #fff;
-  overflow-y: scroll;
+  overflow-y: auto;
   margin:10px 30px 10px 0px;
   padding:20px;
   border-radius: 20px;
