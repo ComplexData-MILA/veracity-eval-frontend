@@ -222,7 +222,7 @@ export default function ChatWindow() {
     </div>
     <div className={styles.inputBar}>
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
-      <Input setClaim={setClaim} verifyClaim={verifyClaim} />
+      <Input setClaim={setClaim} verifyClaim={verifyClaim} claim={claim} />
     </div>
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
