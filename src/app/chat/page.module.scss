@@ -87,7 +87,7 @@ box-shadow: 2px 2px 10px 0px #0000001A;
   display: flex;
   align-items: center;
   /*TEMP: hide this until the modal is built or link is decided*/
-  visibility: hidden;
+  display: none;
 .learnMoreText{
   margin:0px 5px;
 }
@@ -132,6 +132,13 @@ box-shadow: 2px 2px 10px 0px #0000001A;
   display: flex;
   justify-content: space-between;
   border-radius: 0px 0px 20px 20px;
+  @media screen and (max-width: 850px)  {
+    display: block;
+    width: 100%;
+    .inputWrapper{
+      margin-left: 5vw;
+    }
+  }
     }
   }
   .disclaimer{

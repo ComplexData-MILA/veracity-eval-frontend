@@ -60,9 +60,10 @@
                 }
             }
             .scoreText{
-                margin-left:20px;
-                margin-top:50px;
-                margin-bottom: 20px;
+                margin: 50px 20px;
+                @media screen and (max-width: 550px)  {
+                margin-left:0px;
+                }
                 .firstHeading{
                 font-size: 16px;
                 font-weight: 500;
@@ -253,11 +254,16 @@
         display: flex;
         .feedbackDisclaimer{
             font-size: 12px;
+            line-height: 16px;
             font-weight: 500;
             line-height: 16px;
             color:#9B9B9B;
             width:80%;
             margin-right:30px;
+            @media screen and (max-width: 550px)  {
+            font-size: 8px;
+            line-height: 8px;
+            }
             }
         .cancelButton, .submitButton{
             width: fit-content;
