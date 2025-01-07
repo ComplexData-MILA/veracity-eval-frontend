@@ -13,7 +13,7 @@ type Props = {
 
 export default function Input({setClaim, verifyClaim, claim}: Props) {
   const t = useTranslations('chatpage');
-  let [inputText, setInputText] = useState<string>("");
+  const [inputText, setInputText] = useState<string>("");
 
   const handleChange = (newText: string) => {
     setInputText(newText)
