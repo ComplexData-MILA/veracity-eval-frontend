@@ -11,7 +11,7 @@
         background-color: white;
         padding:30px;
         border-radius: 20px;
-        .linkList, .linkListLast{
+        .linkList{
         list-style: none;
         padding:10px;
         text-align: left;
@@ -19,11 +19,12 @@
         li{
             margin-left: -10px;
             margin-bottom:5px;
+            padding: 10px 0px;
             cursor: pointer;
         }
         }
-        .linkList{
-        border-bottom: 1px solid black;
+        .underline{
+        border-bottom: 1px solid #E5E5E588;
         }
         
     }

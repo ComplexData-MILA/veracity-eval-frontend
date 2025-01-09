@@ -16,3 +16,11 @@ export function GetUserFirstName() {
    }
    else {return ""}
 }
+
+export function GetUserFullName() {
+  const { user } = useUser();
+  if (user && user.name !== undefined && user.name !== null){
+    return user.name
+   }
+   else {return ""}
+}

@@ -10,7 +10,7 @@
     .modal{
         background-color: white;
         width: 100%;
-        height: 500px;
+        height: 400px;
         max-width: 800px;
         border-radius: 20px;
         padding: 50px;
@@ -26,16 +26,17 @@
         font-family: 'inter', sans-serif;
         font-size: 24px;
         font-weight: 600;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
         }
         .modalRow{
             display: flex;
             justify-content: space-between;
-            margin: 25px 0px;
+            margin: 30px 0px;
             .rowTitle{
                 font-family: 'inter', sans-serif;
                 font-size: 18px;
                 font-weight: 600;
+                margin-bottom: 3px;
             }
             .rowDescription, .timeZone{
                 font-family: 'inter', sans-serif;
@@ -45,6 +46,12 @@
             }
             .timeZone{
                 padding-top:20px;
+            }
+            .langSelect{
+                margin-top:15px;
+                padding:10px;
+                border:2px solid #9B9B9B;
+                border-radius: 8px;
             }
         }
         .problemInput{

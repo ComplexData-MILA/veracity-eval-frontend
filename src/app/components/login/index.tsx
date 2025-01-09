@@ -3,6 +3,7 @@
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import styles from "./login.module.scss";
+import Link from 'next/link';
 
 export default function LoginButton(text: {label:string}) {
   const { user, error, isLoading } = useUser();
@@ -20,9 +21,12 @@ export default function LoginButton(text: {label:string}) {
     return (<div className={styles.userBlock}>
       
     <p className={styles.userName}>{user.name}</p>
-      <button onClick={handleAuth('logout')}>
+    <div>
+      <button className={styles.logout} onClick={handleAuth('logout')}>
         Logout
       </button>
+      <Link className={styles.continue} href="/chat">Continue</Link>
+      </div>
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { setUserLocale } from "@/services/locale";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Locale } from "@/i18n/config";
+import { GetUserFullName } from "@/services/getUserPhoto";
 
 
 type Props = {
@@ -31,14 +32,10 @@ const ReportModal = ({ setActiveModal }: Props) => {
           <h2 className={styles.modalTitle}>{t('preferences')}</h2>
           <div className={styles.modalRow}>
             <div>
-              <h3 className={styles.rowTitle}>{t('language')}</h3>
-              <p className={styles.rowDescription}>{t('languageDescription')}</p>
+                <h3 className={styles.rowTitle}>User Name</h3>
+                <p className={styles.rowDescription}>{GetUserFullName()}</p>
+              </div>
             </div>
-            <select name="language" id="language-select" value={lang} onChange={(e)=>handleChange(e.target.value)}>\
-            <option value="en">English</option>
-            <option value="fr">Francais</option>
-            </select>
-          </div>
           <div className={styles.modalRow}>
             <div>
                 <h3 className={styles.rowTitle}>Time Zone</h3>
@@ -46,9 +43,17 @@ const ReportModal = ({ setActiveModal }: Props) => {
               </div>
               <p className={styles.timeZone}>{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
             </div>
-            <button onClick={()=> setActiveModal(0)}>OK</button>
+            <div className={styles.modalRow}>
+            <div>
+              <h3 className={styles.rowTitle}>{t('language')}</h3>
+              <p className={styles.rowDescription}>{t('languageDescription')}</p>
+            </div>
+            <select className={styles.langSelect} name="language" id="language-select" value={lang} onChange={(e)=>handleChange(e.target.value)}>
+            <option value="en">English</option>
+            <option value="fr">Francais</option>
+            </select>
           </div>
-          
+        </div>
       </div>
   );
 }
