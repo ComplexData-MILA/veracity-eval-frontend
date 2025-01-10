@@ -16,12 +16,7 @@ const PreferencesModal = ({ setActiveModal }: Props) => {
           <div className={styles.exitWrapper} onClick={()=> setActiveModal(0)}>
           <Image src="/assets/close.svg" alt="close" width="20" height="20" />
           </div>
-          <h2 className={styles.modalTitle}>Report a problem</h2>
-          <textarea className={styles.problemInput} placeholder="Please include as much info as possible..." />
-          <div className={styles.problemButtonRow}>
-            <button className={styles.problemCancel}>Cancel</button>
-            <button className={styles.problemSubmit}>Submit</button>
-          </div>
+          <iframe className={styles.problemIframe} src="https://forms.gle/qfEzuEekeqZ9GQoq9" width="100%" height="300" />
         </div>
       </div>
   );

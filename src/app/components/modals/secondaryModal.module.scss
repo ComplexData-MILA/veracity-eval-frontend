@@ -54,30 +54,9 @@
                 border-radius: 8px;
             }
         }
-        .problemInput{
-            width: 100%;
-            min-height: 250px;
-            padding: 20px;
-            background: #D9D9D9;
-        }
-        .problemButtonRow{
-            display: flex;
-            justify-content: end;
-            .problemCancel, .problemSubmit{
-                width:120px;
-                height: 40px;
-                margin-top:10px;
-                margin-left:20px;
-                font-family: 'inter', sans-serif;
-                font-weight: 600;
-                border: 1px solid #1683ff;
-            }
-            .problemCancel{
-                background: transparent;
-            }
-            .problemSubmit{
-                background: #1683ff;
-            }
-        }
+       .problemIframe{
+        border: 0;
+        border-radius:6px;
+       }
     }
 }
