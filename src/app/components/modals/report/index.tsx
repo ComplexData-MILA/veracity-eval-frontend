@@ -16,7 +16,7 @@ const PreferencesModal = ({ setActiveModal }: Props) => {
           <div className={styles.exitWrapper} onClick={()=> setActiveModal(0)}>
           <Image src="/assets/close.svg" alt="close" width="20" height="20" />
           </div>
-          <iframe className={styles.problemIframe} src="https://forms.gle/qfEzuEekeqZ9GQoq9" width="100%" height="300" />
+          <iframe className={styles.problemIframe} src="https://forms.gle/qfEzuEekeqZ9GQoq9" width="100%" height="450" />
         </div>
       </div>
   );
