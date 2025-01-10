@@ -25,7 +25,7 @@ const ReportModal = ({ setActiveModal }: Props) => {
 
   return (
       <div className={styles.tintedWrapper} onClick={()=> setActiveModal(0)}>
-        <div className={styles.modal} style={{height:"400px"}} onClick={e => e.stopPropagation()}>
+        <div className={styles.modal} style={{height:"350px"}} onClick={e => e.stopPropagation()}>
           <div className={styles.exitWrapper} onClick={()=> setActiveModal(0)}>
           <Image src="/assets/close.svg" alt="close" width="20" height="20" />
           </div>
