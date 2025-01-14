@@ -206,6 +206,8 @@
         text-underline-position: from-font;
         text-decoration-skip-ink: auto;
         margin:20px;
+        /*TEMP until we implement the interpretation step on the backend*/
+        visibility: hidden;
     }
 }
 .feedbackWrapper{
