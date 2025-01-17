@@ -18,6 +18,7 @@ export default function Feedback({ setSourceWindow }: Props) {
   const [activeLabels, setActiveLabels] = useState(initArray);
   /*UI drawer states*/
   const [feedbackIsOpen, setfeedbackIsOpen] = useState(false);
+  const [feedbackIsSubmitted, setfeedbackIsSubmitted] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
 
@@ -27,16 +28,23 @@ export default function Feedback({ setSourceWindow }: Props) {
     setTimeout(() => drawerRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }
 
-  function cancel(){
-    setVoteSignal(0);
-    setfeedbackIsOpen(false);
-  }
-
   function handleLabelToggle(index: number){
     const tempArr = [...activeLabels];
     tempArr[index] = !tempArr[index];
     setActiveLabels(tempArr);
   }
+
+  function cancel(){
+    setVoteSignal(0);
+    setActiveLabels(Array(18).fill(false));
+    setfeedbackIsOpen(false);
+  }
+
+  function submit(){
+    setfeedbackIsOpen(false);
+    setfeedbackIsSubmitted(true);
+  }
+  
 
   /*Functions returning chunks of JSX depending on voteSignal*/
   function fillStars(voteSignal:number){
@@ -103,11 +111,12 @@ export default function Feedback({ setSourceWindow }: Props) {
         <div className={styles.bottomRow}>
           <p className={styles.feedbackDisclaimer}>Veracity my use account and system data to understand your feedback and improve our quality, You can read more details in our <Link className={styles.privacyLink} href="/privacy">Privacy Policy & Terms of service.</Link></p>
           <button className={styles.cancelButton} onClick={()=> cancel()}>Cancel</button>
-          <button className={styles.submitButton} onClick={()=> setfeedbackIsOpen(false)} disabled={activeLabels.every((val) => !Boolean(val))}>Submit</button>
+          <button className={styles.submitButton} onClick={()=> submit()} disabled={activeLabels.every((val) => !Boolean(val))}>Submit</button>
         </div>
       </div>);
 
   return (
+    feedbackIsSubmitted === true ? <p className={styles.thanksWrapper}><span className={styles.thanks}>Thank you for your feedback</span></p> :
     <section>
       <div className={styles.feedbackRow}>
         <div className={styles.feedbackWrapper}>
