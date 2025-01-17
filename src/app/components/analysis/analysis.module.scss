@@ -219,6 +219,9 @@
         /*TEMP until we implement the interpretation step on the backend*/
         visibility: hidden;
     }
+    @media screen and (max-width: 850px)  {
+        display: block;
+    }
 }
 .feedbackWrapper{
     display: flex;
@@ -266,6 +269,7 @@
         background: white;
         color: #9B9B9B;
         cursor: pointer;
+        font-size: 14px;
         }
         .active{
         color:black;
@@ -277,9 +281,10 @@
         margin:20px 0px;
         padding:10px;
         background-color: white;
-        color: #9B9B9B;
+        color: black;
         border: 1px solid #9B9B9B;
         border-radius: 9px;
+        font-size: 14px;
     }
     
     .bottomRow{
