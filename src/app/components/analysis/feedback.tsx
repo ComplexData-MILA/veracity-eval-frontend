@@ -2,6 +2,8 @@
 import { useRef, useState } from "react";
 import styles from "./analysis.module.scss";
 import Image from "next/image";
+import Link from "next/link";
+import LabelButton from "./labelButton";
 
 type Props = {
   setSourceWindow: (arg0: number) => void;
@@ -9,24 +11,99 @@ type Props = {
 
 export default function Feedback({ setSourceWindow }: Props) {
 
-  const [feedbacklIsOpen, setfeedbacklIsOpen] = useState(false)
-  //const [voteSignal, setVoteSignal] = useState(0)
-  const drawerRef = useRef<HTMLDivElement>(null)
+  /*This is the user rating, all other states depend on it*/
+  const [voteSignal, setVoteSignal] = useState(0);
+  /*active labels, see legend at https://docs.google.com/spreadsheets/d/1gua6KaRL09oHEku6AUnK-auvQLbtW4eMWUNX1ZTr0wU/ */
+  const initArray:boolean[]=Array(18).fill(false)
+  const [activeLabels, setActiveLabels] = useState(initArray);
+  /*UI drawer states*/
+  const [feedbackIsOpen, setfeedbackIsOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
-  function vote(voteSignal: number){
-    console.log(voteSignal)
-    setfeedbacklIsOpen(true)
+
+  function vote(voteInput: number){
+    setVoteSignal(voteInput);
+    setfeedbackIsOpen(true);
     setTimeout(() => drawerRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }
+
+  function cancel(){
+    setVoteSignal(0);
+    setfeedbackIsOpen(false);
+  }
+
+  function handleLabelToggle(index: number){
+    const tempArr = [...activeLabels];
+    tempArr[index] = !tempArr[index];
+    setActiveLabels(tempArr);
+  }
+
+  /*Functions returning chunks of JSX depending on voteSignal*/
+  function fillStars(voteSignal:number){
+    const starArray=[];
+    for (let i=0;i<voteSignal;i++){
+      starArray[i]=<Image className={styles.feedbackThumb} src="/assets/starFull.svg" alt="me" width="20" height="20" onClick={()=> vote(i+1)} key={i}/>
+    }
+    for (let i=voteSignal;i<5;i++){
+      starArray[i]=<Image className={styles.feedbackThumb} src="/assets/starEmpty.svg" alt="me" width="20" height="20" onClick={()=> vote(i+1)} key={i}/>
+    }
+    return (
+      <>
+      {starArray}
+      </>
+    );
+  }
+
+  function fillButtons(voteSignal:number, activeLabels:boolean[]){
+    let buttonArray=[];
+    if (voteSignal>0&&voteSignal<3){
+      buttonArray=[
+      <LabelButton text="Lack of credible sources" id={1} key={1} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Score contradicts my understanding" id={2} key={2} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Explanation is too vague" id={3} key={3} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Evidence is unclear or incomplete" id={4} key={4} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Key details are missing" id={5} key={5} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Design or Functionality" id={6} key={6} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+      <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
+    }
+    else if (voteSignal===3){
+      buttonArray=[
+        <LabelButton text="Some sources are unclear" id={7} key={7} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Score is partially justified" id={8} key={8} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Explanation lacks detail" id={9} key={9} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Mixed or inconsistent information" id={10} key={10} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Key details are missing" id={11} key={11} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Design or Functionality" id={12} key={12} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
+    }
+    else if (voteSignal>3&&voteSignal<=5){
+      buttonArray=[
+        <LabelButton text="Sources are credible and reliable" id={13} key={13} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Score is clear and justified" id={14} key={14} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Explanation is well-supported" id={15} key={15} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Aligns with my understanding" id={16} key={16} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Key details are included" id={17} key={17} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Design or Functionality" id={18} key={18} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
+        <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
+    }
+    else buttonArray =[<p key={1000}>array out of bounds exception</p>]
+    return (
+      <div className={styles.labelSectionWrapper}>
+      {buttonArray}
+      </div>
+    );
+  }
+
 
   const drawer = 
     (<div className={styles.feedbackDrawer}>
         <h4 className={styles.feedbackDrawerHeading}>Why did you select this feedback?</h4>
-        <textarea className={styles.feedbackTextInput} placeholder="What was unsatisfying about this response?" />
+        {fillButtons(voteSignal, activeLabels)}
+        <input className={styles.feedbackTextInput}  placeholder={voteSignal < 4 ?"What was unsatisfying about this response? (Optional)" : "What was satisfying about this response? (Optional)"} />
         <div className={styles.bottomRow}>
-          <p className={styles.feedbackDisclaimer}>Veracity my use account and system data to understand your feedback and improve our quality,You can read more into details in Privacy Policy and Terms of service.</p>
-          <button className={styles.cancelButton} onClick={()=> setfeedbacklIsOpen(false)}>Cancel</button>
-          <button className={styles.submitButton} onClick={()=> setfeedbacklIsOpen(false)}>Submit</button>
+          <p className={styles.feedbackDisclaimer}>Veracity my use account and system data to understand your feedback and improve our quality, You can read more details in our <Link className={styles.privacyLink} href="/privacy">Privacy Policy & Terms of service.</Link></p>
+          <button className={styles.cancelButton} onClick={()=> cancel()}>Cancel</button>
+          <button className={styles.submitButton} onClick={()=> setfeedbackIsOpen(false)} disabled={activeLabels.every((val) => !Boolean(val))}>Submit</button>
         </div>
       </div>);
 
@@ -34,13 +111,12 @@ export default function Feedback({ setSourceWindow }: Props) {
     <section>
       <div className={styles.feedbackRow}>
         <div className={styles.feedbackWrapper}>
-            <p>Give us feedback on this answer</p>
-            <Image className={styles.feedbackThumb} src="/assets/thumbUp.svg" alt="me" width="20" height="20" onClick={()=> vote(1)} />
-            <Image className={styles.feedbackThumb} src="/assets/thumbDown.svg" alt="me" width="20" height="20" onClick={()=> vote(-1)} />
+            <p className={styles.convinceText}>How convincing is our presented analysis for this claim?</p>
+            {fillStars(voteSignal)}
         </div>
         <p className={styles.interpretedLink} onClick={()=> setSourceWindow(2)}>How Veracity interpreted your prompt</p>
       </div>
-      {feedbacklIsOpen ? drawer : <></>}
+      {feedbackIsOpen ? drawer : <></>}
       <div ref={drawerRef} />
     </section>
   );

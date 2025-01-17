@@ -216,14 +216,19 @@
     font-size: 14px;
     padding-bottom:20px;
     margin:20px 60px 0px 60px;
+    justify-content: space-evenly;
     @media screen and (max-width: 850px)  {
         margin:20px;
     }
-    justify-content: space-evenly;
+    .convinceText{
+        margin-right:10px;
+    }
+
     .feedbackThumb{
-        padding:2px;
+        margin-top:-2px;
         border-radius: 10px;
         cursor: pointer;
+        padding:2px;
         transition: background-color .2s ease-in;
         &:hover{
             background-color:#1683FF1A;
@@ -242,14 +247,29 @@
     .feedbackDrawerHeading{
         margin:10px 0px;
     }
+    .labelSectionWrapper{
+        button{
+        margin: 5px;
+        padding:5px 10px;
+        border: 1px solid #9B9B9B;
+        border-radius:9px;
+        background: white;
+        color: #9B9B9B;
+        cursor: pointer;
+        }
+        .active{
+        color:black;
+        border-color: black;
+        }
+    }
     .feedbackTextInput{
-        width:100%;
-        height:200px;
+        width:95%;
         margin:20px 0px;
         padding:10px;
-        &:focus{
-            outline: 3px solid black;
-        }
+        background-color: white;
+        color: #9B9B9B;
+        border: 1px solid #9B9B9B;
+        border-radius: 9px;
     }
     
     .bottomRow{
@@ -262,6 +282,10 @@
             color:#9B9B9B;
             width:80%;
             margin-right:30px;
+            .privacyLink{
+                color: black;
+                text-decoration: underline;
+            }
             @media screen and (max-width: 550px)  {
             font-size: 8px;
             line-height: 8px;
@@ -275,14 +299,19 @@
             cursor: pointer;
         }
         .cancelButton{
-            border: 2px solid black;
+            border: 1px solid #9B9B9B;
             color: black;
-            background-color: transparent;
+            background-color: white;
         }
         .submitButton{
-            background-color: black;
+            background: linear-gradient(89.75deg, #1683FF 7.64%, #11F90E 170.65%);
+            border:0;
             color: white;
             margin: 0px 10px;
+            &:disabled{
+                background:#9B9B9B;
+                cursor: auto;
+            }
         }
     }
 }
