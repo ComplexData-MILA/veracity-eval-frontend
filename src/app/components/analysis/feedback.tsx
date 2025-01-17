@@ -4,15 +4,21 @@ import styles from "./analysis.module.scss";
 import Image from "next/image";
 import Link from "next/link";
 import LabelButton from "./labelButton";
+import { useAuthApi } from "@/app/hooks/useAuthApi";
+
+
+const API_URL = 'https://api.veri-fact.ai';
 
 type Props = {
   setSourceWindow: (arg0: number) => void;
+  claimId: string | null;
 };
 
-export default function Feedback({ setSourceWindow }: Props) {
+export default function Feedback({ setSourceWindow, claimId }: Props) {
 
   /*This is the user rating, all other states depend on it*/
   const [voteSignal, setVoteSignal] = useState(0);
+  const { fetchWithAuth } = useAuthApi();
   /*active labels, see legend at https://docs.google.com/spreadsheets/d/1gua6KaRL09oHEku6AUnK-auvQLbtW4eMWUNX1ZTr0wU/ */
   const initArray:boolean[]=Array(18).fill(false)
   const [activeLabels, setActiveLabels] = useState(initArray);
@@ -20,6 +26,7 @@ export default function Feedback({ setSourceWindow }: Props) {
   const [feedbackIsOpen, setfeedbackIsOpen] = useState(false);
   const [feedbackIsSubmitted, setfeedbackIsSubmitted] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [inputText, setInputText] = useState<string>("");
 
 
   function vote(voteInput: number){
@@ -34,15 +41,37 @@ export default function Feedback({ setSourceWindow }: Props) {
     setActiveLabels(tempArr);
   }
 
+  const handleChange = (newText: string) => {
+    setInputText(newText)
+  }
+
   function cancel(){
     setVoteSignal(0);
+    setInputText("");
     setActiveLabels(Array(18).fill(false));
     setfeedbackIsOpen(false);
   }
 
   function submit(){
     setfeedbackIsOpen(false);
-    setfeedbackIsSubmitted(true);
+  try {
+   fetchWithAuth(`${API_URL}/v1/feedback/`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        "analysis_id": claimId,
+        "rating": voteSignal,
+        "comment": inputText,
+        "labels": activeLabels.flatMap((bool, index) => bool ? index : [])
+      })
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  setfeedbackIsSubmitted(true);
   }
   
 
@@ -107,7 +136,7 @@ export default function Feedback({ setSourceWindow }: Props) {
     (<div className={styles.feedbackDrawer}>
         <h4 className={styles.feedbackDrawerHeading}>Why did you select this feedback?</h4>
         {fillButtons(voteSignal, activeLabels)}
-        <input className={styles.feedbackTextInput}  placeholder={voteSignal < 4 ?"What was unsatisfying about this response? (Optional)" : "What was satisfying about this response? (Optional)"} />
+        <input className={styles.feedbackTextInput}  placeholder={voteSignal < 4 ?"What was unsatisfying about this response? (Optional)" : "What was satisfying about this response? (Optional)"} onChange={(e) => handleChange(e.target.value)} value={inputText} />
         <div className={styles.bottomRow}>
           <p className={styles.feedbackDisclaimer}>Veracity my use account and system data to understand your feedback and improve our quality, You can read more details in our <Link className={styles.privacyLink} href="/privacy">Privacy Policy & Terms of service.</Link></p>
           <button className={styles.cancelButton} onClick={()=> cancel()}>Cancel</button>

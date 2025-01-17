@@ -9,11 +9,12 @@ type Props = {
   setSourceWindow: (arg0: number) => void;
   finalAnalysis: FinalAnalysis
   sources: Source[]
+  claimId: string | null;
 };
 
 
 
-export default function Analysis({ setSourceWindow, finalAnalysis, sources }: Props) {
+export default function Analysis({ setSourceWindow, finalAnalysis, sources, claimId }: Props) {
 
   return (
     <>
@@ -21,7 +22,7 @@ export default function Analysis({ setSourceWindow, finalAnalysis, sources }: Pr
       <Score veracityScore={finalAnalysis.veracity_score} text={finalAnalysis.analysis_text}/>
       <Sources setSourceWindow={setSourceWindow} sources={sources}  />
     </section>
-    <Feedback setSourceWindow={setSourceWindow} />
+    <Feedback setSourceWindow={setSourceWindow} claimId={claimId} />
     </>
   );
 }

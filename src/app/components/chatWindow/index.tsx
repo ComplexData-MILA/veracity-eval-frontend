@@ -25,6 +25,7 @@ export default function ChatWindow() {
   const [sourceWindow, setSourceWindow] = useState<number>(1);
   /*input state*/
   const [claim, setClaim] = useState<string>("");
+  const [claimId, setClaimId] = useState<string | null>(null);
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
   /*verification states*/
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
@@ -92,6 +93,7 @@ export default function ChatWindow() {
       }
   
       const claimData = await claimResponse.json();
+      setClaimId(claimData.id);
       
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
@@ -215,7 +217,7 @@ export default function ChatWindow() {
         {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
-        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} /></>
+        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} claimId={claimId} /></>
         :<></>}
       {error? <p>{error}</p> : ""}
       </div>
