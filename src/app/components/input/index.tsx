@@ -21,6 +21,7 @@ export default function Input({setClaim, verifyClaim, claim}: Props) {
   const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setClaim(inputText);
+    setInputText("");
 }
   useEffect(() => {
     if (claim !== '') {
