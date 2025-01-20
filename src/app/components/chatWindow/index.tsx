@@ -93,7 +93,7 @@ export default function ChatWindow() {
       }
   
       const claimData = await claimResponse.json();
-      setClaimId(claimData.id);
+      
       
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
@@ -186,7 +186,8 @@ export default function ChatWindow() {
       
       const analysisData = await analysisResponse.json();
       setFinalAnalysis(analysisData);
-  
+      console.log(analysisData)
+      setClaimId(analysisData.id); 
       await fetchSources(data.content.analysis_id);
     } catch (err) {
       console.error('Error handling analysis completion:', err);
