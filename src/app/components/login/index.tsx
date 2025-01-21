@@ -4,6 +4,7 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import styles from "./login.module.scss";
 import Link from 'next/link';
+import { redirect } from "next/navigation";
 
 export default function LoginButton(text: {label:string}) {
   const { user, error, isLoading } = useUser();
@@ -11,6 +12,7 @@ export default function LoginButton(text: {label:string}) {
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
+  if (user) redirect('/chat');
 
   const handleAuth = (action: 'login' | 'logout') => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -19,8 +21,6 @@ export default function LoginButton(text: {label:string}) {
 
   if (user) {
     return (<div className={styles.userBlock}>
-      
-    <p className={styles.userName}>{user.name}</p>
     <div>
       <button className={styles.logout} onClick={handleAuth('logout')}>
         Logout

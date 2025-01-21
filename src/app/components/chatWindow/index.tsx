@@ -33,7 +33,7 @@ export default function ChatWindow() {
   const [sources, setSources] = useState<Source[]>([]);
   const [error, setError] = useState<string | null>(null);
   /*check auth0 user, send back to homepage if user is not logged in*/
-  if (authLoading) return <div>Loading authentication...</div>;
+  if (authLoading) return <div>Loading...</div>;
   if (authError) return <div>Authentication error: {authError.message}</div>;
   if (!user) redirect('/');
 

@@ -12,8 +12,15 @@ export default function Sources({ setSourceWindow, sources }: Props) {
 
   function averageCredibilityScore(sources: Source[]){
     let average=0;
-    sources.forEach((element:Source) => average+=element.credibility_score);
-    average=(average/sources.length)*100;
+    let nonNullSources=0;
+    sources.forEach((element:Source) =>{ average+=element.credibility_score
+    if (element.credibility_score!== null){
+      nonNullSources=nonNullSources+1
+    }}
+    );
+    
+    average=(average/nonNullSources)*100;
+    average=Math.trunc(average);
     return average;
   }
 
