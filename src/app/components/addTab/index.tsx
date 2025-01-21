@@ -7,8 +7,8 @@ export default function AddTab() {
 
 
   return (
-      <button className={styles.addButton}>
-        <Image src="/assets/newTab.svg" alt="me" width="20" height="20" />
+      <button className={styles.addButton} onClick={()=>window.location.reload()}>
+        <Image src="/assets/refresh.svg" alt="me" width="20" height="20" />
       </button>
   );
 }

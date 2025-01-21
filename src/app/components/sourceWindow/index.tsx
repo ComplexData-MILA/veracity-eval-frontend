@@ -14,7 +14,7 @@ type Props = {
 export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources, sources }: Props) {
 
   const sourceData = sources.map((source, index) =>
-  <SourceCard title={source.title} snippet={source.snippet} number={index+1} url={source.url} key={source.id} />
+  <SourceCard title={source.title} snippet={source.snippet} number={index+1} url={source.url} key={source.id} credibility_score={source.credibility_score} />
   );
 
   if (sourceWindow===1){
