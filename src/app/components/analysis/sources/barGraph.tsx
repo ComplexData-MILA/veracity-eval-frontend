@@ -7,7 +7,9 @@ type Props = {
 };
 
 export default function BarGraph({ numberOfSources, averageScore }: Props) {
-
+  let override =''
+  if (Number.isNaN(averageScore))
+  {override="Unknown"}
   return (
       <div className={styles.sourceCredibilityRow}>
         <div className={styles.credibilityRatingWrapper}>
@@ -19,7 +21,7 @@ export default function BarGraph({ numberOfSources, averageScore }: Props) {
           <div className={styles.backgroundBar} />
           <div className={styles.foregroundBar} style={{width:`${averageScore}%`}} />
         </div>
-        <h2>{`${averageScore}%`}</h2>
+        <h2>{override.length>0?`${override}`:`${averageScore}%`}</h2>
       </div>
   );
 }

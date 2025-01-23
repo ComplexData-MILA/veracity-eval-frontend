@@ -20,12 +20,19 @@
     .sourceNumberParagraph{
         margin-bottom: 5px;
     }
+    .sourceColorBlock, .sourceGrayBlock{  
+   
+    padding:0px 7px;
+    border-radius: 2px;
+    font-weight: bold;
+    }
     .sourceColorBlock{
-        background: linear-gradient(268.88deg, #11F90E -27.27%, #1683FF 94.82%);
-        color:white;
-        padding:0px 7px;
-        border-radius: 2px;
-        font-weight: bold;
+    background: linear-gradient(268.88deg, #11F90E -27.27%, #1683FF 94.82%);
+    color:white;
+    }
+    .sourceGrayBlock{
+    background-color: #E5E5E5;
+    color: #9B9B9B;
     }
     .sourceHeading{
     font-size: 18px;
