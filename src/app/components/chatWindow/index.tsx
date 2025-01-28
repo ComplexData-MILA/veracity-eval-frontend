@@ -38,35 +38,6 @@ export default function ChatWindow() {
   if (!user) redirect('/');
 
 
-  /*Obviously these should be extracted to another file...*/
-  const fetchSources = async (analysisId: string) => {
-    try {
-      setIsLoadingSources(true);
-      const sourcesResponse = await fetchWithAuth(
-        `${API_URL}/v1/sources/analysis/${analysisId}`,
-        {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-        }
-      );
-
-      if (!sourcesResponse.ok) {
-        throw new Error(`Failed to fetch sources: ${await sourcesResponse.text()}`);
-      }
-
-      const sourcesData = await sourcesResponse.json();
-      setSources(sourcesData);
-    } catch (err) {
-      console.error('Error fetching sources:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load sources');
-    } finally {
-      setIsLoadingSources(false);
-    }
-  };
-
   const verifyClaim = async () => {
     let eventSource: EventSource | null = null;
     
@@ -164,6 +135,34 @@ export default function ChatWindow() {
       console.error('Verification error:', err);
       setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
+    }
+  };
+
+  const fetchSources = async (analysisId: string) => {
+    try {
+      setIsLoadingSources(true);
+      const sourcesResponse = await fetchWithAuth(
+        `${API_URL}/v1/sources/analysis/${analysisId}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+
+      if (!sourcesResponse.ok) {
+        throw new Error(`Failed to fetch sources: ${await sourcesResponse.text()}`);
+      }
+
+      const sourcesData = await sourcesResponse.json();
+      setSources(sourcesData);
+    } catch (err) {
+      console.error('Error fetching sources:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load sources');
+    } finally {
+      setIsLoadingSources(false);
     }
   };
   

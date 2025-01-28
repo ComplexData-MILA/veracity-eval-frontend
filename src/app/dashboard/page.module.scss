@@ -1,0 +1,42 @@
+.topRow{
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 3vw;
+  .title{
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 52px;
+  }
+  .subtitle{
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color:#727272;
+  }
+  .topRowRight{
+    display: flex;
+    height:40px;
+    align-items: center;
+    option, label{
+      font-size: 16px;
+      margin:0px 5px;
+    }
+  }
+}
+
+.tileGrid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 25px;
+  row-gap: 25px;
+  justify-items: center;
+  max-width:1450px ;
+  margin: auto;
+}
+
+.mockTile{
+  height:475px;
+  width:700px;
+  background: lightblue;
+  border-radius: 8px;
+}
