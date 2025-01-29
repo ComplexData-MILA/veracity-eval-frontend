@@ -1,18 +1,21 @@
 "use client"
 
-import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import styles from "./login.module.scss";
 import Link from 'next/link';
 import { redirect } from "next/navigation";
+import { useAuthApi } from '@/app/hooks/useAuthApi';
 
 export default function LoginButton(text: {label:string}) {
-  const { user, error, isLoading } = useUser();
+  const { user, error, isLoading, fetchToken } = useAuthApi();
   const router = useRouter();
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
-  if (user) redirect('/chat');
+  if (user){
+    fetchToken().catch(console.error);
+    redirect('/chat');
+  } 
 
   const handleAuth = (action: 'login' | 'logout') => (e: React.MouseEvent) => {
     e.preventDefault();

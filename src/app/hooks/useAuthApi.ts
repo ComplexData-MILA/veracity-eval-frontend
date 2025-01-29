@@ -62,5 +62,5 @@ export function useAuthApi() {
     return response;
   }, [user, router, accessToken, fetchToken]);
 
-  return { fetchWithAuth, user, isLoading, error: userError };
+  return { fetchWithAuth, fetchToken, user, isLoading, error: userError };
 }
