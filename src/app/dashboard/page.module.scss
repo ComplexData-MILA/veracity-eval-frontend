@@ -86,5 +86,24 @@
     border-radius: 8px;
     height: 100%;
     border: 1px solid #1683FF33;
+    .topRowBottomTile{
+      display: flex;
+      justify-content: space-between;
+      .rhs{
+        margin-right: 30px;
+        .giantNumber{
+          line-height: 30px;
+        }
+      }
+    }
+  }
+  .note{
+    height: 100px;
+    width:90%;
+    margin: auto;
+    margin-top:50px;
+    background: white;
+    padding:10px;
+    border: 1px dashed lightblue;
   }
 }
