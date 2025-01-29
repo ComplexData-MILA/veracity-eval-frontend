@@ -18,10 +18,12 @@ export default function BarGraph({ numberOfSources, averageScore }: Props) {
         </div>
         <div>
           <p className={styles.averageText}>Avg. Source Credibility</p>
+          {override.length>0?
+          <h2>{override}</h2>:<>
           <div className={styles.backgroundBar} />
-          <div className={styles.foregroundBar} style={{width:`${averageScore}%`}} />
+          <div className={styles.foregroundBar} style={{width:`${averageScore}%`}} /></>}
         </div>
-        <h2>{override.length>0?`${override}`:`${averageScore}%`}</h2>
+        <h2>{override.length<1?`${averageScore}%`:''}</h2>
       </div>
   );
 }

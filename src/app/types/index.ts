@@ -7,6 +7,13 @@ interface Source {
   domain_id?: string;
 }
 
+interface Search {
+  id: string;
+  analysis_id: string;
+  prompt: string;
+  summary: string;
+}
+
 interface AnalysisStreamEvent {
   type: "status" | "content" | "analysis_complete";
   content: string | {
@@ -34,4 +41,4 @@ interface StreamingMessage {
   streamedContent?: string;
 }
 
-  export type {Source, FinalAnalysis, AnalysisStreamEvent, StreamingMessage}
+  export type {Source, Search, FinalAnalysis, AnalysisStreamEvent, StreamingMessage}

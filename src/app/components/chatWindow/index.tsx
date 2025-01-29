@@ -13,7 +13,7 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
-import { FinalAnalysis, Source } from "@/app/types";
+import { FinalAnalysis, Search, Source } from "@/app/types";
 
 const API_URL = 'https://api.veri-fact.ai';
 
@@ -31,6 +31,7 @@ export default function ChatWindow() {
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
   const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
   const [sources, setSources] = useState<Source[]>([]);
+  const [searchesUsed, setSearchesUsed] = useState<Search[]>([]);
   const [error, setError] = useState<string | null>(null);
   /*check auth0 user, send back to homepage if user is not logged in*/
   if (authLoading) return <div>Loading...</div>;
@@ -45,6 +46,7 @@ export default function ChatWindow() {
       setClaimIsSent(true);
       setFinalAnalysis(null);
       setSources([]);
+      setSearchesUsed([]);
       setError(null);
   
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
@@ -165,6 +167,30 @@ export default function ChatWindow() {
       setIsLoadingSources(false);
     }
   };
+
+  const fetchSearches = async (analysisId: string) => {
+    try {
+      const searchesResponse = await fetchWithAuth(
+        `${API_URL}/v1/searches/analysis/${analysisId}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+
+      if (!searchesResponse.ok) {
+        throw new Error(`Failed to fetch search ID's: ${await searchesResponse.text()}`);
+      }
+      const searchData = await searchesResponse.json();
+      setSearchesUsed(searchData);
+    } catch (err) {
+      console.error('Error fetching sources:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load sources');
+    } 
+  };
   
   const handleAnalysisComplete = async (data: {
     type: 'analysis_complete';
@@ -187,6 +213,7 @@ export default function ChatWindow() {
       setFinalAnalysis(analysisData);
       setClaimId(analysisData.id); 
       await fetchSources(data.content.analysis_id);
+      await fetchSearches(data.content.analysis_id);
     } catch (err) {
       console.error('Error handling analysis completion:', err);
       setError(err instanceof Error ? err.message : 'Failed to complete analysis');
@@ -229,7 +256,8 @@ export default function ChatWindow() {
   <SourceWindow sourceWindow={sourceWindow} 
                 setSourceWindow={setSourceWindow}  
                 isLoadingSources={isLoadingSources}
-                sources={sources} />
+                sources={sources}
+                searches={searchesUsed} />
   </div>
   );
 }

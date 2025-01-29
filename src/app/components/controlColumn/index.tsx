@@ -19,7 +19,11 @@ export default function ControlColumn() {
             <AddTab />
           </div>
           <div className={styles.profileWrapper}>
-            <img src={GetUserPhoto()} alt="me" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}/>
+            <img src={GetUserPhoto()} alt="Profile Picture" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}
+            onError={({ currentTarget }) => {
+              currentTarget.onerror = null; // prevents looping
+              currentTarget.src="/assets/profile.svg";
+            }}/>
             <p>{GetUserFirstName()}</p>
           </div>
           {accountControlIsOpen === true ? <UserModal setAccountControlIsOpen={setAccountControlIsOpen} setActiveModal={setActiveModal} /> : ""}
