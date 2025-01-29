@@ -194,7 +194,6 @@ export default function ChatWindow() {
       eventSource?.close();
     }
   };
-  /* end abstract these*/
 
 
   return (
