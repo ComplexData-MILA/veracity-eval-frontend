@@ -1,8 +1,5 @@
 import styles from "./searchCard.module.scss";
 
-
-const searchTerm = "price of oil June 2008"
-
 type Props = {
   prompt: string;
   summary: string;
