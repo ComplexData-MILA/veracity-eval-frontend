@@ -1,4 +1,10 @@
 import styles from "./page.module.scss"
+import ClusterTile from "./panels/cluster";
+import Distribution from "./panels/distribution";
+import ReliabilityMatrix from "./panels/reliabilityMatrix";
+import ReliabilityOverTime from "./panels/reliabilityTime";
+import TotalsTile from "./panels/totals";
+import WordCloud from "./panels/wordCloud";
 
 
 export default function Dashboard() {
@@ -17,12 +23,12 @@ export default function Dashboard() {
           </div>
         </div>
         <section className={styles.tileGrid}>
-          <div className={styles.mockTile} />
-          <div className={styles.mockTile} />
-          <div className={styles.mockTile} />
-          <div className={styles.mockTile} />
-          <div className={styles.mockTile} />
-          <div className={styles.mockTile} />
+          <ClusterTile />
+          <TotalsTile />
+          <ReliabilityOverTime />
+          <ReliabilityMatrix />
+          <Distribution />
+          <WordCloud />
         </section>
       </>
   );

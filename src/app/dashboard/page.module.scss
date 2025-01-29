@@ -30,13 +30,61 @@
   column-gap: 25px;
   row-gap: 25px;
   justify-items: center;
-  max-width:1450px ;
+  max-width:1430px ;
   margin: auto;
+  margin-bottom: 50px;
+  .title{
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 26px;
+  }
+  .subtitle{
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #727272;
+  }
+  .giantNumber{
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 52px;
+  margin-top:10px;
+  }
 }
 
 .mockTile{
   height:475px;
   width:700px;
-  background: lightblue;
+  background: #1683FF0D;
   border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #1683FF33;
+}
+
+.totalTile{
+  display: flex;
+  flex-direction: column;
+  height:475px;
+  width:700px;
+  .topTilesRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    .topTile{
+      width:48%;
+      background-color: #1683FF0D;
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid #1683FF33;
+    }
+  }
+  .bottomTile{
+    margin-top:20px;
+    padding: 20px;
+    width: 100%;
+    background-color: #1683FF0D;
+    border-radius: 8px;
+    height: 100%;
+    border: 1px solid #1683FF33;
+  }
 }
