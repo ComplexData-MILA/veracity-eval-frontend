@@ -36,15 +36,22 @@ width:100%;
   padding:30px;
   border-radius: 20px;
   width:400px;
-  height: 100%;
+  height: fit-content;
   .helpHeading{
   font-family: Figtree, sans-serif;
   font-size: 16px;
   font-weight: 500;
+  margin-bottom: 20px;
+  }
+  .helpText, .helpTextResponse{
+    font-size: 12px;
   }
   .helpText{
-    font-size: 12px;
-    margin:20px 0px;
+    font-weight: bold;
+  }
+  .helpTextResponse{
+    margin-top:5px;
+    margin-bottom:20px;
   }
 }
 .mainSection{
