@@ -23,6 +23,11 @@ Tooltip
 
 export const options = {
 responsive: true,
+plugins: {
+    legend: {
+        display: false,
+        }
+    }
 };
 
 const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December'];
@@ -43,7 +48,7 @@ export default function ReliabilityOverTime() {
     return (
          <div className={styles.mockTile}>
             <h2 className={styles.title}>Reliability Score over time</h2>
-            <div className={styles.chartWrapper}>
+            <div className={styles.chartWrapper} style={{marginTop: '0px'}}>
                 <h3 className={styles.subtitle}>Higher reliability score attained</h3>
                 <h4 className={styles.giantNumber}>50%</h4>
                 <Line options={options} data={data} />
