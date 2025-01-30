@@ -25,7 +25,7 @@ export default function TotalsTile() {
                     </div>
                 </div>
                 <p className={styles.note}>
-                    Since this table has to order, filter, expand etc I'd use a third party component here, save yourself a bunch of dev time. It's been done a million times and we probably don't need to reinvent the wheel.
+                    Since this table has to order, filter, expand etc (did not notice this on first glance) I would use a third party component here, save yourself a bunch of dev time. It has been done a million times and we probably do not need to reinvent the wheel.
                 </p>
             </div>
         </div>
