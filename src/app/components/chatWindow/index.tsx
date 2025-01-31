@@ -14,6 +14,7 @@ import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
 import { FinalAnalysis, Search, Source } from "@/app/types";
+import Link from "next/link";
 
 const API_URL = 'https://api.veri-fact.ai';
 
@@ -230,7 +231,7 @@ export default function ChatWindow() {
       <h1 className={styles.title}>Veracity AI</h1>
       <div className={styles.learnMoreWrapper}>
       <Image src="/assets/info.svg" alt="me" width="20" height="20" />
-        <p className={styles.learnMoreText}>{t('learnMore')}</p>
+        <Link href="/how-the-ai-works" className={styles.learnMoreText}>{t('learnMore')}</Link>
       </div>
     </div>
     <div className={styles.chatWindow}>
