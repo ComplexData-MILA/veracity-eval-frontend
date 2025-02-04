@@ -47,7 +47,7 @@ Internationalization is handled by [next-intl](https://www.npmjs.com/package/nex
 
  For more details on the project that are not specific to the frontend, please refer to the [Project Overview](https://github.com/ComplexData-MILA/veracity-eval-backend/wiki/Project-Overview) wiki page.
 
- For details relating to the Next.js project specificallym there is wiki page [here](https://github.com/ComplexData-MILA/veracity-eval-frontend/wiki/Project-Overview)
+ For details relating to the Next.js project specifically there is wiki page [here](https://github.com/ComplexData-MILA/veracity-eval-frontend/wiki/Project-Overview)
 
 ## API Specification
 
