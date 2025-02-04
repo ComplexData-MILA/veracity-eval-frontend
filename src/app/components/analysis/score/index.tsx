@@ -19,6 +19,7 @@ export default function Score({veracityScore, text}: Props) {
     }
     else {return "you should not share with your network."}
   }
+  
   function getIsThisReliable(reliability: number) {
     if (reliability<=20){return "The claim is not reliable,"}
     else if (reliability>20&&reliability<=40){return "The claim is likely not reliable,"}
@@ -36,8 +37,6 @@ export default function Score({veracityScore, text}: Props) {
   const isThisReliable = getIsThisReliable(reliability);
   const textColorConst = getColour(reliability);
 
-
-
   return (
       <section className={styles.score}>
         <div className={styles.scoreHeader}>
@@ -45,7 +44,6 @@ export default function Score({veracityScore, text}: Props) {
             <h4 className={styles.heading}>Reliability score</h4>
             <Link href="#" className={styles.how}>How is this calculated?</Link>
           </div>
-          
         </div>
         <div className={styles.scoreMain} >
           <Donut reliability={reliability} />
@@ -55,7 +53,6 @@ export default function Score({veracityScore, text}: Props) {
             <p className={styles.reliabilitySummary}>{text}</p>
           </div>
         </div>
-        
       </section>
   );
 }

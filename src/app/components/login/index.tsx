@@ -7,13 +7,12 @@ import { redirect } from "next/navigation";
 import { useAuthApi } from '@/app/hooks/useAuthApi';
 
 export default function LoginButton(text: {label:string}) {
-  const { user, error, fetchToken } = useAuthApi();
+  const { user, error } = useAuthApi();
   const router = useRouter();
 
 
   if (error) return <div>{error.message}</div>;
   if (user){
-    fetchToken().catch(console.error);
     redirect('/chat');
   } 
 
