@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {useLocale, useTranslations} from 'next-intl';
 import LangSwitcherHome from "./components/langSelect/homepage";
+import TinyLogin from "./components/login/tinyLogin";
 
 
 export default function Home() {
@@ -13,7 +14,10 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
+      <Link href="/how-the-ai-works" className={styles.headerItem}>How the AI works</Link>
         <Link href="/privacy" className={styles.headerItem}>{t('privacy')}</Link>
+        <a href="https://www.complexdatalab.com/people/" className={styles.headerItem}>{t('contactUs')}</a>
+        <TinyLogin label={t('loginButton')}  />
         {locale === "fr" ? <LangSwitcherHome lang="en" /> : <LangSwitcherHome lang="fr" />}
       </header>
       <main className={styles.main}>

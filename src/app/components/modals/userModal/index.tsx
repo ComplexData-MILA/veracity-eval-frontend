@@ -22,7 +22,7 @@ const UserModal = ({ setAccountControlIsOpen, setActiveModal }: Props) => {
             <li className={styles.underline} onClick={()=> setActiveModal(1)}><div className={styles.iconWrapper}><Image src="/assets/account.svg" alt="account preferences" width="20" height="20" /></div>Preferences</li>
             <li className={styles.underline} onClick={()=> setActiveModal(2)}><div className={styles.iconWrapper}><Image src="/assets/report.svg" alt="report a problem icon" width="20" height="20" /></div>Report a problem</li>
             <Link href='/privacy'><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/privacy.svg" alt="privacy policy icon" width="20" height="20" /></div>Privacy Policy & Terms of Service</li></Link>
-            <Link href='/user-guidelines'><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/guide.svg" alt="user guide icon" width="20" height="20" /></div>User Guidelines</li></Link>
+            <Link href='/how-the-ai-works'><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/guide.svg" alt="user guide icon" width="20" height="20" /></div>How the AI works</li></Link>
             <li onClick={()=> router.push(`/api/auth/logout?returnTo=/`)}><div className={styles.iconWrapper}><Image src="/assets/logout.svg" alt="logout icon" width="20" height="20" /></div>Logout</li>
           </ul>
           

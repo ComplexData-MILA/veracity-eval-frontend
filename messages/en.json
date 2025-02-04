@@ -8,10 +8,11 @@
         "signUpButton": "Sign up",
         "loginButton": "Log in",
         "ourTrustedPartners": "Our trusted partners",
-        "privacy": "Privacy and Security"
+        "privacy": "Privacy and Security",
+        "contactUs": "Contact us"
     },
     "chatpage": {
-        "learnMore": "How the AI works",
+        "learnMore": "User Guidelines",
         "help": "Help",
         "disclaimer": "Responses related to Veracity may not always be accurate.",
         "inputPlaceholder": "Start typing or paste text here...",

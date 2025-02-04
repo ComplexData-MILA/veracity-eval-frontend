@@ -10,12 +10,32 @@
   }
   .title{
     font-family: 'inter', sans-serif;
-font-size: 26px;
-font-weight: 600;
-margin-top:20px;
-margin-bottom: 40px;
+    font-size: 26px;
+    font-weight: 600;
+    margin-top:20px;
+    margin-bottom: 40px;
+  }
+  .contentTitle{
+    font-family: 'inter', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top:20px;
+    margin-bottom: 20px;
+  }
+  .contentSubtitle{
+    font-family: 'inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top:10px;
+    margin-bottom: 10px;
   }
   p{
-    margin-bottom: 25px;
+    margin-bottom: 15px;
+  }
+  ul, ol{
+    margin-left:20px;
+    li{
+      margin:5px 0px;
+    }
   }
 }

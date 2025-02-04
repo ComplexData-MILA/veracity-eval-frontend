@@ -13,6 +13,9 @@ margin: auto;
     font-weight: 600;
     cursor: pointer;
   }
+  .smallLogin{
+   height:100px;
+  }
   .langSelect{
    scale:2;
    border: 0;
@@ -95,6 +98,7 @@ margin:25px 0px;
   }
   .page{
   .header{
+    display: none;
     justify-content: space-evenly;
     .headerItem{
       margin: 20px 0px;

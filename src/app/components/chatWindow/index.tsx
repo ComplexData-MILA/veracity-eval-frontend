@@ -231,7 +231,7 @@ export default function ChatWindow() {
       <h1 className={styles.title}>Veracity AI</h1>
       <div className={styles.learnMoreWrapper}>
       <Image src="/assets/info.svg" alt="me" width="20" height="20" />
-        <Link href="/how-the-ai-works" className={styles.learnMoreText}>{t('learnMore')}</Link>
+        <Link href="/user-guidelines" className={styles.learnMoreText}>{t('learnMore')}</Link>
       </div>
     </div>
     <div className={styles.chatWindow}>

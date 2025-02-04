@@ -1,18 +1,18 @@
-import styles from "./page.module.scss"
+import Link from "next/link";
+import styles from "../privacy/page.module.scss"
 import Image from "next/image";
 
 
-export default function Privacy() {
+export default function HowTheAiWorks() {
   return (
     <>
       <main className={styles.main}>
-        <div className={styles.logoRow}>
+      <Link href="/chat"> <div className={styles.logoRow}>
         <Image src="/assets/logo.png" alt="me" width="20" height="20" />
         <h2 className={styles.logoTitle}>Veracity AI</h2>
-        </div>
+        </div></Link>
       <h1 className={styles.title}>How the AI works</h1>
 <p>Large Language Models (LLMs) are a powerful kind of instruction-ready AI chatbot. They are good at summarizing text like subject-matter experts would. Unlike experts, they can sometimes get basic things wrong in any number of ways. That&apos;s why asking them to reason on their own about how likely it is that a statement is true or false is not a reliable approach to using LLMs for fact-checking.</p>
-
 <p>Veri-fact.ai takes a more reliable approach based on “Retrieval-Augmented Generation” or RAG for short. Here, this means having the LLM base its response on relevant text from reliable sources on the internet. Veri-fact.ai does this by:</p>
 
 <ol>

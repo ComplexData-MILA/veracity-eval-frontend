@@ -7,10 +7,11 @@
         "signUpButton": "S&#39;inscrire",
         "loginButton": "Se connecter",
         "ourTrustedPartners": "Nos partenaires de confiance",
-        "privacy": "Confidentialité et Sécurité"
+        "privacy": "Confidentialité et Sécurité",
+        "contactUs": "Contat"
     },
     "chatpage": {
-        "learnMore": "En savoir plus sur ce modele",
+        "learnMore": "Guide d’utilisateur",
         "help": "Aide",
         "disclaimer": "Bien que nous nous efforcions d'être précis, certaines réponses de l'IA peuvent varier",
         "inputPlaceholder": "Commencer a taper our verifier un lien",
