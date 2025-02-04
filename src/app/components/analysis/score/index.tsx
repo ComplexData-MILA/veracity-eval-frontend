@@ -27,8 +27,14 @@ export default function Score({veracityScore, text}: Props) {
     else {return "The claim is highly reliable,"}
   }
 
+  function getColour(reliability: number) {
+    if (reliability>60){return "#0CB950"}
+    else {return "#1683FF"}
+  }
+
   const shouldYouShare = getShouldYouShare(reliability);
   const isThisReliable = getIsThisReliable(reliability);
+  const textColorConst = getColour(reliability);
 
 
 
@@ -44,8 +50,8 @@ export default function Score({veracityScore, text}: Props) {
         <div className={styles.scoreMain} >
           <Donut reliability={reliability} />
           <div className={styles.scoreText}>
-            <h2 className={styles.firstHeading}>{isThisReliable}</h2>
-            <h2 className={styles.largeHeading}>{shouldYouShare}</h2>
+            <h2 className={styles.firstHeading} style={{color: textColorConst}}>{isThisReliable}</h2>
+            <h2 className={styles.secondHeading}>{shouldYouShare}</h2>
             <p className={styles.reliabilitySummary}>{text}</p>
           </div>
         </div>
