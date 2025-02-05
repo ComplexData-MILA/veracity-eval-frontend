@@ -1,7 +1,9 @@
 .topRow{
   display: flex;
-  justify-content: space-between;
+ flex-direction: column;
   margin: 20px 3vw;
+
+
   .title{
   font-size: 50px;
   font-weight: 400;
@@ -23,7 +25,6 @@
     }
   }
 }
-
 .tileGrid{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -33,6 +34,44 @@
   max-width:1430px ;
   margin: auto;
   margin-bottom: 50px;
+  .selectorRowLeft, .selectorRowRight{
+  width: 100%;
+  border: 1px solid #1683FF33;
+  border-radius: 8px;
+  padding: 20px;
+.logoRow{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .logoText{
+    color: #727272;
+    font-weight:500;
+  }
+}
+  }
+  .selectorRowLeft{
+    background: #1683FF0D;
+    display: flex;
+    justify-content: space-between;
+    .timeframeTitle{
+      font-size: 22px;
+      line-height: 26px;
+      font-weight:600;
+      }
+      .timeframeSubtitle{
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      color: #727272;
+      }
+      .timeframeSelector{
+        width:200px;
+        border: 1px solid #9B9B9B;
+        border-radius: 8px;
+        padding: 5px;
+        font-weight: bold;
+      }
+    }
   .title{
   font-size: 22px;
   font-weight: 600;
@@ -51,14 +90,13 @@
   margin-top:10px;
   }
 }
-
 .mockTile{
   height:475px;
   width:700px;
   background: #1683FF0D;
+  border: 1px solid #1683FF33;
   border-radius: 8px;
   padding: 20px;
-  border: 1px solid #1683FF33;
 }
 
 .totalTile{
@@ -107,7 +145,6 @@
     border: 1px dashed lightblue;
   }
 }
-
 .chartWrapper{
   margin-top: 30px;
   padding: 5px;
