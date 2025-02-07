@@ -2,14 +2,16 @@
 import Link from "next/link";
 import styles from "../analysis.module.scss";
 import Donut from "./donut";
+import Image from "next/image";
 
 
 type Props = {
   veracityScore: number;
   text: string;
+  setActiveModal: (arg0: number) => void;
 };
 
-export default function Score({veracityScore, text}: Props) {
+export default function Score({veracityScore, text, setActiveModal}: Props) {
 
   const reliability:number = veracityScore*100
 
@@ -41,7 +43,11 @@ export default function Score({veracityScore, text}: Props) {
       <section className={styles.score}>
         <div className={styles.scoreHeader}>
           <div>
-            <h4 className={styles.heading}>Reliability score</h4>
+            <h4 className={styles.heading}>Reliability score
+            <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
+          style={{cursor:'pointer'}}
+          onClick={()=> setActiveModal(100)} />
+            </h4>
             <Link href="#" className={styles.how}>How is this calculated?</Link>
           </div>
         </div>

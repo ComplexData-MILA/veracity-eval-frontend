@@ -23,6 +23,9 @@
         .heading{
             font-size: 18px;
             font-weight: 600;
+            img{
+                margin-left: 5px;
+            }
             }
             .subheading{
             font-size: 10px;
@@ -70,7 +73,8 @@
                 line-height: 44px;
                 margin-bottom: 15px;
                 @media screen and (max-width: 1450px)  {
-                    font-size:14px;
+                    font-size:30px;
+                    line-height: 33px;
                 }
                 }
                 .secondHeading{
@@ -79,8 +83,7 @@
                 line-height: 24px;
                 margin-bottom: 15px;
                 @media screen and (max-width: 1450px)  {
-                    font-size:30px;
-                    line-height: 33px;
+                    font-size:14px;
                 }
                 }
                 .reliabilitySummary{
@@ -123,6 +126,9 @@
         .heading{
         font-size: 18px;
         font-weight: 600;
+        img{
+            margin-left: 5px;
+        }
         }
         .subheading{
         font-size: 10px;

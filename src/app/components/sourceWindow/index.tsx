@@ -1,8 +1,11 @@
 "use client"
 import { Source, Search } from "@/app/types";
+import Image from "next/image";
 import styles from "../../chat/page.module.scss";
 import SearchCard from "../searchCard";
 import SourceCard from "../sourceCard";
+import { useState } from "react";
+import SearchSummariesModal from "../modals/info/searchSummaries";
 
 type Props = {
   sourceWindow: number;
@@ -21,6 +24,8 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
   const searchData = searches.map((search, index) =>
   <SearchCard number={index+1} prompt={search.prompt} summary={search.summary} key={index}  />
   );
+
+  const [activeModal, setActiveModal] = useState(0)
 
   if (sourceWindow===1){
   return (
@@ -42,10 +47,15 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
     return (
       <section className={styles.sourceInspectColumn}>
         <div className={styles.controlRow}>
-          <h2 className={styles.sourceHeading}>AI Search Summaries</h2>
+          <h2 className={styles.sourceHeading} onClick={()=> setActiveModal(10)}>AI Search Summaries
+          <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
+          style={{cursor:'pointer'}}
+          onClick={()=> setActiveModal(10)} />
+          </h2>
           <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
         </div>
       {searchData}
+      {activeModal !== 0 ? <SearchSummariesModal setActiveModal={setActiveModal} /> : <></>}
     </section>
     );
     }

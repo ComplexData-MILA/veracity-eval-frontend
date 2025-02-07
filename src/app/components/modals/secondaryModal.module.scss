@@ -59,3 +59,73 @@
        }
     }
 }
+
+.clearWrapper{
+    position: fixed;
+    top:0px;
+    left:0px;
+    height: 100vh;
+    width:100vw;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .modalOne{
+        background-color: white;
+        width: 400px;
+        max-width: 800px;
+        border-radius: 20px;
+        padding: 20px;
+        position: absolute;
+        right:8vw;
+        top:60px;
+        z-index:1050;
+        box-shadow: 0px 4px 20px 0px #00000099;
+        font-size: 14px;
+        line-height: 18px;
+        h4{
+            margin: 5px 0px;
+        }
+    }
+    .modalTwo{
+        background-color: white;
+        width: 400px;
+        max-width: 800px;
+        border-radius: 20px;
+        padding: 20px;
+        position: absolute;
+        right:19vw;
+        top:250px;
+        z-index:1050;
+        box-shadow: 0px 4px 20px 0px #00000099;
+        font-size: 14px;
+        line-height: 18px;
+        h4{
+            margin: 5px 0px;
+        }
+    }
+    .modalThree{
+        background-color: white;
+        width: 400px;
+        max-width: 800px;
+        border-radius: 20px;
+        padding: 20px;
+        position: absolute;
+        left:18vw;
+        top:250px;
+        z-index:1050;
+        box-shadow: 0px 4px 20px 0px #00000099;
+        font-size: 14px;
+        line-height: 18px;
+        h4{
+            margin: 5px 0px;
+        }
+        p{
+            margin: 10px 0px;
+        }
+        li{
+            margin: 5px 0px 5px 25px;
+        }
+    }
+
+}

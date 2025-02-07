@@ -2,13 +2,15 @@
 import { Source } from "@/app/types";
 import styles from "../analysis.module.scss";
 import BarGraph from "./barGraph";
+import Image from "next/image";
 
 type Props = {
   setSourceWindow: (arg0: number) => void;
+  setActiveModal: (arg0: number) => void;
   sources: Source[]
 };
 
-export default function Sources({ setSourceWindow, sources }: Props) {
+export default function Sources({ setSourceWindow, setActiveModal, sources }: Props) {
 
   function averageCredibilityScore(sources: Source[]){
     let average=0;
@@ -26,7 +28,11 @@ export default function Sources({ setSourceWindow, sources }: Props) {
 
   return (
       <div className={styles.sources}>
-        <h4 className={styles.heading}>Sources</h4>
+        <h4 className={styles.heading}>Sources
+        <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
+          style={{cursor:'pointer'}}
+          onClick={()=> setActiveModal(101)} />
+        </h4>
         <p className={styles.subheading}>Indicates how confident we are in its reliability.</p>
         <BarGraph numberOfSources={sources.length} averageScore={averageCredibilityScore(sources)}  />
         <div className={styles.sourceSummary}>
