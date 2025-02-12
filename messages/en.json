@@ -9,7 +9,8 @@
         "loginButton": "Log in",
         "ourTrustedPartners": "Our trusted partners",
         "privacy": "Privacy and Security",
-        "contactUs": "Contact us"
+        "contactUs": "Contact us",
+        "howItWorks": "How the AI works"
     },
     "chatpage": {
         "title": "Veracity AI",
@@ -21,6 +22,20 @@
         "outputTwo": "Here is my analysis:",
         "preferences": "Preferences",
         "language": "Language",
-        "languageDescription": "Change the language used in the user interface"
+        "languageDescription": "Change the language used in the user interface",
+        "reliabilityScore": "Reliability score",
+        "howCalculated": "How is this calculated?",
+        "reliabilityLevel1": "The claim is not reliable,",
+        "reliabilityLevel2": "The claim is likely not reliable,",
+        "reliabilityLevel3": "The claim needs further investigation,",
+        "reliabilityLevel4": "The claim is reliable,",
+        "reliabilityLevel5": "The claim is highly reliable,",
+        "canShare": "you can share with your network.",
+        "canNotShare": "you should not share with your network.",
+        "interpreted": "How Veracity interpreted your prompt",
+        "convincing": "How convincing is our presented analysis for this claim?",
+        "confident": "Indicates how confident we are in its reliability.",
+        "averageCredibility": "Avg. Source Credibility",
+        "showAllSources": "Show all sources"
     }
 }

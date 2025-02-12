@@ -3,6 +3,7 @@ import { Source } from "@/app/types";
 import styles from "../analysis.module.scss";
 import BarGraph from "./barGraph";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 type Props = {
   setSourceWindow: (arg0: number) => void;
@@ -11,7 +12,7 @@ type Props = {
 };
 
 export default function Sources({ setSourceWindow, setActiveModal, sources }: Props) {
-
+  const t = useTranslations('chatpage');
   function averageCredibilityScore(sources: Source[]){
     let average=0;
     let nonNullSources=0;
@@ -32,11 +33,11 @@ export default function Sources({ setSourceWindow, setActiveModal, sources }: Pr
           style={{cursor:'pointer'}}
           onClick={()=> setActiveModal(101)} />
         </h4>
-        <p className={styles.subheading}>Indicates how confident we are in its reliability.</p>
+        <p className={styles.subheading}>{t('confident')}</p>
         <BarGraph numberOfSources={sources.length} averageScore={averageCredibilityScore(sources)}  />
         <div className={styles.sourceSummary}>
           <p className={styles.sourceSummaryParagraph}>Source 1: {JSON.stringify(sources[0]?.snippet)}</p>
-          <p className={styles.readMore} onClick={()=> setSourceWindow(1)}>Show all sources</p>
+          <p className={styles.readMore} onClick={()=> setSourceWindow(1)}>{t('showAllSources')}</p>
         </div>
       </div>
   );

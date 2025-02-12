@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-      <Link href="/how-the-ai-works" className={styles.headerItem}>How the AI works</Link>
+      <Link href="/how-the-ai-works" className={styles.headerItem}>{t('howItWorks')}</Link>
         <Link href="/privacy" className={styles.headerItem}>{t('privacy')}</Link>
         <a href="https://www.complexdatalab.com/people/" className={styles.headerItem}>{t('contactUs')}</a>
         <TinyLogin label={t('loginButton')}  />

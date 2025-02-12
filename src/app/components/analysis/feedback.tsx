@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import LabelButton from "./labelButton";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
+import { useTranslations } from "next-intl";
 
 
 const API_URL = 'https://api.veri-fact.ai';
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export default function Feedback({ setSourceWindow, claimId }: Props) {
-
+  const t = useTranslations('chatpage');
   /*This is the user rating, all other states depend on it*/
   const [voteSignal, setVoteSignal] = useState(0);
   const { fetchWithAuth } = useAuthApi();
@@ -149,10 +150,10 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
     <section>
       <div className={styles.feedbackRow}>
         <div className={styles.feedbackWrapper}>
-            <p className={styles.convinceText}>How convincing is our presented analysis for this claim?</p>
+            <p className={styles.convinceText}>{t('convincing')}</p>
             {fillStars(voteSignal)}
         </div>
-        <p className={styles.interpretedLink} onClick={()=> setSourceWindow(2)}>How Veracity interpreted your prompt</p>
+        <p className={styles.interpretedLink} onClick={()=> setSourceWindow(2)}>{t('interpreted')}</p>
       </div>
       {feedbackIsOpen ? drawer : <></>}
       <div ref={drawerRef} />

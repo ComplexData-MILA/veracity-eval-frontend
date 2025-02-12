@@ -1,4 +1,5 @@
 "use client"
+import { useTranslations } from "next-intl";
 import styles from "../analysis.module.scss";
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
 };
 
 export default function BarGraph({ numberOfSources, averageScore }: Props) {
+  const t = useTranslations('chatpage');
   /*this is for the average score text*/
   let override =''
   if (Number.isNaN(averageScore))
@@ -22,7 +24,7 @@ export default function BarGraph({ numberOfSources, averageScore }: Props) {
         <p className={styles.subheading}>Sources</p>
         </div>
         <div>
-          <p className={styles.averageText}>Avg. Source Credibility</p>
+          <p className={styles.averageText}>{t('averageCredibility')}</p>
           {override.length>0?
           <h2>{override}</h2>:<>
           <div className={styles.backgroundBar} />

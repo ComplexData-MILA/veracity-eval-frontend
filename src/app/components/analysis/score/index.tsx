@@ -3,6 +3,7 @@ import Link from "next/link";
 import styles from "../analysis.module.scss";
 import Donut from "./donut";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 
 type Props = {
@@ -12,22 +13,22 @@ type Props = {
 };
 
 export default function Score({veracityScore, text, setActiveModal}: Props) {
-
+  const t = useTranslations('chatpage');
   const reliability:number = veracityScore*100
 
   function getShouldYouShare(reliability:number){
     if (reliability>60){
-      return "you can share with your network."
+      return t('canShare')
     }
-    else {return "you should not share with your network."}
+    else {return t('canNotShare')}
   }
   
   function getIsThisReliable(reliability: number) {
-    if (reliability<=20){return "The claim is not reliable,"}
-    else if (reliability>20&&reliability<=40){return "The claim is likely not reliable,"}
-    else if (reliability>40&&reliability<=60){return "The claim needs further investigation,"}
-    else if (reliability>60&&reliability<=80){return "The claim is reliable,"}
-    else {return "The claim is highly reliable,"}
+    if (reliability<=20){return t('reliabilityLevel1')}
+    else if (reliability>20&&reliability<=40){return t('reliabilityLevel2')}
+    else if (reliability>40&&reliability<=60){return t('reliabilityLevel3')}
+    else if (reliability>60&&reliability<=80){return t('reliabilityLevel4')}
+    else {return t('reliabilityLevel5')}
   }
 
   function getColour(reliability: number) {
@@ -43,12 +44,12 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
       <section className={styles.score}>
         <div className={styles.scoreHeader}>
           <div>
-            <h4 className={styles.heading}>Reliability score
+            <h4 className={styles.heading}>{t('reliabilityScore')}
             <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
           style={{cursor:'pointer'}}
           onClick={()=> setActiveModal(100)} />
             </h4>
-            <Link href="#" className={styles.how}>How is this calculated?</Link>
+            <Link href="/how-the-ai-works" className={styles.how}>{t('howCalculated')}</Link>
           </div>
         </div>
         <div className={styles.scoreMain} >

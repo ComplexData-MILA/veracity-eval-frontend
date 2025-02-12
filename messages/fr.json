@@ -8,7 +8,8 @@
         "loginButton": "Se connecter",
         "ourTrustedPartners": "Nos partenaires de confiance",
         "privacy": "Confidentialité et Sécurité",
-        "contactUs": "Contat"
+        "contactUs": "Contat",
+        "howItWorks": "En apprendre plus sur le modèle"
     },
     "chatpage": {
         "title": "Véracité AI",
@@ -20,6 +21,20 @@
         "outputTwo": "Voici mon analyse:",
         "preferences": "Préférences",
         "language": "Langue",
-        "languageDescription": "Changer la langue utilisée dans l'interface utilisateur"
+        "languageDescription": "Changer la langue utilisée dans l'interface utilisateur",
+        "reliabilityScore": "Score de fiabilité",
+        "howCalculated": "Comment Veracity calcule-t-il ce score?",
+        "reliabilityLevel1": "Cet énoncé n'est pas fiable,",
+        "reliabilityLevel2": "Cet énoncé n'est pas fiable,",
+        "reliabilityLevel3": "Cette énoncé nécessite plus de vérification,",
+        "reliabilityLevel4": "Cet énoncé est fiable,",
+        "reliabilityLevel5": "Cet énoncé est très fiable,",
+        "canShare": "vous pouvez le partagez avec votre réseau.",
+        "canNotShare": "ne le partagez pas avec votre réseau.",
+        "interpreted": "Comment Veracity a interprété votre énoncé?",
+        "convincing": "Notre analyse de cet énoncé vous semble-t-elle convaincante?",
+        "confident": "Comment Veracity sélectionne-t-il les sources?",
+        "averageCredibility": "Crédibilité moy. des sources",
+        "showAllSources": "Voir toutes les sources"
     }
 }

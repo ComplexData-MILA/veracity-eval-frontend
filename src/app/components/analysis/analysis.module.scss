@@ -63,7 +63,7 @@
                 }
             }
             .scoreText{
-                margin: 50px 20px;
+                margin: 50px 5px 50px 20px;
                 @media screen and (max-width: 550px)  {
                 margin-left:0px;
                 }
@@ -173,9 +173,9 @@
             }
             .averageText{
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 20px;
+            line-height: 16px;
             }
         }
         .sourceSummary{
