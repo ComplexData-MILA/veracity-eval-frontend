@@ -6,9 +6,10 @@ Chart.register(ArcElement);
 
 type Props = {
   reliability: number;
+  colour: string;
 };
 
-const Donut = ({reliability}: Props) => {
+const Donut = ({reliability, colour}: Props) => {
   return (
     <div className={styles.donutSection}>
       <Doughnut
@@ -17,7 +18,7 @@ const Donut = ({reliability}: Props) => {
             {
               data: [reliability, (100-reliability)],
               backgroundColor: [
-                "#1683FF",
+                colour,
                 "#ffffff",
               ]
             }

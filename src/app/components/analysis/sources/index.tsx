@@ -20,7 +20,6 @@ export default function Sources({ setSourceWindow, setActiveModal, sources }: Pr
       nonNullSources=nonNullSources+1
     }}
     );
-    
     average=(average/nonNullSources)*100;
     average=Math.trunc(average);
     return average;

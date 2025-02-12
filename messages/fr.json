@@ -1,6 +1,6 @@
 {
     "homepage": {
-        "title": "Bienvenue sur Veracity",
+        "title": "Bienvenue sur Véracité",
         "subtitle": "Vérifier vos informations avec clarté et confiance, guidé·e par",
         "styledSubtitle": "un assistant conversationnel.",
         "description": "Inscrivez-vous ou connectez-vous pour vérifier des infos et partager en toute confiance.",
@@ -11,6 +11,7 @@
         "contactUs": "Contat"
     },
     "chatpage": {
+        "title": "Véracité AI",
         "learnMore": "Guide d’utilisateur",
         "help": "Aide",
         "disclaimer": "Bien que nous nous efforcions d'être précis, certaines réponses de l'IA peuvent varier",

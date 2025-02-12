@@ -7,9 +7,14 @@ type Props = {
 };
 
 export default function BarGraph({ numberOfSources, averageScore }: Props) {
+  /*this is for the average score text*/
   let override =''
   if (Number.isNaN(averageScore))
   {override="Unknown"}
+  /*should the bargraph transition to green or not*/
+  let backgroundGradient = ''
+  if (averageScore>60){backgroundGradient=`linear-gradient(90deg, #1683FF  0%, #1683FF  40%, #11F90E 60%, #11F90E ${averageScore}%, #ffffff00 ${averageScore}%, #ffffff00 100%)`}
+  else {backgroundGradient=`linear-gradient(90deg, #1683FF  0%, #1683FF  ${averageScore}%, #ffffff00 ${averageScore}%, #ffffff00 100%)`}
   return (
       <div className={styles.sourceCredibilityRow}>
         <div className={styles.credibilityRatingWrapper}>
@@ -21,7 +26,7 @@ export default function BarGraph({ numberOfSources, averageScore }: Props) {
           {override.length>0?
           <h2>{override}</h2>:<>
           <div className={styles.backgroundBar} />
-          <div className={styles.foregroundBar} style={{width:`${averageScore}%`}} /></>}
+          <div className={styles.foregroundBar} style={{background:backgroundGradient}} /></>}
         </div>
         <h2>{override.length<1?`${averageScore}%`:''}</h2>
       </div>

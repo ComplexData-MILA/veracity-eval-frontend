@@ -52,7 +52,7 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
           </div>
         </div>
         <div className={styles.scoreMain} >
-          <Donut reliability={reliability} />
+          <Donut reliability={reliability} colour={getColour(reliability)} />
           <div className={styles.scoreText}>
             <h2 className={styles.firstHeading} style={{color: textColorConst}}>{isThisReliable}</h2>
             <h2 className={styles.secondHeading}>{shouldYouShare}</h2>
