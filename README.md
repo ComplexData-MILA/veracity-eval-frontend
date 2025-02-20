@@ -39,7 +39,7 @@ npm run dev
 Project will now be running on localhost:3000/
 
 ## Dependencies
-The frontend of the project uses typescript and sass throughout. Style modules are a mix of components and page level styling.
+The frontend of the project uses typescript and sass throughout. Style modules are a mix of components and page-level styling.
 
 Internationalization is handled by [next-intl](https://www.npmjs.com/package/next-intl) and at the time of writing, we are increasing use of our charting dependency, [chart.js](https://www.chartjs.org/). Like most nextjs projects, linting is handled by eslint.
 
