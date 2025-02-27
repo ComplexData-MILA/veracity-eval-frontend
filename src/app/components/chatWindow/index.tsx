@@ -45,7 +45,7 @@ export default function ChatWindow() {
   const verifyClaim = useCallback(async () => {
     let eventSource: EventSource | null = null;
 
-    var language = ''
+    let language = ''
 
     if (locale == 'en') {
       language = 'english';
