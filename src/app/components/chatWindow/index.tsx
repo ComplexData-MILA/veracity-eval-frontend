@@ -2,7 +2,7 @@
 
 import styles from "../../chat/page.module.scss";
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useCallback  } from 'react';
 import Help from '../help';
 import Input from '../input';
 import HelpWindow from "../helpWindow";
@@ -42,7 +42,7 @@ export default function ChatWindow() {
   if (!user) redirect('/');
 
 
-  const verifyClaim = async () => {
+  const verifyClaim = useCallback(async () => {
     let eventSource: EventSource | null = null;
 
     var language = ''
@@ -149,7 +149,7 @@ export default function ChatWindow() {
       setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
     }
-  };
+  }, [locale]);
 
   const fetchSources = async (analysisId: string) => {
     try {
