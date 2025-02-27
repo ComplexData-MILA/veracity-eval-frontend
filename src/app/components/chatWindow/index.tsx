@@ -8,7 +8,7 @@ import Input from '../input';
 import HelpWindow from "../helpWindow";
 import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
@@ -28,6 +28,8 @@ export default function ChatWindow() {
   const [claim, setClaim] = useState<string>("");
   const [claimId, setClaimId] = useState<string | null>(null);
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
+  /* Language */
+  const locale = useLocale();
   /*verification states*/
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
   const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
@@ -42,14 +44,22 @@ export default function ChatWindow() {
 
   const verifyClaim = async () => {
     let eventSource: EventSource | null = null;
-    
+
+    var language = ''
+
+    if (locale == 'en') {
+      language = 'english';
+    } else if (locale == 'fr'){
+      language = 'french'
+    }
+
     try {
       setClaimIsSent(true);
       setFinalAnalysis(null);
       setSources([]);
       setSearchesUsed([]);
       setError(null);
-  
+
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
         headers: { 
@@ -58,17 +68,17 @@ export default function ChatWindow() {
         },
         body: JSON.stringify({
           claim_text: claim,
-          context: claim
+          context: claim,
+          language: language
         })
       });
   
       if (!claimResponse.ok) {
         throw new Error(`Failed to create claim: ${await claimResponse.text()}`);
       }
-  
+
       const claimData = await claimResponse.json();
-      
-      
+
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
         throw new Error('Failed to get authentication token');
