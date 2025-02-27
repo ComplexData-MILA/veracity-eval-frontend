@@ -17,6 +17,7 @@ const ReportModal = ({ setActiveModal }: Props) => {
   const locale = useLocale();
   const [lang, setLang] = useState(locale)
   const t = useTranslations('chatpage');
+  const t2 = useTranslations('userMenu');
 
   function handleChange(value: string){
     setLang(value);
@@ -32,14 +33,14 @@ const ReportModal = ({ setActiveModal }: Props) => {
           <h2 className={styles.modalTitle}>{t('preferences')}</h2>
           <div className={styles.modalRow}>
             <div>
-                <h3 className={styles.rowTitle}>User Name</h3>
+                <h3 className={styles.rowTitle}>{t2('username')}</h3>
                 <p className={styles.rowDescription}>{GetUserFullName()}</p>
               </div>
             </div>
           <div className={styles.modalRow}>
             <div>
-                <h3 className={styles.rowTitle}>Time Zone</h3>
-                <p className={styles.rowDescription}>Current time zone setting</p>
+                <h3 className={styles.rowTitle}>{t2('timezone')}</h3>
+                <p className={styles.rowDescription}>{t2('timezoneDesc')}</p>
               </div>
               <p className={styles.timeZone}>{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
             </div>

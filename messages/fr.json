@@ -1,5 +1,6 @@
 {
-    "homepage": {
+    "homepage": 
+    {
         "title": "Bienvenue sur Véracité",
         "subtitle": "Vérifier vos informations avec clarté et confiance, guidé·e par",
         "styledSubtitle": "un assistant conversationnel.",
@@ -36,5 +37,53 @@
         "confident": "Comment Veracity sélectionne-t-il les sources?",
         "averageCredibility": "Crédibilité moy. des sources",
         "showAllSources": "Voir toutes les sources"
-    }
+    },
+    "userMenu":
+    {
+        "preferences": "Préférences",
+        "problem": "Signaler un problème",
+        "terms": "Politique de confidentialité & Conditions d'utilisation",
+        "AI": "En apprendre plus le modèle",
+        "logout": "Se déconnecter",
+        "username": "Nom d'utilisateur",
+        "timezone": "Fuseau horaire",
+        "timezoneDesc":"Réglage actuel du fuseau horaire"
+    },
+    "scoreInfo":
+    {
+        "whatIsReliabilityScore": "Qu'est-ce qu'un score de fiabilité ?",
+        "reliabilityScoreDescription": "Un score de fiabilité évalue la crédibilité d'un énoncé. Il aide à déterminer si un énoncé est fiable ou nécessite une vérification. Le score repose sur :",
+        "evidenceQuality": "Qualité des preuves : Solidité des données à l’appui.",
+        "sourceCredibility": "Crédibilité de la source : Fiabilité de l'origine de l'information.",
+        "consistency": "Cohérence : Alignement avec des faits vérifiés.",
+        "biasDetection": "Détection des biais : Présence de biais potentiels.",
+        "verification": "Vérification : Reproductibilité indépendante.",
+        "howDoesVeracityCalculate": "Comment Veracity calcule-t-il ce score ?",
+        "veracityCalculationExplanation": "Veracity évalue quatre facteurs clés : la crédibilité de la source, la qualité des preuves, la cohérence avec des faits vérifiés et la présence de biais potentiels.",
+        "reliabilityScaleIntro": "Chaque facteur contribue au score final, mesuré sur une échelle de 5 niveaux.",
+        "reliabilityScaleTitle": "Échelle de fiabilité :",
+        "scale0to20": "0-20 % : L’énoncé n’est pas fiable",
+        "scale21to40": "21-40 % : L’énoncé est peu fiable",
+        "scale41to60": "41-60 % : L’énoncé nécessite plus de vérification",
+        "scale61to80": "61-80 % : L’énoncé est fiable",
+        "scale81to100": "81-100 % : L’énoncé est très fiable"
+    },
+    "sourceInfo":  
+    {
+        "whatIsSource": "What does Veracity consider a source?",
+        "sourceDefinition": "Veracity considers a source to be any origin of information that supports a claim. This includes news outlets, research papers, government reports, expert opinions, or documented content providing facts or insights.",
+        "howDoesVeracityCurate": "How does Veracity curate the sources?",
+        "sourceCuration": "Veracity curates sources by evaluating their trustworthiness through key criteria: reputation, transparency, accuracy, and bias. It considers the source’s track record, whether it cites verifiable evidence, and how consistently it presents factual information. This careful curation ensures that only reliable sources are used for scoring claims."
+    },
+    "searchSummaries":
+    {
+        "title": "Résumé des recherches IA",
+        "altTitle": "Détails des sources",
+        "whatAreAISearchSummaries": "Qu'est-ce que les résumés de recherche IA ?",
+        "aiSearchSummariesDefinition": "Les résumés de recherche IA sont des synthèses concises générées par des modèles d’intelligence artificielle, notamment les modèles de langage (LLMs), en réponse à des requêtes. Ils rassemblent des informations clés provenant de plusieurs sources pour fournir une réponse directe et pertinente. Contrairement aux résultats de recherche traditionnels qui affichent une liste de liens, ces résumés offrent une réponse cohérente basée sur l’analyse du modèle IA.",
+        "search": "RECHERCHE :",
+        "summary":"RÉSUMÉ :",
+        "credibility":"Crédibilité : "
+    }    
+      
 }

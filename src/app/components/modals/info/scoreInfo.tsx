@@ -1,5 +1,5 @@
 import styles from "../secondaryModal.module.scss";
-
+import { useTranslations } from "next-intl";
 
 type Props = {
   setActiveModal: (arg0: number) => void;
@@ -8,41 +8,36 @@ type Props = {
 
 const ScoreInfo = ({ setActiveModal }: Props) => {
 
+  const t = useTranslations('scoreInfo');
+
 
   return (
       <div className={styles.clearWrapper} onClick={()=> setActiveModal(0)}>
         <div className={styles.modalThree} onClick={e => e.stopPropagation()}>
-          <div>
-            <h4>What is a reliability score?</h4>
-            <p>
-              A reliability score evaluates how trustworthy a claim is. 
-              It helps determine if a claim is credible or needs verification. 
-              The score is based on:
-            </p>
-            <ul>
-            <li>Evidence Quality: Strength of supporting data.</li>
-            <li>Source Credibility: Reliability of the source.</li>
-            <li>Consistency: Alignment with verified facts.</li>  
-            <li>Bias Detection: Presence of bias.</li>
-            <li>Verification: Independent reproducibility.</li>
-            </ul>
+        <div>
+          <h4>{t('whatIsReliabilityScore')}</h4>
+          <p>{t('reliabilityScoreDescription')}</p>
+          <ul>
+            <li>{t('evidenceQuality')}</li>
+            <li>{t('sourceCredibility')}</li>
+            <li>{t('consistency')}</li>
+            <li>{t('biasDetection')}</li>
+            <li>{t('verification')}</li>
+          </ul>
 
-            <h4>How does Veracity calculate this score?</h4>
-            <p>
-            Veracity calculates the score by evaluating four key factors: source credibility, evidence quality, consistency with verified facts, and potential bias.
-            </p>
-            <p>
-            Each factor contributes to the final reliability score, measured on a 5-point scale:
-            </p>
-            <p>Reliability Scale: </p>
-            <ul>
-            <li>0-20%: The claim is not reliable</li>
-            <li>21-40%: The claim is likely not reliable</li>
-            <li>41-60%: The claim needs further investigation</li>  
-            <li>61-80%: The claim is reliable</li>
-            <li>81-100%: The claim is highly reliable.</li>
-            </ul>
+          <h4>{t('howDoesVeracityCalculate')}</h4>
+          <p>{t('veracityCalculationExplanation')}</p>
+          <p>{t('reliabilityScaleIntro')}</p>
+          <p>{t('reliabilityScaleTitle')}</p>
+          <ul>
+            <li>{t('scale0to20')}</li>
+            <li>{t('scale21to40')}</li>
+            <li>{t('scale41to60')}</li>
+            <li>{t('scale61to80')}</li>
+            <li>{t('scale81to100')}</li>
+          </ul>
         </div>
+
         </div>
       </div>
   );
