@@ -36,11 +36,88 @@ export default function ChatWindow() {
   const [sources, setSources] = useState<Source[]>([]);
   const [searchesUsed, setSearchesUsed] = useState<Search[]>([]);
   const [error, setError] = useState<string | null>(null);
-  /*check auth0 user, send back to homepage if user is not logged in*/
-  if (authLoading) return <div>Loading...</div>;
-  if (authError) return <div>Authentication error: {authError.message}</div>;
-  if (!user) redirect('/');
 
+  const fetchSources = async (analysisId: string) => {
+    try {
+      setIsLoadingSources(true);
+      const sourcesResponse = await fetchWithAuth(
+        `${API_URL}/v1/sources/analysis/${analysisId}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+
+      if (!sourcesResponse.ok) {
+        throw new Error(`Failed to fetch sources: ${await sourcesResponse.text()}`);
+      }
+
+      const sourcesData = await sourcesResponse.json();
+      setSources(sourcesData);
+    } catch (err) {
+      console.error('Error fetching sources:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load sources');
+    } finally {
+      setIsLoadingSources(false);
+    }
+  };
+
+  const fetchSearches = async (analysisId: string) => {
+    try {
+      const searchesResponse = await fetchWithAuth(
+        `${API_URL}/v1/searches/analysis/${analysisId}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+
+      if (!searchesResponse.ok) {
+        throw new Error(`Failed to fetch search ID's: ${await searchesResponse.text()}`);
+      }
+      const searchData = await searchesResponse.json();
+      setSearchesUsed(searchData);
+    } catch (err) {
+      console.error('Error fetching sources:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load sources');
+    } 
+  };
+  
+  const handleAnalysisComplete = async (data: {
+    type: 'analysis_complete';
+    content: {
+      analysis_id: string;
+      claim_conversation_id: string;
+      conversation_id: string;
+    }
+  }, eventSource: EventSource | null) => {
+    try {
+      const analysisResponse = await fetchWithAuth(
+        `${API_URL}/v1/analysis/${data.content.analysis_id}`
+      );
+      
+      if (!analysisResponse.ok) {
+        throw new Error(`Failed to fetch final analysis: ${await analysisResponse.text()}`);
+      }
+      
+      const analysisData = await analysisResponse.json();
+      setFinalAnalysis(analysisData);
+      setClaimId(analysisData.id); 
+      await fetchSources(data.content.analysis_id);
+      await fetchSearches(data.content.analysis_id);
+    } catch (err) {
+      console.error('Error handling analysis completion:', err);
+      setError(err instanceof Error ? err.message : 'Failed to complete analysis');
+    } finally {
+      eventSource?.close();
+    }
+  };
 
   const verifyClaim = useCallback(async () => {
     let eventSource: EventSource | null = null;
@@ -149,91 +226,24 @@ export default function ChatWindow() {
       setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
     }
-  }, [locale]);
+  }, [locale,
+    fetchWithAuth,
+    claim,
+    handleAnalysisComplete,
+    setClaimIsSent,
+    setFinalAnalysis,
+    setSources,
+    setSearchesUsed,
+    setError
 
-  const fetchSources = async (analysisId: string) => {
-    try {
-      setIsLoadingSources(true);
-      const sourcesResponse = await fetchWithAuth(
-        `${API_URL}/v1/sources/analysis/${analysisId}`,
-        {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-        }
-      );
 
-      if (!sourcesResponse.ok) {
-        throw new Error(`Failed to fetch sources: ${await sourcesResponse.text()}`);
-      }
+  ]);
 
-      const sourcesData = await sourcesResponse.json();
-      setSources(sourcesData);
-    } catch (err) {
-      console.error('Error fetching sources:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load sources');
-    } finally {
-      setIsLoadingSources(false);
-    }
-  };
-
-  const fetchSearches = async (analysisId: string) => {
-    try {
-      const searchesResponse = await fetchWithAuth(
-        `${API_URL}/v1/searches/analysis/${analysisId}`,
-        {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-        }
-      );
-
-      if (!searchesResponse.ok) {
-        throw new Error(`Failed to fetch search ID's: ${await searchesResponse.text()}`);
-      }
-      const searchData = await searchesResponse.json();
-      setSearchesUsed(searchData);
-    } catch (err) {
-      console.error('Error fetching sources:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load sources');
-    } 
-  };
+  /*check auth0 user, send back to homepage if user is not logged in*/
+  if (authLoading) return <div>Loading...</div>;
+  if (authError) return <div>Authentication error: {authError.message}</div>;
+  if (!user) redirect('/');
   
-  const handleAnalysisComplete = async (data: {
-    type: 'analysis_complete';
-    content: {
-      analysis_id: string;
-      claim_conversation_id: string;
-      conversation_id: string;
-    }
-  }, eventSource: EventSource | null) => {
-    try {
-      const analysisResponse = await fetchWithAuth(
-        `${API_URL}/v1/analysis/${data.content.analysis_id}`
-      );
-      
-      if (!analysisResponse.ok) {
-        throw new Error(`Failed to fetch final analysis: ${await analysisResponse.text()}`);
-      }
-      
-      const analysisData = await analysisResponse.json();
-      setFinalAnalysis(analysisData);
-      setClaimId(analysisData.id); 
-      await fetchSources(data.content.analysis_id);
-      await fetchSearches(data.content.analysis_id);
-    } catch (err) {
-      console.error('Error handling analysis completion:', err);
-      setError(err instanceof Error ? err.message : 'Failed to complete analysis');
-    } finally {
-      eventSource?.close();
-    }
-  };
-
-
   return (
     <div className={styles.mainWrapper}>
     <section className={styles.mainSection}>
