@@ -1,126 +1,129 @@
 import Link from "next/link";
 import styles from "./page.module.scss"
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 
 export default function Privacy() {
-  return (
+
+    const t = useTranslations('privacy');
+    const t2 = useTranslations('chatpage');
+    return (
     <>
       <main className={styles.main}>
     <Link href="/chat"><div className={styles.logoRow}>
         <Image src="/assets/logo.png" alt="me" width="20" height="20" />
-        <h2 className={styles.logoTitle}>Veracity AI</h2>
+        <h2 className={styles.logoTitle}>{t2('title')}</h2>
     </div></Link>
     {/*<!--Privacy section-->*/}
-    <h1 className={styles.title}>Privacy Policy</h1>
-    <p><b>Effective Date:</b> March 31, 2025.
-    <br />
-        The Veri-Fact team, a part of the Complex Data Lab, is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our fact checker. Please read this policy carefully to understand our practices regarding your information.
+    <h1 className={styles.title}>{t('PrivacyPolicyTitle')}</h1>
+    <p><b>{t('EffectiveDate')}</b> {t('March31_2025')}
+        <br />
+        {t('PrivacyPolicyIntro')}
     </p>
-    <h2 className={styles.contentTitle}>1. Information We Collect</h2>
-    <p>We may collect the following types of information:</p>
-    <h3 className={styles.contentSubtitle}>a. Personal Information</h3>
-    <p>Information you voluntarily provide to us, such as:</p>
+    <h2 className={styles.contentTitle}>{t('InformationWeCollectTitle')}</h2>
+    <p>{t('InformationTypesIntro')}</p>
+    <h3 className={styles.contentSubtitle}>{t('PersonalInformationTitle')}</h3>
+    <p>{t('PersonalInformationIntro')}</p>
     <ul>
-        <li>Email address</li>
-        <li>Information provided while using the app</li>
+        <li>{t('EmailAddress')}</li>
+        <li>{t('InformationProvidedInApp')}</li>
     </ul>
-    <h3 className={styles.contentSubtitle}>b. Non-Personal Information</h3>
-    <p>Information collected automatically, such as:</p>
+    <h3 className={styles.contentSubtitle}>{t('NonPersonalInformationTitle')}</h3>
+    <p>{t('NonPersonalInformationIntro')}</p>
     <ul>
-        <li>IP address</li>
-        <li>Browser type</li>
-        <li>Device information</li>
+        <li>{t('IPAddress')}</li>
+        <li>{t('BrowserType')}</li>
+        <li>{t('DeviceInformation')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>2. How We Use Your Information</h2>
-    <p>We may use your information for purposes including, but not limited to:</p>
+    <h2 className={styles.contentTitle}>{t('HowWeUseYourInformationTitle')}</h2>
+    <p>{t('HowWeUseYourInformationIntro')}</p>
     <ul>
-        <li>Providing and improving our services</li>
-        <li>Providing aggregate information about app usage to researchers and experts</li>
-        <li>Responding to your inquiries</li>
-        <li>Sending updates, promotions, or service-related announcements</li>
-        <li>Ensuring website security</li>
+        <li>{t('ProvidingAndImprovingServices')}</li>
+        <li>{t('ProvidingAggregateInfo')}</li>
+        <li>{t('RespondingToInquiries')}</li>
+        <li>{t('SendingUpdatesAndPromotions')}</li>
+        <li>{t('EnsuringSecurity')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>3. Sharing Your Information</h2>
+    <h2 className={styles.contentTitle}>{t('SharingYourInformationTitle')}</h2>
     <p>
-        We do not sell your personal information. However, we may share your information with third parties under the following circumstances:
+        {t('NoSaleOfPersonalInformation')} {t('SharingInformationCircumstances')}
     </p>
     <ul>
-        <li>If required by law or to comply with legal processes</li>
-        <li>To protect our rights, property, or safety, or that of others</li>
+        <li>{t('RequiredByLaw')}</li>
+        <li>{t('ProtectingRightsAndSafety')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>4. Cookies and Tracking Technologies</h2>
-    <p>We use cookies and similar tracking technologies to enhance your experience on our website. These may include:</p>
+    <h2 className={styles.contentTitle}>{t('CookiesAndTrackingTechnologiesTitle')}</h2>
+    <p>{t('CookiesUsageIntro')}</p>
     <ul>
-        <li>Essential cookies for website functionality</li>
+        <li>{t('EssentialCookies')}</li>
     </ul>
-    <p>You can manage or disable cookies through your browser settings.</p>
-    <h2 className={styles.contentTitle}>5. Data Security</h2>
-    <p>We implement reasonable measures to protect your information from unauthorized access, alteration, or disclosure. However, no data transmission or storage system is 100% secure. Use our services at your own risk.</p>
-    <h2 className={styles.contentTitle}>6. Your Rights</h2>
-    <p>Depending on your location, you may have rights regarding your personal information, including:</p>
+    <p>{t('CookieManagement')}</p>
+    <h2 className={styles.contentTitle}>{t('DataSecurityTitle')}</h2>
+    <p>{t('DataSecurityIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('YourRightsTitle')}</h2>
+    <p>{t('RightsIntro')}</p>
     <ul>
-        <li>Accessing the information we hold about you </li>
-        <li>Requesting corrections or updates to your information </li>
-        <li>Requesting deletion of your information (subject to applicable laws) </li>
-        <li>Opting out of marketing communications</li>
+        <li>{t('AccessToInformation')}</li>
+        <li>{t('RequestCorrections')}</li>
+        <li>{t('RequestDeletion')}</li>
+        <li>{t('OptOutOfMarketing')}</li>
     </ul>
-    <p>To exercise these rights, contact us at taylor.curtis@mila.quebec.</p>
-    <h2 className={styles.contentTitle}>7. Third-Party Links</h2>
-    <p>Our website will contain links to third-party websites. We are not responsible for the privacy practices of these websites. Please review their privacy policies before providing any information.</p>
-    <h2 className={styles.contentTitle}>8. Changes to This Privacy Policy</h2>
+    <p>{t('ContactForRights')}</p>
+    <h2 className={styles.contentTitle}>{t('ThirdPartyLinksTitle')}</h2>
+    <p>{t('ThirdPartyLinksIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('ChangesToPrivacyPolicyTitle')}</h2>
     <p>
-        We may update this Privacy Policy from time to time. Changes will be posted on this page, and the &quot;Effective Date&quot; will be updated. Please review this policy periodically for updates.
+        {t('PrivacyPolicyUpdateIntro')}
     </p>
-    <h2 className={styles.contentTitle}>9. Contact Us</h2>
+    <h2 className={styles.contentTitle}>{t('ContactUsTitle')}</h2>
     <p>
-        If you have any questions or concerns about this Privacy Policy, please contact Taylor Lynn Curtis, the project coordinator, at&nbsp;
-        <a href="mailto:taylor.curtis@mila.quebec"><u>taylor.curtis@mila.quebec</u></a>
+        {t('QuestionsOrConcernsIntro')} <a href="mailto:taylor.curtis@mila.quebec"><u>{t('ContactEmail')}</u></a>
     </p>
     {/*<!--TOS section-->*/}
-    <h1 className={styles.title}>Terms of Service</h1>
-    <p><strong>Effective Date:</strong> March 31, 2025</p>
-    <p>Welcome to Veri-Fact! By accessing or using our website, platform, or services (the &quot;Service&quot;), you agree to be bound by these Terms of Service (the &quot;Terms&quot;). Please read them carefully. If you do not agree with these Terms, you may not use the Service.</p>
-    <h2 className={styles.contentTitle}>1. Acceptance of Terms</h2>
-    <p>By accessing or using the Service, you confirm that you are at least 18 years old or have the legal capacity to enter into this agreement.</p>
-    <h2 className={styles.contentTitle}>2. Use of the Service</h2>
-    <p>You agree to use the Service only for lawful purposes and in compliance with these Terms. Specifically, you agree not to:</p>
+    <h1 className={styles.title}>{t('TermsOfServiceTitle')}</h1>
+    <p><strong>{t('EffectiveDate')}</strong> {t('March31_2025')}</p>
+    <p>{t('TermsOfServiceIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('AcceptanceOfTermsTitle')}</h2>
+    <p>{t('AcceptanceOfTermsIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('UseOfServiceTitle')}</h2>
+    <p>{t('UseOfServiceIntro')}</p>
     <ul>
-        <li>Violate any applicable laws or regulations.</li>
-        <li>Use the Service to transmit malicious code or harm other users.</li>
-        <li>Reverse-engineer, decompile, or attempt to extract the source code of the Service.</li>
-        <li>Exploit or misuse any part of the Service in a manner not intended by Veri-Fact.</li>
+        <li>{t('ViolationOfLaws')}</li>
+        <li>{t('MaliciousCode')}</li>
+        <li>{t('ReverseEngineering')}</li>
+        <li>{t('MisuseOfService')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>3. Account Registration and Security</h2>
-    <p>To access certain features of the Service, you may be required to create an account. You agree to:</p>
+    <h2 className={styles.contentTitle}>{t('AccountRegistrationAndSecurityTitle')}</h2>
+    <p>{t('AccountRegistrationIntro')}</p>
     <ul>
-        <li>Provide accurate and complete information during registration.</li>
-        <li>Keep your account credentials confidential and secure.</li>
-        <li>Notify us immediately if you suspect unauthorized use of your account.</li>
+        <li>{t('AccurateInformation')}</li>
+        <li>{t('Confidentiality')}</li>
+        <li>{t('NotifyUnauthorizedUse')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>4. Content Ownership and Licensing</h2>
+    <h2 className={styles.contentTitle}>{t('ContentOwnershipAndLicensingTitle')}</h2>
     <ul>
-        <li><strong>Your Content:</strong> You retain ownership of any content you submit to the Service. However, by submitting content, you grant Veri-Fact and its creator The Complex Data Lab a worldwide, royalty-free, non-exclusive license to use, modify, reproduce, and display your content for the purpose of operating the Service.</li>
-        <li><strong>Our Content:</strong> The Service and its content, including but not limited to text, graphics, logos, and software, are the intellectual property of The Complex Data Lab or its licensors and are protected by copyright, trademark, and other intellectual property laws.</li>
+        <li><strong>{t('YourContentTitle')}:</strong> {t('YourContentIntro')}</li>
+        <li><strong>{t('OurContentTitle')}:</strong> {t('OurContentIntro')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>5. Privacy</h2>
-    <p>Your use of the Service is subject to our Privacy Policy, which explains how we collect, use, and protect your personal information.</p>
-    <h2 className={styles.contentTitle}>6. Disclaimers and Limitations of Liability</h2>
+    <h2 className={styles.contentTitle}>{t('PrivacyTitle')}</h2>
+    <p>{t('PrivacyIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('DisclaimersAndLimitationsOfLiabilityTitle')}</h2>
     <ul>
-        <li>The Service is provided &quot;as is&quot; without warranties of any kind, either express or implied.</li>
-        <li>Veri-Fact is not responsible for the accuracy, reliability, or completeness of any content or information provided by the Service.</li>
-        <li>To the fullest extent permitted by law, Veri-Fact is not liable for any indirect, incidental, or consequential damages arising from your use of the Service.</li>
+        <li>{t('ServiceAsIs')}</li>
+        <li>{t('AccuracyAndReliability')}</li>
+        <li>{t('LimitationOfLiability')}</li>
     </ul>
-    <h2 className={styles.contentTitle}>7. Termination</h2>
-    <p>We reserve the right to suspend or terminate your access to the Service at any time for any reason, including but not limited to violations of these Terms.</p>
-    <h2 className={styles.contentTitle}>8. Changes to the Terms</h2>
-    <p>We may update these Terms from time to time. Any changes will be posted on this page with a &quot;Last Updated&quot; date. Continued use of the Service after changes constitutes acceptance of the revised Terms.</p>
-    <h2 className={styles.contentTitle}>9. Governing Law and Disputes</h2>
-    <p>These Terms are governed by the laws of Quebec, Canada. Any disputes will be resolved exclusively in the courts of Quebec, Canada.</p>
-    <h2 className={styles.contentTitle}>10. Contact Information</h2>
-    <p>For any questions or concerns regarding these Terms, please contact Taylor Lynn Curtis, the project coordinator at:</p>
-    <p>Email: <a href="mailto:taylor.cutis@mila.quebec">taylor.cutis@mila.quebec</a></p>
-</main>
+    <h2 className={styles.contentTitle}>{t('TerminationTitle')}</h2>
+    <p>{t('TerminationIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('ChangesToTermsTitle')}</h2>
+    <p>{t('TermsUpdateIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('GoverningLawAndDisputesTitle')}</h2>
+    <p>{t('GoverningLawIntro')}</p>
+    <h2 className={styles.contentTitle}>{t('ContactInformationTitle')}</h2>
+    <p>{t('ContactIntro')}</p>
+    <p>{t('ContactEmailTitle')} <a href="mailto:taylor.cutis@mila.quebec">{t('ContactEmail')}</a></p>
+    </main>
     </>
   );
 }
