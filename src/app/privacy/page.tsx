@@ -78,7 +78,7 @@ export default function Privacy() {
     </p>
     <h2 className={styles.contentTitle}>{t('ContactUsTitle')}</h2>
     <p>
-        {t('QuestionsOrConcernsIntro')} <a href="mailto:taylor.curtis@mila.quebec"><u>{t('ContactEmail')}</u></a>
+        {t('QuestionsOrConcernsIntro')} <a href="mailto:taylor.curtis@mila.quebec" className="special-link"><u>{t('ContactEmail')}</u></a>
     </p>
     {/*<!--TOS section-->*/}
     <h1 className={styles.title}>{t('TermsOfServiceTitle')}</h1>
@@ -122,7 +122,7 @@ export default function Privacy() {
     <p>{t('GoverningLawIntro')}</p>
     <h2 className={styles.contentTitle}>{t('ContactInformationTitle')}</h2>
     <p>{t('ContactIntro')}</p>
-    <p>{t('ContactEmailTitle')} <a href="mailto:taylor.cutis@mila.quebec">{t('ContactEmail')}</a></p>
+    <p>{t('ContactEmailTitle')} <a href="mailto:taylor.cutis@mila.quebec" className="special-link">{t('ContactEmail')}</a></p>
     </main>
     </>
   );

@@ -249,5 +249,32 @@
         "how_ai_works_source_reliability": "Veri-fact.ai uses a particular database of source reliability scores that assign a score to a web domain name (like a news outlet cnn.com or a government us.gov). There is a handful of such databases out there. One study has collected some of these and shown they give ",
         "how_ai_works_domains_link": "similar reliabilities",
         "how_ai_works_source_reliability_cont": "They also made a composite score from a standard way of combining them. We use the database they provide of this composite score."
-    }      
+    },
+    "guidelines":
+    {
+        "introThankYou": "Thanks for trying out veri-fact.ai. It uses AI (specifically a 'Large Language Model' (LLM)) to summarize relevant text from reliable sources retrieved from the internet. Some things to consider when using it:",
+        "guidelinesAlwaysResponse": "The app will always give a response. To get a sensible response, ensure what you submit is ‘fact-checkable’. We suggest:",
+        "guidelinesVerifiableStatement": "Making sure there is a verifiable statement expressed somewhere in the text you submit. You are not likely to get sensible results from checking an opinion, a difficult-to-verify reason for something, or a little-known fact.",
+        "guidelinesSingleStatement": "Making sure there is",
+        "guidelinesSingleStatementCont": "1 statement.",
+        "guidelinesSingleStatementEmphasis": "only",
+        "guidelinesLlmWrongResponse": "You may still not get a sensible response, because",
+        "guidelinesLlmWrongResponseStrong": "LLMs can sometimes give wrong (and often 'sounds right') explanations",
+        "guidelinesLlmWrongResponseCont": " as an answer.",
+        "guidelinesAssessQuality": "It’s up to us, if we want to use these systems, to",
+        "guidelinesAssessQualityStrong": "assess the quality of the LLM’s response", 
+        "guidelinesAssessQualityCont": "and have a sense for when the AI may have trouble giving a reliable response:",
+        "guidelinesWellKnownStatement": "Is the statement you want to fact-check well-known enough that it is likely to appear in multiple places on the internet? Some cases where it may not:",
+        "guidelinesBreakingNewsEmphasis": "a breaking news event",
+        "guidelinesBreakingNews": "there may not be very many websites with relevant content and those search results that are returned may be of low reliability since the sources mentioning the event are likely either random passersbys with little understanding of the context or involved parties that might have hidden motives in how they talk about it.",
+        "guidelinesBreakingNewsSug":"Suggestion:", 
+        "guidelinesBreakingNewsCont": "Double-check the sources to the right of our page. Do they sound familiar? Do they look typical?",
+        "outsideList": "If not, you may want to be more skeptical about the answer the system returns.",
+        "guidelinesLowCredibilitySources": "What if all the sources analyzed have low or absent source credibility? The system will likely identify this in its answer, but it is always good to check the source credibility scores for yourself. Note that the database veri-fact.ai uses only has so many entries. If the returned website comes from a source that isn’t in the database, that doesn’t necessarily mean it is unreliable, but it does indicate it is not a well-known source. The less well-known a source is, the less likely it is to be based on expert knowledge.",
+        "guidelinesResearchAndFeedback": "Using LLMs to help us fact-check is a new area of research where new ways of doing it are proposed frequently and how well they do is also improving. The developers of veri-fact.ai aim to use the most up-to-date research about how to best use LLMs for fact-checking. They also hope to improve it and you can help here! You are invited to",
+        "guidelinesResearchAndFeedbackStrong": "share your feedback",
+        "afterFeedback": "that will be used to identify and try to correct problems you encounter, as well as to improve the overall user experience. The veri-fact.ai Team thanks you in advance for your participation in this collective experiment to better ground our public discussions in factuality!", 
+        "guidelinesTechnicalDetails": "If you would like to know more technical details about how the AI behind the app works click",
+        "guidelinesClickHere": "here"
+    }
 }
