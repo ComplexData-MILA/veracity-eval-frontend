@@ -219,5 +219,35 @@
         "answer6": "A score from 0-100% that is obtained from an existing, research-validated database of source credibility.",
         "question7": "Why are you telling me not to share?",
         "answer7": "False information shared widely can corrode the health of our digital space. veri-fact.ai helps you detect false information so you don’t share it."
+    },
+    "howWorks":
+    {
+        "how_ai_works_title": "How the AI works",
+        "how_ai_works_intro": "Large Language Models (LLMs) are a powerful kind of instruction-ready AI chatbot. They are good at summarizing text like subject-matter experts would. Unlike experts, they can sometimes get basic things wrong in any number of ways. That's why asking them to reason on their own about how likely it is that a statement is true or false is not a reliable approach to using LLMs for fact-checking.",
+        "how_ai_works_rag_explanation": "Veri-fact.ai takes a more reliable approach based on “Retrieval-Augmented Generation” or RAG for short. Here, this means having the LLM base its response on relevant text from reliable sources on the internet. Veri-fact.ai does this by:",
+        "how_ai_works_step_1": "Instructing the LLM to first come up with text that when pasted in the search bar of a search engine like Google Search will find content relevant to the statement being assessed. The search then returns a list of websites.",
+        "how_ai_works_step_2": "Veri-fact.ai then extracts a main snippet of text from each website as well as a source credibility score obtained from a database we use.",
+        "how_ai_works_step_3": "The LLM is then instructed to summarize all the sources’ text and scores with the purpose of answering how true is the original statement. The LLM is also instructed to provide a corresponding ", 
+        "score": "reliability score", 
+        "how_ai_works_step_3_cont": " between 0 and 100% from very likely false to very likely true. The score is pulled out of the LLM directly--it is not calculated from an equation.",
+        "how_ai_works_minor_steps_intro": "There are a few minor additional steps to this process, e.g.:",
+        "how_ai_works_minor_step_1": "Checking first to make sure what you entered can be interpreted as a statement.",
+        "how_ai_works_minor_step_2": "Getting the LLM to generate multiple search texts to improve the diversity in the returned search results.",
+        "how_ai_works_minor_step_3": "How to handle the situation when there aren’t many websites returned by the search.",
+        "how_ai_works_conclusion": "That's all there is to it. Now you know! See our",
+        "how_ai_works_user_guidelines_link": "User Guidelines",
+        "how_ai_works_conclusion_continued": " for more details on how to use the app.",
+        "how_ai_works_academic_paper_intro": "An academic paper of an earlier version of the approach that goes into more technical detail is:",
+        "how_ai_works_academic_paper_citation": "Jacob-Junqi Tian, Hao Yu, Yury Orlovskiy, Tyler Vergho, Mauricio Rivera, Mayank Goel, Zachary Yang, Jean-François Godbout, Reihaneh Rabbany, & Kellin Pelrine (2024).",
+        "how_ai_works_academic_paper_citation_title":"Web Retrieval Agents for Evidence-Based Misinformation Detection.", 
+        "how_ai_works_academic_paper_citation_cont": "In First Conference on Language Modeling.",
+        "how_ai_works_additional_notes": "Some additional notes:",
+        "how_ai_works_why_it_works_strong": "Why does this work at all?",
+        "how_ai_works_why_it_works": "LLMs sometimes being wrong means that the conclusion of the app about how true the statement is, the summary it provides in support of that conclusion, as well as the reliability score itself can potentially all be misleading. That said, LLMs do very well at summarizing text. It is less obvious that the LLM will return a sensible reliability score. However, studies that have compared these score numbers do show high (but not perfect) overlap (see this",
+        "how_ai_works_arxiv_link": "reference",
+        "how_ai_works_why_it_works_cont": " for more detail). This is possible because there are numbers given in discussions about real events written all over the internet and the LLM was trained with lots of this internet data.",
+        "how_ai_works_source_reliability": "Veri-fact.ai uses a particular database of source reliability scores that assign a score to a web domain name (like a news outlet cnn.com or a government us.gov). There is a handful of such databases out there. One study has collected some of these and shown they give ",
+        "how_ai_works_domains_link": "similar reliabilities",
+        "how_ai_works_source_reliability_cont": "They also made a composite score from a standard way of combining them. We use the database they provide of this composite score."
     }      
 }
