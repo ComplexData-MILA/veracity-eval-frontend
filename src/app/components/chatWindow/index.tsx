@@ -156,6 +156,16 @@ export default function ChatWindow() {
 
       const claimData = await claimResponse.json();
 
+      fetchWithAuth(`${API_URL}/v1/claims/${claimData.id}/embedding`, {
+        method: 'PATCH',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+      })
+      .then(() => console.log('Embedding update completed successfully'))
+      .catch(err => console.error('Embedding generation failed:', err));
+
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
         throw new Error('Failed to get authentication token');
