@@ -6,6 +6,7 @@ import SearchCard from "../searchCard";
 import SourceCard from "../sourceCard";
 import { useState } from "react";
 import SearchSummariesModal from "../modals/info/searchSummaries";
+import { useTranslations } from "next-intl";
 
 type Props = {
   sourceWindow: number;
@@ -16,6 +17,7 @@ type Props = {
 }
 
 export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources, sources, searches }: Props) {
+  const t = useTranslations('searchSummaries'); 
 
   const sourceData = sources.map((source, index) =>
   <SourceCard title={source.title} snippet={source.snippet} number={index+1} url={source.url} key={source.id} credibility_score={source.credibility_score} />
@@ -31,7 +33,7 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
   return (
     <section className={styles.sourceInspectColumn}>
           <div className={styles.controlRow}>
-            <h2 className={styles.sourceHeading}>Sources</h2>
+            <h2 className={styles.sourceHeading}>{t('altTitle')}</h2>
             <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
           </div>
           {isLoadingSources? <p>loading...</p>: 
@@ -47,7 +49,7 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
     return (
       <section className={styles.sourceInspectColumn}>
         <div className={styles.controlRow}>
-          <h2 className={styles.sourceHeading} onClick={()=> setActiveModal(10)}>AI Search Summaries
+          <h2 className={styles.sourceHeading} onClick={()=> setActiveModal(10)}>{t('title')}
           <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
           style={{cursor:'pointer'}}
           onClick={()=> setActiveModal(10)} />

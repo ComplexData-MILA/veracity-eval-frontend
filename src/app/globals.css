@@ -25,6 +25,16 @@ a {
   text-decoration: none;
 }
 
+.special-link {
+  color: blue;
+  text-decoration: underline;
+
+  &:hover {
+    color: darkblue;
+  }
+}
+
+
 h1{
   font-family: 'figtree', Arial, Helvetica, sans-serif;
 }

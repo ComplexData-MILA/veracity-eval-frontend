@@ -10,12 +10,19 @@
   }
   .title{
     font-family: 'inter', sans-serif;
-font-size: 26px;
-font-weight: 600;
-margin-top:20px;
-margin-bottom: 40px;
+    font-size: 26px;
+    font-weight: 600;
+    margin-top:20px;
+    margin-bottom: 40px;
   }
   p{
     margin-bottom: 25px;
+  }
+  ul, ol {
+    padding-left: 20px; /* Adjust indentation */
+  }
+
+  ul ul, ul ol, ol ul, ol ol {
+    margin-left: 20px; /* Extra indentation for nested lists */
   }
 }

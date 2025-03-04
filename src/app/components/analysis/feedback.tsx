@@ -29,6 +29,7 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const [inputText, setInputText] = useState<string>("");
 
+  const t2 = useTranslations('feedback'); 
 
   function vote(voteInput: number){
     setVoteSignal(voteInput);
@@ -94,36 +95,38 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
 
   function fillButtons(voteSignal:number, activeLabels:boolean[]){
     let buttonArray=[];
-    if (voteSignal>0&&voteSignal<3){
-      buttonArray=[
-      <LabelButton text="Lack of credible sources" id={1} key={1} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Score contradicts my understanding" id={2} key={2} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Explanation is too vague" id={3} key={3} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Evidence is unclear or incomplete" id={4} key={4} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Key details are missing" id={5} key={5} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Design or Functionality" id={6} key={6} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-      <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
+    if (voteSignal > 0 && voteSignal < 3) {
+      buttonArray = [
+        <LabelButton text={t2('lackCredibleSources')} id={1} key={1} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('scoreContradictsUnderstanding')} id={2} key={2} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('explanationTooVague')} id={3} key={3} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('evidenceUnclearIncomplete')} id={4} key={4} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('keyDetailsMissing')} id={5} key={5} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('designFunctionality')} id={6} key={6} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('other')} id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+      ];
+    } else if (voteSignal === 3) {
+      buttonArray = [
+        <LabelButton text={t2('someSourcesUnclear')} id={7} key={7} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('scorePartiallyJustified')} id={8} key={8} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('explanationLacksDetail')} id={9} key={9} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('mixedInconsistentEvidence')} id={10} key={10} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('keyDetailsMissing')} id={11} key={11} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('designFunctionality')} id={12} key={12} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('other')} id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+      ];
+    } else if (voteSignal > 3 && voteSignal <= 5) {
+      buttonArray = [
+        <LabelButton text={t2('sourcesCredibleReliable')} id={13} key={13} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('scoreClearJustified')} id={14} key={14} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('explanationWellSupported')} id={15} key={15} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('evidenceClearUnderstandable')} id={16} key={16} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('keyDetailsIncluded')} id={17} key={17} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('designFunctionality')} id={18} key={18} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+        <LabelButton text={t2('other')} id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle} />,
+      ];
     }
-    else if (voteSignal===3){
-      buttonArray=[
-        <LabelButton text="Some sources are unclear" id={7} key={7} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Score is partially justified" id={8} key={8} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Explanation lacks detail" id={9} key={9} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Mixed or inconsistent information" id={10} key={10} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Key details are missing" id={11} key={11} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Design or Functionality" id={12} key={12} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
-    }
-    else if (voteSignal>3&&voteSignal<=5){
-      buttonArray=[
-        <LabelButton text="Sources are credible and reliable" id={13} key={13} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Score is clear and justified" id={14} key={14} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Explanation is well-supported" id={15} key={15} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Aligns with my understanding" id={16} key={16} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Key details are included" id={17} key={17} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Design or Functionality" id={18} key={18} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>,
-        <LabelButton text="Other" id={0} key={0} activeLabels={activeLabels} handleLabelToggle={handleLabelToggle}/>]
-    }
+    
     else buttonArray =[<p key={1000}>array out of bounds exception</p>]
     return (
       <div className={styles.labelSectionWrapper}>
@@ -135,18 +138,30 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
 
   const drawer = 
     (<div className={styles.feedbackDrawer}>
-        <h4 className={styles.feedbackDrawerHeading}>Why did you select this feedback?</h4>
+        <h4 className={styles.feedbackDrawerHeading}>{t2('feedbackHeading')}</h4>
         {fillButtons(voteSignal, activeLabels)}
-        <input className={styles.feedbackTextInput}  placeholder={voteSignal < 4 ?"What was unsatisfying about this response? (Optional)" : "What was satisfying about this response? (Optional)"} onChange={(e) => handleChange(e.target.value)} value={inputText} />
+        <input
+            className={styles.feedbackTextInput}
+            placeholder={voteSignal < 4 ? t2('unsatisfiedPlaceholder') : t2('satisfiedPlaceholder')}
+            onChange={(e) => handleChange(e.target.value)}
+            value={inputText}
+        />
         <div className={styles.bottomRow}>
-          <p className={styles.feedbackDisclaimer}>Veracity my use account and system data to understand your feedback and improve our quality, You can read more details in our <Link className={styles.privacyLink} href="/privacy">Privacy Policy & Terms of service.</Link></p>
-          <button className={styles.cancelButton} onClick={()=> cancel()}>Cancel</button>
-          <button className={styles.submitButton} onClick={()=> submit()} disabled={activeLabels.every((val) => !Boolean(val))}>Submit</button>
+            <p className={styles.feedbackDisclaimer}>
+                {t2('feedbackDisclaimer')} 
+                <Link className={styles.privacyLink} href="/privacy">
+                    {t2('privacyPolicy')}
+                </Link>
+            </p>
+            <button className={styles.cancelButton} onClick={() => cancel()}>{t2('cancel')}</button>
+            <button className={styles.submitButton} onClick={() => submit()} disabled={activeLabels.every((val) => !Boolean(val))}>
+                {t2('submit')}
+            </button>
         </div>
       </div>);
 
   return (
-    feedbackIsSubmitted === true ? <p className={styles.thanksWrapper}><span className={styles.thanks}>Thank you for your feedback</span></p> :
+    feedbackIsSubmitted === true ? <p className={styles.thanksWrapper}><span className={styles.thanks}>{t2('thanks')}</span></p> :
     <section>
       <div className={styles.feedbackRow}>
         <div className={styles.feedbackWrapper}>

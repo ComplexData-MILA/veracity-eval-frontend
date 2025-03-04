@@ -17,7 +17,7 @@ const Help = ({ helpIsOpen, setHelpIsOpen }: Props) => {
         <Image src="/assets/help.svg" alt="me" width="20" height="20" />
         <p>{t('help')}</p>
       </button>
-      {helpIsOpen === true ? <button className={styles.close} onClick={()=> setHelpIsOpen(false)}>Close</button> : ""}
+      {helpIsOpen === true ? <button className={styles.close} onClick={()=> setHelpIsOpen(false)}>{t('close')}</button> : ""}
      </div>
   );
 }
