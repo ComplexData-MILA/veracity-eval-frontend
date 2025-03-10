@@ -24,6 +24,7 @@
         "language": "Language",
         "languageDescription": "Change the language used in the user interface",
         "reliabilityScore": "Reliability score",
+        "reliability": "Reliability",
         "howCalculated": "How is this calculated?",
         "reliabilityLevel1": "The claim is not reliable,",
         "reliabilityLevel2": "The claim is likely not reliable,",

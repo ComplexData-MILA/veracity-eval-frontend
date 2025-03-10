@@ -1,14 +1,29 @@
+"use client";
+
 import styles from "./page.module.scss"
 import ClusterTile from "./panels/cluster";
 import Distribution from "./panels/distribution";
 import ReliabilityMatrix from "./panels/reliabilityMatrix";
 import ReliabilityOverTime from "./panels/reliabilityTime";
 import TotalsTile from "./panels/totals";
-import WordCloud from "./panels/wordCloud";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; 
+
+const WordCloud = dynamic(() => import("./panels/wordCloud"), {
+  ssr: false, // Prevents loading on the server
+});
 
 
 export default function Dashboard() {
+  const defaultStartDate = new Date(2025, 0, 1); 
+  const defaultEndDate = new Date(); 
+
+  const [startDate, setStartDate] = useState<Date | null>(defaultStartDate);
+  const [endDate, setEndDate] = useState<Date | null>(defaultEndDate);
+
   return (
     <>
         <div className={styles.topRow}>
@@ -24,12 +39,30 @@ export default function Dashboard() {
                 <label className={styles.timeframeTitle}>Timeframe</label>
                 <p className={styles.timeframeSubtitle}>Set a timeframe to update the dashboard</p>
               </div>
-              <select className={styles.timeframeSelector}>
-                <option>All time</option>
-                <option>1 month</option>
-                <option>etc</option>
-                <option>etc...</option>
-                </select>
+              <div className={styles.dateRangePicker}>
+                <label>Start Date:</label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  placeholderText="Select start date"
+                  className={styles.datePickerInput}
+                />
+
+                <label>End Date:</label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate || undefined} 
+                  placeholderText="Select end date"
+                  className={styles.datePickerInput}
+                />
+              </div>
               </div>
               <div className={styles.selectorRowRight}>
                 <div className={styles.logoRow}>
@@ -47,7 +80,7 @@ export default function Dashboard() {
           <ReliabilityOverTime />
           <ReliabilityMatrix />
           <Distribution />
-          <WordCloud />
+          <WordCloud startDate={startDate} endDate={endDate} />
         </section>
       </>
   );

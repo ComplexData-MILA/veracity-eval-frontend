@@ -6,9 +6,7 @@ import Link from "next/link";
 import LabelButton from "./labelButton";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { useTranslations } from "next-intl";
-
-
-const API_URL = 'https://api.veri-fact.ai';
+import { API_URL} from "@/app/constants";
 
 type Props = {
   setSourceWindow: (arg0: number) => void;
