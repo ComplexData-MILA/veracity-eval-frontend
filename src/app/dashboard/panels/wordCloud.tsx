@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import styles from "../page.module.scss"
 
-//@ts-expect-error
+//@ts-expect-error: Necessary because TypeScript incorrectly infers the type here
 import Plot from "react-plotly.js";
 import { API_URL} from "@/app/constants";
 
