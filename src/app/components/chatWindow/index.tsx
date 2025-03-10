@@ -15,8 +15,7 @@ import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
 import { FinalAnalysis, Search, Source } from "@/app/types";
 import Link from "next/link";
-
-const API_URL = 'https://api.veri-fact.ai';
+import { API_URL} from "@/app/constants";
 
 export default function ChatWindow() {
   const t = useTranslations('chatpage');

@@ -152,3 +152,81 @@
   border: 1px solid #F2F2F2;
   border-radius:12px;
 }
+
+.plot {
+  width: 100%;  // Force it to fill the container width
+  height: calc(100% - 40px); // Force it to fill the container height
+  position: absolute;  // Ensures the plot fills the wrapper completely
+  top: 0;
+  left: 0;
+}
+
+.dateRangePicker {
+  display: flex;
+  flex-direction: row;
+  gap: 10px; // Space between start date and end date picker
+
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+  }
+
+  .react-datepicker__input-container {
+    width: 100%; // Ensures the input takes full width
+    display: flex;
+    align-items: center;
+  }
+
+  .datePickerInput {
+    width: 100%; // Full width input
+    padding: 8px 12px; // Adjust padding for better look
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    box-sizing: border-box; // Ensures padding doesn't affect width
+    transition: border-color 0.2s ease-in-out;
+
+    &:focus {
+      border-color: #007bff; // Focus border color
+      outline: none; // Removes outline on focus
+    }
+  }
+
+  .react-datepicker__triangle {
+    display: none !important; // Removes the small triangle pointing to the date picker
+  }
+
+  // Style for the date picker calendar popup
+  .react-datepicker {
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    z-index: 9999; // Ensure it displays on top of other elements
+
+    .react-datepicker__header {
+      background-color: #f7f7f7;
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .react-datepicker__month {
+      padding: 10px 0;
+    }
+
+    .react-datepicker__day:hover {
+      background-color: #f0f0f0; // Hover effect for days
+    }
+
+    .react-datepicker__day--selected {
+      background-color: #007bff;
+      color: #fff; // Selected day styling
+    }
+  }
+}
