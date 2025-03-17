@@ -3,15 +3,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "../page.module.scss"
 import { useAuthApi } from "@/app/hooks/useAuthApi";
-import {
-  Chart as ChartJS,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Scatter } from 'react-chartjs-2';
 
 //@ts-expect-error: Necessary because TypeScript incorrectly infers the type here
 import Plot from "react-plotly.js";
