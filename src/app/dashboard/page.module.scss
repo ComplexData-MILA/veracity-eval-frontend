@@ -1,27 +1,44 @@
 .topRow{
   display: flex;
- flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   margin: 20px 3vw;
 
-
-  .title{
-  font-size: 50px;
-  font-weight: 400;
-  line-height: 52px;
-  }
-  .subtitle{
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  color:#727272;
-  }
-  .topRowRight{
+  .topRowLeft{
     display: flex;
     height:40px;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     option, label{
       font-size: 16px;
       margin:0px 5px;
+    }
+    .title{
+      font-size: 50px;
+      font-weight: 400;
+      line-height: 52px;
+    }
+      .subtitle{
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      color:#727272;
+    }
+  }
+  .topRowRight{
+    width: auto;
+    border: 1px solid #1683FF33;
+    border-radius: 8px;
+    padding: 20px;
+    .logoRow{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .logoText{
+        color: #727272;
+        font-weight:500;
+      }
     }
   }
 }
@@ -37,41 +54,50 @@
   .selectorRowLeft, .selectorRowRight{
   width: 100%;
   border: 1px solid #1683FF33;
-  border-radius: 8px;
-  padding: 20px;
-.logoRow{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  .logoText{
-    color: #727272;
-    font-weight:500;
-  }
-}
   }
   .selectorRowLeft{
     background: #1683FF0D;
     display: flex;
     justify-content: space-between;
+    border-radius: 8px;
+    padding: 20px;
     .timeframeTitle{
       font-size: 22px;
       line-height: 26px;
       font-weight:600;
-      }
-      .timeframeSubtitle{
-      font-size: 12px;
-      font-weight: 500;
-      line-height: 16px;
-      color: #727272;
-      }
-      .timeframeSelector{
-        width:200px;
-        border: 1px solid #9B9B9B;
+    }
+    .timeframeSubtitle{
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: #727272;
+    }
+    .timeframeSelector{
+      width:200px;
+      border: 1px solid #9B9B9B;
+      border-radius: 8px;
+      padding: 5px;
+      font-weight: bold;
+    }
+  }
+  .selectorRowRight{
+    flex-direction: column;
+    display: flex;
+    border-radius: 8px;
+    padding: 6px;
+    .topTilesRow{
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      .topTile{
+        width:48%;
+        background-color: #1683FF0D;
         border-radius: 8px;
-        padding: 5px;
-        font-weight: bold;
+        padding: 10px;
+        border: 1px solid #1683FF33;
       }
     }
+  }
   .title{
   font-size: 22px;
   font-weight: 600;
@@ -89,6 +115,12 @@
   line-height: 52px;
   margin-top:10px;
   }
+  .giantNumberAvg{
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 26px;
+    margin-top:10px;
+    }
 }
 .mockTile{
   height:475px;
@@ -104,20 +136,7 @@
   flex-direction: column;
   height:475px;
   width:700px;
-  .topTilesRow{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    .topTile{
-      width:48%;
-      background-color: #1683FF0D;
-      border-radius: 8px;
-      padding: 20px;
-      border: 1px solid #1683FF33;
-    }
-  }
   .bottomTile{
-    margin-top:20px;
     padding: 20px;
     width: 100%;
     background-color: #1683FF0D;
