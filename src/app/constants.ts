@@ -1,1 +1,1 @@
-export const API_URL = 'https://api.veri-fact.ai'
+export const API_URL = 'http://localhost:8001'

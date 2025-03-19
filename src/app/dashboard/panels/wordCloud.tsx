@@ -11,6 +11,7 @@ import { API_URL} from "@/app/constants";
 interface WordCloudProps {
     startDate: Date | null;
     endDate: Date | null;
+    language: string | null;
 }
 
 interface WordCloudData {
@@ -181,7 +182,7 @@ interface WordCloudData {
 }
   
 
-const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate }) => {
+const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate, language }) => {
     const [data, setData] = useState<WordCloudData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -226,7 +227,7 @@ const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate }) => {
             };
         
             fetchWordCloud();
-    }, [startDate, endDate, fetchWithAuth]);
+    }, [startDate, endDate, language, fetchWithAuth]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
