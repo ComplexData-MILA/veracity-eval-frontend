@@ -8,12 +8,15 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; 
+// import AggregateTile from "./panels/aggregate";
 
 const WordCloud = dynamic(() => import("./panels/wordCloud"), {
   ssr: false, // Prevents loading on the server
 });
 
 const ClusterTile = dynamic(() => import("./panels/cluster"), { ssr: false });
+
+const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
 
 export default function Dashboard() {
   const defaultStartDate = new Date(2025, 0, 1); 
@@ -78,23 +81,14 @@ export default function Dashboard() {
               </div>
               </div>
               <div className={styles.selectorRowRight}>
-                <div className={styles.topTilesRow}>
-                  <div className={styles.topTile}>
-                  <h2 className={styles.title}>Total number of claims</h2>
-                  <h3 className={styles.giantNumberAvg}>1359</h3>
-                  </div>
-                  <div className={styles.topTile}>
-                  <h2 className={styles.title}>Avg reliability score</h2>
-                  <h3 className={styles.giantNumberAvg}>45%</h3>
-                  </div>
-                </div>
+                <AggregateTile startDate={startDate} endDate={endDate} language="english" />
               </div>
-          <ClusterTile startDate={startDate} endDate={endDate} />
+          <ClusterTile startDate={startDate} endDate={endDate} language="english" />
           <TotalsTile />
           {/* <ReliabilityOverTime /> */}
           {/* <ReliabilityMatrix /> */}
           {/* <Distribution /> */}
-          <WordCloud startDate={startDate} endDate={endDate} />
+          <WordCloud startDate={startDate} endDate={endDate} language="english" />
         </section>
       </>
   );
