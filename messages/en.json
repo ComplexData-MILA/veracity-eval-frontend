@@ -7,7 +7,8 @@
         "description": "Sign up or log in to verify information and build trust with those you share it with.",
         "signUpButton": "Sign up",
         "loginButton": "Log in",
-        "ourTrustedPartners": "Our trusted partners",
+        "ourTrustedPartners": "Our Partners",
+        "ourSponsors": "Our Sponsors",
         "privacy": "Privacy and Security",
         "contactUs": "Contact us",
         "howItWorks": "How the AI works"
