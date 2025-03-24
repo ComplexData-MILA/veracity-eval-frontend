@@ -147,7 +147,7 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
         <div className={styles.bottomRow}>
             <p className={styles.feedbackDisclaimer}>
                 {t2('feedbackDisclaimer')} 
-                <Link className={styles.privacyLink} href="/privacy">
+                <Link className={styles.privacyLink} href="/privacy" target="_blank" rel="noopener noreferrer">
                     {t2('privacyPolicy')}
                 </Link>
             </p>

@@ -49,7 +49,7 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
           style={{cursor:'pointer'}}
           onClick={()=> setActiveModal(100)} />
             </h4>
-            <Link href="/how-the-ai-works" className={styles.how}>{t('howCalculated')}</Link>
+            <Link href="/how-the-ai-works" className={styles.how} target="_blank" rel="noopener noreferrer">{t('howCalculated')}</Link>
           </div>
         </div>
         <div className={styles.scoreMain} >
