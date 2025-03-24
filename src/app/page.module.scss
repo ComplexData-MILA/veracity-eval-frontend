@@ -77,16 +77,23 @@ margin:25px 0px;
     margin:20px 7vw 0px 7vw;
     font-size: 18px;
     font-weight: 600;
-    line-height: 18px;
+    line-height: 60px;
     display: flex;
     align-items: center;
-    .logoRow{
-      padding-left: 4vw;
-      img{
-        margin:0px 1.2vw;
-      }
-      .mila{
-        margin-bottom: -8px;
+    .logogWrapper{
+      display: flex;
+      flex-direction: column;  /* Stack the rows vertically */
+      gap: 20px;  /* Space between the rows */
+    
+      .logoRow{
+        padding-left: 4vw;
+        padding-bottom: 4px;
+        img{
+          margin:0px 1.2vw;
+        }
+        .mila{
+          margin-bottom: -8px;
+        }
       }
     }
   }

@@ -7,7 +7,8 @@
         "description": "Inscrivez-vous ou connectez-vous pour vérifier des infos et partager en toute confiance.",
         "signUpButton": "S&#39;inscrire",
         "loginButton": "Se connecter",
-        "ourTrustedPartners": "Nos partenaires de confiance",
+        "ourTrustedPartners": "Nos partenaires",
+        "ourSponsors": "Nos sponsors",
         "privacy": "Confidentialité et Sécurité",
         "contactUs": "Contat",
         "howItWorks": "En apprendre plus sur le modèle"

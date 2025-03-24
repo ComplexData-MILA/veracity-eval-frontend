@@ -30,11 +30,20 @@ export default function Home() {
             <LoginButton label={t('loginButton')} />
       </main>
       <footer className={styles.footer}>
+        <div className={styles.logoWrapper}>
         <p className={styles.ourPartners}>{t('ourTrustedPartners')}</p>
         <div className={styles.logoRow}>
         <Image src="/assets/mila.png" alt="me" width="155" height="55" className={styles.mila}/>
         <Image src="/assets/udem.png" alt="me" width="133" height="55" />
         <Image src="/assets/mcgillBlack.png" alt="me" width="155" height="40" />
+        </div>
+        <p className={styles.ourPartners}>{t('ourSponsors')}</p>
+        <div className={styles.logoRow}>
+        <Image src="/assets/MEI-logo.png" alt="me" width="175" height="75" className={styles.mila}/>
+        <Image src="/assets/patrimoine-canadien-logo.png" alt="me" width="205" height="95" />
+        <Image src="/assets/ivado-logo.png" alt="me" width="175" height="75" />
+        <Image src="/assets/cifar-logo.png" alt="me" width="155" height="50" />
+        </div>
         </div>
       </footer>
       </div>
