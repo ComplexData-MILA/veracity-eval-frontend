@@ -11,7 +11,8 @@
         "ourSponsors": "Our Sponsors",
         "privacy": "Privacy and Security",
         "contactUs": "Contact us",
-        "howItWorks": "How the AI works"
+        "howItWorks": "How the AI works",
+        "privacyStatement": "We strictly limit data collection to only what is essential for functionality—nothing more."
     },
     "chatpage": {
         "title": "Veracity AI",

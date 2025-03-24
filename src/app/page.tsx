@@ -28,6 +28,10 @@ export default function Home() {
           <p className={styles.description}>{t('description')}</p>
         </div>
             <LoginButton label={t('loginButton')} />
+            <br/>
+            <div>
+            <p className={styles.ourPartners}>{t('privacyStatement')}</p>
+            </div>
       </main>
       <footer className={styles.footer}>
         <div className={styles.logoWrapper}>
