@@ -260,7 +260,7 @@ export default function ChatWindow() {
       <h1 className={styles.title}>{t('title')}</h1>
       <div className={styles.learnMoreWrapper}>
       <Image src="/assets/info.svg" alt="me" width="20" height="20" />
-        <Link href="/user-guidelines" className={styles.learnMoreText}>{t('learnMore')}</Link>
+        <Link href="/user-guidelines" target="_blank" rel="noopener noreferrer" className={styles.learnMoreText} >{t('learnMore')} </Link>
       </div>
     </div>
     <div className={styles.chatWindow}>

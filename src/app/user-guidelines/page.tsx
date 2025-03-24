@@ -36,7 +36,7 @@ export default function UserGuidelines() {
             </ol>
           </li>
           <li>{t('guidelinesResearchAndFeedback')} <strong>{t('guidelinesResearchAndFeedbackStrong')}</strong> {t('afterFeedback')}</li>
-          <li>{t('guidelinesTechnicalDetails')} <Link href="/how-the-ai-works" className="special-link">{t('guidelinesClickHere')}</Link></li>
+          <li>{t('guidelinesTechnicalDetails')} <Link href="/how-the-ai-works" className="special-link" target="_blank" rel="noopener noreferrer">{t('guidelinesClickHere')}</Link></li>
         </ul>
       </main>
 

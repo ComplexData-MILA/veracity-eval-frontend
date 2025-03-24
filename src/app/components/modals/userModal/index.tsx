@@ -24,8 +24,8 @@ const UserModal = ({ setAccountControlIsOpen, setActiveModal }: Props) => {
           <ul className={styles.linkList}>
             <li className={styles.underline} onClick={()=> setActiveModal(1)}><div className={styles.iconWrapper}><Image src="/assets/account.svg" alt="account preferences" width="20" height="20" /></div>{t('preferences')}</li>
             <li className={styles.underline} onClick={()=> setActiveModal(2)}><div className={styles.iconWrapper}><Image src="/assets/report.svg" alt="report a problem icon" width="20" height="20" /></div>{t('problem')}</li>
-            <Link href='/privacy'><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/privacy.svg" alt="privacy policy icon" width="20" height="20" /></div>{t('terms')}</li></Link>
-            <Link href='/how-the-ai-works'><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/guide.svg" alt="user guide icon" width="20" height="20" /></div>{t('AI')}</li></Link>
+            <Link href='/privacy' target="_blank" rel="noopener noreferrer"><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/privacy.svg" alt="privacy policy icon" width="20" height="20" /></div>{t('terms')}</li></Link>
+            <Link href='/how-the-ai-works' target="_blank" rel="noopener noreferrer"><li className={styles.underline}><div className={styles.iconWrapper}><Image src="/assets/guide.svg" alt="user guide icon" width="20" height="20" /></div>{t('AI')}</li></Link>
             <li onClick={()=> router.push(`/api/auth/logout?returnTo=/`)}><div className={styles.iconWrapper}><Image src="/assets/logout.svg" alt="logout icon" width="20" height="20" /></div>{t('logout')}</li>
           </ul>
           
