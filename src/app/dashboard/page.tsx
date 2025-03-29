@@ -78,7 +78,7 @@ export default function Dashboard() {
               </div>
               </div>
               <div className={styles.selectorRowRight}>
-                <AggregateTile startDate={startDate} endDate={endDate} language="english" />
+                {/* <AggregateTile startDate={startDate} endDate={endDate} language="english" /> */}
               </div>
           <ClusterTile startDate={startDate} endDate={endDate} language="english" />
           <TotalsTile startDate={startDate} endDate={endDate} language="english" />

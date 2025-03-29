@@ -6,7 +6,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 
 import { API_URL} from "@/app/constants";
+import { RowComponent } from 'tabulator-tables';
 
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Tabulator = require('tabulator-tables'); 
 
 
@@ -65,8 +68,8 @@ const TotalsTile: React.FC<DashboardProps> = ({ startDate, endDate, language }) 
                  setLoading(false);
                 
             } catch (err) {
-                console.error('Error fetching aggregate data:', err);
-                setError(err instanceof Error ? err.message : 'Failed to fetch aggregate');
+                console.error('Error fetching source table data:', err);
+                setError(err instanceof Error ? err.message : 'Failed to fetch source data');
             } finally {
                 setLoading(false);
             }
@@ -120,8 +123,13 @@ const TotalsTile: React.FC<DashboardProps> = ({ startDate, endDate, language }) 
                     }
                 }
             ],
-            rowFormatter: (row: any) => {
-                row.getElement().style.backgroundColor = row.getPosition() % 2 === 0 ? "#f0f8ff" : "#e6f2ff";
+            rowFormatter: (row: RowComponent) => {
+                // Use getIndex and getRows to calculate position
+                const table = row.getTable();
+                const rows = table.getRows();
+                const position = rows.findIndex(r => r.getIndex() === row.getIndex());
+            
+                row.getElement().style.backgroundColor = position % 2 === 0 ? "#f0f8ff" : "#e6f2ff";
             }
           });
         }
