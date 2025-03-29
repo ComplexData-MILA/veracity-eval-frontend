@@ -19,13 +19,15 @@
     "react-chartjs-2": "^5.2.0",
     "react-datepicker": "^8.2.0",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
-    "react-plotly.js": "^2.6.0"
+    "react-plotly.js": "^2.6.0",
+    "tabulator-tables": "^6.3.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/plotly.js": "^2.35.2",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/tabulator-tables": "^6.2.4",
     "eslint": "^8",
     "eslint-config-next": "15.0.2",
     "sass": "^1.80.6",
