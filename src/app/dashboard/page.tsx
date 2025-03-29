@@ -1,22 +1,19 @@
 "use client";
 
 import styles from "./page.module.scss"
-// import ClusterTile from "./panels/cluster";
-import TotalsTile from "./panels/totals";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; 
-// import AggregateTile from "./panels/aggregate";
+
 
 const WordCloud = dynamic(() => import("./panels/wordCloud"), {
   ssr: false, // Prevents loading on the server
 });
-
 const ClusterTile = dynamic(() => import("./panels/cluster"), { ssr: false });
-
 const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
+const TotalsTile = dynamic(() => import("./panels/totals"), { ssr: false });
 
 export default function Dashboard() {
   const defaultStartDate = new Date(2025, 0, 1); 
@@ -84,7 +81,7 @@ export default function Dashboard() {
                 <AggregateTile startDate={startDate} endDate={endDate} language="english" />
               </div>
           <ClusterTile startDate={startDate} endDate={endDate} language="english" />
-          <TotalsTile />
+          <TotalsTile startDate={startDate} endDate={endDate} language="english" />
           {/* <ReliabilityOverTime /> */}
           {/* <ReliabilityMatrix /> */}
           {/* <Distribution /> */}
