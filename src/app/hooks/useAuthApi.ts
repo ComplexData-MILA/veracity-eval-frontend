@@ -26,7 +26,6 @@ export function useAuthApi() {
 
   useEffect(() => {
     if (user && !accessToken) {
-      console.log("user with no access token")
       fetchToken().catch(console.error);
     }
   }, [user, accessToken, fetchToken]);
