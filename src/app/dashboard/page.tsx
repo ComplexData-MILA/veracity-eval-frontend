@@ -12,7 +12,7 @@ const WordCloud = dynamic(() => import("./panels/wordCloud"), {
   ssr: false, // Prevents loading on the server
 });
 const ClusterTile = dynamic(() => import("./panels/cluster"), { ssr: false });
-const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
+// const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
 const TotalsTile = dynamic(() => import("./panels/totals"), { ssr: false });
 
 export default function Dashboard() {
