@@ -30,10 +30,17 @@ export function useAuthApi() {
     }
   }, [user, accessToken, fetchToken]);
 
+  
   const fetchWithAuth = useCallback(async (url: string, options = {}) => {
-    if (!user) {
+    if (!user && !isLoading) {
+      console.log("no user?")
       router.push('/api/auth/login');
       throw new Error('Not authenticated');
+    }
+
+    if (isLoading) {
+      console.log("Waiting for user to load...");
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait a bit
     }
 
     let token = accessToken;
