@@ -12,7 +12,7 @@ const WordCloud = dynamic(() => import("./panels/wordCloud"), {
   ssr: false, // Prevents loading on the server
 });
 const ClusterTile = dynamic(() => import("./panels/cluster"), { ssr: false });
-// const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
+const AggregateTile = dynamic(() => import("./panels/aggregate"), { ssr: false });
 const TotalsTile = dynamic(() => import("./panels/totals"), { ssr: false });
 
 export default function Dashboard() {
@@ -78,7 +78,7 @@ export default function Dashboard() {
               </div>
               </div>
               <div className={styles.selectorRowRight}>
-                {/* <AggregateTile startDate={startDate} endDate={endDate} language="english" /> */}
+                <AggregateTile startDate={startDate} endDate={endDate} language="english" />
               </div>
           <ClusterTile startDate={startDate} endDate={endDate} language="english" />
           <TotalsTile startDate={startDate} endDate={endDate} language="english" />
