@@ -183,7 +183,7 @@ const ClusterTile: React.FC<ClusteringProps> = ({ startDate, endDate, language }
   const { fetchWithAuth} = useAuthApi();
 
   useEffect(() => {
-      const fetchWordCloud = async () => {
+      const fetchClusteringData = async () => {
           if (startDate && endDate) {
               try {
                 const response = await fetchWithAuth(
@@ -220,7 +220,7 @@ const ClusterTile: React.FC<ClusteringProps> = ({ startDate, endDate, language }
             }
           };
       
-          fetchWordCloud();
+          fetchClusteringData();
   }, [startDate, endDate, language, fetchWithAuth]);
 
   if (loading) return <p>Loading...</p>;
