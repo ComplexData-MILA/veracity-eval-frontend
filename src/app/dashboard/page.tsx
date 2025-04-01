@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; 
 
+import {useLocale, useTranslations} from 'next-intl';
+import LangSwitcherHome from "../components/langSelect/homepage";
 
 const WordCloud = dynamic(() => import("./panels/wordCloud"), {
   ssr: false, // Prevents loading on the server
@@ -21,30 +23,29 @@ export default function Dashboard() {
 
   const [startDate, setStartDate] = useState<Date | null>(defaultStartDate);
   const [endDate, setEndDate] = useState<Date | null>(defaultEndDate);
+
+  const locale = useLocale();
   
   useEffect(() => {
     setEndDate(new Date()); // Ensures it only runs on the client
   }, []);
   return (
     <>
+      <div className={styles.headerRow}>
+      <div className={styles.languageSelect}>{locale === "fr" ? <LangSwitcherHome lang="en" /> : <LangSwitcherHome lang="fr" />}</div> </div>
         <div className={styles.topRow}>
           <div className={styles.topRowLeft}>
             <h1 className={styles.title}>Dashboard</h1>
-            <p className={styles.subtitle}>Integrating data from somewhen in spacetime</p>
+            <p className={styles.subtitle}>Integrating data up to today</p>
           </div>
-          
           <div className={styles.topRowRight}>
               <div className={styles.logoRow}>
               <p className={styles.logoText}>Powered by</p>
-              {/*Put more logos here instead of these divs */}
-              <div /><div />
-              {/*new high quality ones probably */}
               <Image src="/assets/mila.png" alt="me" width="116" height="41" className={styles.mila}/>
               <Image src="/assets/udem.png" alt="me" width="100" height="41" />
               <Image src="/assets/mcgillBlack.png" alt="me" width="116" height="30" />
               </div>
-          </div>
-          
+          </div>   
         </div>
         <section className={styles.tileGrid}>
               <div className={styles.selectorRowLeft}>
@@ -78,14 +79,14 @@ export default function Dashboard() {
               </div>
               </div>
               <div className={styles.selectorRowRight}>
-                <AggregateTile startDate={startDate} endDate={endDate} language="english" />
+                <AggregateTile startDate={startDate} endDate={endDate} language={locale === "fr" ? "french": "english"} />
               </div>
-          <ClusterTile startDate={startDate} endDate={endDate} language="english" />
-          <TotalsTile startDate={startDate} endDate={endDate} language="english" />
+          <ClusterTile startDate={startDate} endDate={endDate} language={locale === "fr" ? "french": "english"} />
+          <TotalsTile startDate={startDate} endDate={endDate} language={locale === "fr" ? "french": "english"} />
           {/* <ReliabilityOverTime /> */}
           {/* <ReliabilityMatrix /> */}
           {/* <Distribution /> */}
-          <WordCloud startDate={startDate} endDate={endDate} language="english" />
+          <WordCloud startDate={startDate} endDate={endDate} language={locale === "fr" ? "french": "english"} />
         </section>
       </>
   );
