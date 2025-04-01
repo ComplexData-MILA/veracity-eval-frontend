@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; 
 
-import {useLocale, useTranslations} from 'next-intl';
+import { useLocale } from 'next-intl';
 import LangSwitcherHome from "../components/langSelect/homepage";
 
 const WordCloud = dynamic(() => import("./panels/wordCloud"), {
