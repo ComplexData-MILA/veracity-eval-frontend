@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import styles from "../page.module.scss"
 import { useAuthApi } from "@/app/hooks/useAuthApi";
-
 import { API_URL} from "@/app/constants";
+import {useTranslations} from 'next-intl';
 
 interface DashboardProps {
     startDate: Date | null;
@@ -19,6 +19,8 @@ const AggregateTile: React.FC<DashboardProps> = ({ startDate, endDate, language 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const {fetchWithAuth} = useAuthApi();
+
+  const t = useTranslations('dashboard');
 
   useEffect(() => {
       const fetchNumbers = async () => {
@@ -87,11 +89,11 @@ const AggregateTile: React.FC<DashboardProps> = ({ startDate, endDate, language 
   return (
     <div className={styles.topTilesRow}>
         <div className={styles.topTile}>
-            <h2 className={styles.title}>Total number of claims</h2>
+            <h2 className={styles.title}>{t('totalClaims')}</h2>
             <h3 className={styles.giantNumberAvg}>{totalClaims}</h3>
         </div>
         <div className={styles.topTile}>
-            <h2 className={styles.title}>Avg reliability score</h2>
+            <h2 className={styles.title}>{t('avgScore')}</h2>
             <h3 className={styles.giantNumberAvg}>{(avgScore * 100).toFixed(2)}%</h3>
         </div>
     </div>

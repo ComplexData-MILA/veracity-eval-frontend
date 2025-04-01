@@ -7,6 +7,7 @@ import styles from "../page.module.scss"
 //@ts-expect-error: Necessary because TypeScript incorrectly infers the type here
 import Plot from "react-plotly.js";
 import { API_URL} from "@/app/constants";
+import {useTranslations} from 'next-intl';
 
 interface WordCloudProps {
     startDate: Date | null;
@@ -187,6 +188,7 @@ const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate, language }) =
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const { fetchWithAuth} = useAuthApi();
+    const t = useTranslations('dashboard');
 
     useEffect(() => {
         const fetchWordCloud = async () => {
@@ -203,7 +205,7 @@ const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate, language }) =
                       body: JSON.stringify({
                         start_date: startDate.toISOString(),
                         end_date: endDate.toISOString(),
-                        language: "english"
+                        language: language
                       })
                     }
                   );
@@ -234,7 +236,7 @@ const WordCloud: React.FC<WordCloudProps> = ({ startDate, endDate, language }) =
 
     return (
         <div className={styles.mockTile}>
-            <h2 className={styles.title}>Claim Word cloud</h2>
+            <h2 className={styles.title}>{t('wordCloud')}</h2>
             {data ? (
             <Plot
                 className={styles.plot}

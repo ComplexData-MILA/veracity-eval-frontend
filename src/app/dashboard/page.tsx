@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; 
 
-import { useLocale } from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import LangSwitcherHome from "../components/langSelect/homepage";
 
 const WordCloud = dynamic(() => import("./panels/wordCloud"), {
@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState<Date | null>(defaultEndDate);
 
   const locale = useLocale();
+  const t = useTranslations('dashboard');
   
   useEffect(() => {
     setEndDate(new Date()); // Ensures it only runs on the client
@@ -35,12 +36,12 @@ export default function Dashboard() {
       <div className={styles.languageSelect}>{locale === "fr" ? <LangSwitcherHome lang="en" /> : <LangSwitcherHome lang="fr" />}</div> </div>
         <div className={styles.topRow}>
           <div className={styles.topRowLeft}>
-            <h1 className={styles.title}>Dashboard</h1>
-            <p className={styles.subtitle}>Integrating data up to today</p>
+            <h1 className={styles.title}>{t('title')}</h1>
+            <p className={styles.subtitle}>{t('subtitle')}</p>
           </div>
           <div className={styles.topRowRight}>
               <div className={styles.logoRow}>
-              <p className={styles.logoText}>Powered by</p>
+              <p className={styles.logoText}>{t('power')}</p>
               <Image src="/assets/mila.png" alt="me" width="116" height="41" className={styles.mila}/>
               <Image src="/assets/udem.png" alt="me" width="100" height="41" />
               <Image src="/assets/mcgillBlack.png" alt="me" width="116" height="30" />
@@ -50,11 +51,11 @@ export default function Dashboard() {
         <section className={styles.tileGrid}>
               <div className={styles.selectorRowLeft}>
               <div>
-                <label className={styles.timeframeTitle}>Timeframe</label>
-                <p className={styles.timeframeSubtitle}>Set a timeframe to update the dashboard</p>
+                <label className={styles.timeframeTitle}>{t('timeframe')}</label>
+                <p className={styles.timeframeSubtitle}>{t('timeframeSub')}</p>
               </div>
               <div className={styles.dateRangePicker}>
-                <label>Start Date:</label>
+                <label>{t('start')}</label>
                 <DatePicker
                   selected={startDate}
                   onChange={(date) => setStartDate(date)}
@@ -65,7 +66,7 @@ export default function Dashboard() {
                   className={styles.datePickerInput}
                 />
 
-                <label>End Date:</label>
+                <label>{t('end')}</label>
                 <DatePicker
                   selected={endDate}
                   onChange={(date) => setEndDate(date)}

@@ -7,6 +7,7 @@ import { useAuthApi } from "@/app/hooks/useAuthApi";
 //@ts-expect-error: Necessary because TypeScript incorrectly infers the type here
 import Plot from "react-plotly.js";
 import { API_URL} from "@/app/constants";
+import {useTranslations} from 'next-intl';
 
 interface ClusteringProps {
     startDate: Date | null;
@@ -182,6 +183,8 @@ const ClusterTile: React.FC<ClusteringProps> = ({ startDate, endDate, language }
   const [error, setError] = useState<string | null>(null);
   const { fetchWithAuth} = useAuthApi();
 
+  const t = useTranslations('dashboard');
+
   useEffect(() => {
       const fetchClusteringData = async () => {
           if (startDate && endDate) {
@@ -228,8 +231,8 @@ const ClusterTile: React.FC<ClusteringProps> = ({ startDate, endDate, language }
 
   return (
       <div className={styles.mockTile}>
-          <h2 className={styles.title}>Similarity cluster analysis</h2>
-          <p className={styles.subtitle}>Cluster analysis identifies patterns using embeddings for similarity grouping.</p>
+          <h2 className={styles.title}>{t('cluster')}</h2>
+          <p className={styles.subtitle}>{t('clusterSub')}</p>
           {data ? (
           <Plot
               className={styles.plot}

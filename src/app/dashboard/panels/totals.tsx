@@ -7,6 +7,7 @@ import { useAuthApi } from "@/app/hooks/useAuthApi";
 
 import { API_URL} from "@/app/constants";
 import { RowComponent } from 'tabulator-tables';
+import {useTranslations} from 'next-intl';
 
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -35,7 +36,8 @@ const TotalsTile: React.FC<DashboardProps> = ({ startDate, endDate, language }) 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const {fetchWithAuth} = useAuthApi();
-    const tableRef = useRef<HTMLDivElement>(null); 
+    const tableRef = useRef<HTMLDivElement>(null);
+    const t = useTranslations('dashboard');
 
     useEffect(() => {
 
@@ -143,11 +145,11 @@ const TotalsTile: React.FC<DashboardProps> = ({ startDate, endDate, language }) 
             <div className={styles.bottomTile}>
                 <div className={styles.topRowBottomTile}>
                     <div className={styles.lhs}>
-                        <h2 className={styles.title}>Retrieved Sources</h2>
-                        <p className={styles.subtitle}>Information obtained from a query</p>
+                        <h2 className={styles.title}>{t('sourceTable')}</h2>
+                        <p className={styles.subtitle}>{t('sourceSub')}</p>
                     </div>
                     <div className={styles.rhs}>
-                        <h2 className={styles.subtitle}>Total sources used in reliability score</h2>
+                        <h2 className={styles.subtitle}>{t('totalSources')}</h2>
                         <h3 className={styles.giantNumber}>{tableData?.total_sources}</h3>
                     </div>
                 </div>
