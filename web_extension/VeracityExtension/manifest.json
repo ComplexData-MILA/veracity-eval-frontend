@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "VeriFact Quick Search",
+  "version": "1.0",
+  "description": "Search VeriFact.ai directly from the extension popup.",
+  "permissions": ["activeTab"],
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Search VeriFact"
+  }
+}
