@@ -1,49 +1,74 @@
 @import '~tabulator-tables/dist/css/tabulator.min.css';
 
-.topRow{
+.headerRow{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 15px 4vw;
+  .languageSelect{
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 12px;
+    padding: 10px 12px; 
+    border: 1px solid #1683FF;
+    border-radius: 8px;
+    background-color: #1683FF;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+  .languageSelect:hover {
+      background-color: #126acb;
+      box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+  .topRow{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   margin: 20px 3vw;
-
-  .topRowLeft{
-    display: flex;
-    height:40px;
-    flex-direction: column;
-    align-items: flex-start;
-    option, label{
-      font-size: 16px;
-      margin:0px 5px;
-    }
-    .title{
-      font-size: 50px;
-      font-weight: 400;
-      line-height: 52px;
-    }
-      .subtitle{
-      font-size: 12px;
-      font-weight: 500;
-      line-height: 16px;
-      color:#727272;
-    }
-  }
-  .topRowRight{
-    width: auto;
-    border: 1px solid #1683FF33;
-    border-radius: 8px;
-    padding: 20px;
-    .logoRow{
+    .topRowLeft{
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      .logoText{
-        color: #727272;
-        font-weight:500;
+      height:40px;
+      flex-direction: column;
+      align-items: flex-start;
+      option, label{
+        font-size: 16px;
+        margin:0px 5px;
+      }
+      .title{
+        font-size: 50px;
+        font-weight: 400;
+        line-height: 52px;
+      }
+        .subtitle{
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 16px;
+        color:#727272;
+      }
+    }
+    .topRowRight{
+      width: auto;
+      border: 1px solid #1683FF33;
+      border-radius: 8px;
+      padding: 20px;
+      .logoRow{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .logoText{
+          color: #727272;
+          font-weight:500;
+        }
       }
     }
   }
-}
+
 .tileGrid{
   display: grid;
   grid-template-columns: 1fr 1fr;
