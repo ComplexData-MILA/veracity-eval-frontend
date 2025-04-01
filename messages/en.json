@@ -77,7 +77,7 @@
         "whatIsSource": "What does Veracity consider a source?",
         "sourceDefinition": "Veracity considers a source to be any origin of information that supports a claim. This includes news outlets, research papers, government reports, expert opinions, or documented content providing facts or insights.",
         "howDoesVeracityCurate": "How does Veracity curate the sources?",
-        "sourceCuration": "Veracity curates sources by evaluating their trustworthiness through key criteria: reputation, transparency, accuracy, and bias. It considers the source’s track record, whether it cites verifiable evidence, and how consistently it presents factual information. This careful curation ensures that only reliable sources are used for scoring claims."
+        "sourceCuration": "Veracity curates sources by evaluating their trustworthiness through key criteria: reputation, transparency, accuracy, and bias. It considers the source's track record, whether it cites verifiable evidence, and how consistently it presents factual information. This careful curation ensures that only reliable sources are used for scoring claims."
     },
     "searchSummaries":
     {
@@ -221,7 +221,7 @@
         "question6": "What is source credibility?",
         "answer6": "A score from 0-100% that is obtained from an existing, research-validated database of source credibility.",
         "question7": "Why are you telling me not to share?",
-        "answer7": "False information shared widely can corrode the health of our digital space. veri-fact.ai helps you detect false information so you don’t share it."
+        "answer7": "False information shared widely can corrode the health of our digital space. veri-fact.ai helps you detect false information so you don't share it."
     },
     "howWorks":
     {
@@ -230,13 +230,13 @@
         "how_ai_works_rag_explanation": "Veri-fact.ai takes a more reliable approach based on “Retrieval-Augmented Generation” or RAG for short. Here, this means having the LLM base its response on relevant text from reliable sources on the internet. Veri-fact.ai does this by:",
         "how_ai_works_step_1": "Instructing the LLM to first come up with text that when pasted in the search bar of a search engine like Google Search will find content relevant to the statement being assessed. The search then returns a list of websites.",
         "how_ai_works_step_2": "Veri-fact.ai then extracts a main snippet of text from each website as well as a source credibility score obtained from a database we use.",
-        "how_ai_works_step_3": "The LLM is then instructed to summarize all the sources’ text and scores with the purpose of answering how true is the original statement. The LLM is also instructed to provide a corresponding ", 
+        "how_ai_works_step_3": "The LLM is then instructed to summarize all the sources' text and scores with the purpose of answering how true is the original statement. The LLM is also instructed to provide a corresponding ", 
         "score": "reliability score", 
         "how_ai_works_step_3_cont": " between 0 and 100% from very likely false to very likely true. The score is pulled out of the LLM directly--it is not calculated from an equation.",
         "how_ai_works_minor_steps_intro": "There are a few minor additional steps to this process, e.g.:",
         "how_ai_works_minor_step_1": "Checking first to make sure what you entered can be interpreted as a statement.",
         "how_ai_works_minor_step_2": "Getting the LLM to generate multiple search texts to improve the diversity in the returned search results.",
-        "how_ai_works_minor_step_3": "How to handle the situation when there aren’t many websites returned by the search.",
+        "how_ai_works_minor_step_3": "How to handle the situation when there aren't many websites returned by the search.",
         "how_ai_works_conclusion": "That's all there is to it. Now you know! See our",
         "how_ai_works_user_guidelines_link": "User Guidelines",
         "how_ai_works_conclusion_continued": " for more details on how to use the app.",
@@ -256,7 +256,7 @@
     "guidelines":
     {
         "introThankYou": "Thanks for trying out veri-fact.ai. It uses AI (specifically a 'Large Language Model' (LLM)) to summarize relevant text from reliable sources retrieved from the internet. Some things to consider when using it:",
-        "guidelinesAlwaysResponse": "The app will always give a response. To get a sensible response, ensure what you submit is ‘fact-checkable’. We suggest:",
+        "guidelinesAlwaysResponse": "The app will always give a response. To get a sensible response, ensure what you submit is 'fact-checkable'. We suggest:",
         "guidelinesVerifiableStatement": "Making sure there is a verifiable statement expressed somewhere in the text you submit. You are not likely to get sensible results from checking an opinion, a difficult-to-verify reason for something, or a little-known fact.",
         "guidelinesSingleStatement": "Making sure there is",
         "guidelinesSingleStatementCont": "1 statement.",
@@ -264,8 +264,8 @@
         "guidelinesLlmWrongResponse": "You may still not get a sensible response, because",
         "guidelinesLlmWrongResponseStrong": "LLMs can sometimes give wrong (and often 'sounds right') explanations",
         "guidelinesLlmWrongResponseCont": " as an answer.",
-        "guidelinesAssessQuality": "It’s up to us, if we want to use these systems, to",
-        "guidelinesAssessQualityStrong": "assess the quality of the LLM’s response", 
+        "guidelinesAssessQuality": "It's up to us, if we want to use these systems, to",
+        "guidelinesAssessQualityStrong": "assess the quality of the LLM's response", 
         "guidelinesAssessQualityCont": "and have a sense for when the AI may have trouble giving a reliable response:",
         "guidelinesWellKnownStatement": "Is the statement you want to fact-check well-known enough that it is likely to appear in multiple places on the internet? Some cases where it may not:",
         "guidelinesBreakingNewsEmphasis": "a breaking news event",
@@ -273,11 +273,29 @@
         "guidelinesBreakingNewsSug":"Suggestion:", 
         "guidelinesBreakingNewsCont": "Double-check the sources to the right of our page. Do they sound familiar? Do they look typical?",
         "outsideList": "If not, you may want to be more skeptical about the answer the system returns.",
-        "guidelinesLowCredibilitySources": "What if all the sources analyzed have low or absent source credibility? The system will likely identify this in its answer, but it is always good to check the source credibility scores for yourself. Note that the database veri-fact.ai uses only has so many entries. If the returned website comes from a source that isn’t in the database, that doesn’t necessarily mean it is unreliable, but it does indicate it is not a well-known source. The less well-known a source is, the less likely it is to be based on expert knowledge.",
+        "guidelinesLowCredibilitySources": "What if all the sources analyzed have low or absent source credibility? The system will likely identify this in its answer, but it is always good to check the source credibility scores for yourself. Note that the database veri-fact.ai uses only has so many entries. If the returned website comes from a source that isn't in the database, that doesn't necessarily mean it is unreliable, but it does indicate it is not a well-known source. The less well-known a source is, the less likely it is to be based on expert knowledge.",
         "guidelinesResearchAndFeedback": "Using LLMs to help us fact-check is a new area of research where new ways of doing it are proposed frequently and how well they do is also improving. The developers of veri-fact.ai aim to use the most up-to-date research about how to best use LLMs for fact-checking. They also hope to improve it and you can help here! You are invited to",
         "guidelinesResearchAndFeedbackStrong": "share your feedback",
         "afterFeedback": "that will be used to identify and try to correct problems you encounter, as well as to improve the overall user experience. The veri-fact.ai Team thanks you in advance for your participation in this collective experiment to better ground our public discussions in factuality!", 
         "guidelinesTechnicalDetails": "If you would like to know more technical details about how the AI behind the app works click",
         "guidelinesClickHere": "here"
+    },
+    "dashboard":
+    {
+        "title": "Dashboard",
+        "subtitle": "Integrating data up to today",
+        "power": "Powered by",
+        "timeframe": "Timeframe",
+        "timeframeSub": "Set a timeframe to update the dashboard",
+        "start": "Start Date:",
+        "end": "End Date:",
+        "totalClaims": "Total number of claims",
+        "avgScore":"Avg reliability score",
+        "cluster": "Similarity cluster analysis",
+        "clusterSub": "Cluster analysis identifies patterns using embeddings for similarity grouping.",
+        "wordCloud": "Claim Word cloud",
+        "sourceTable": "Retrieved Sources",
+        "sourceSub": "Information obtained from a query",
+        "totalSources": "Total sources used in reliability score"
     }
 }
