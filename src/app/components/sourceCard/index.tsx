@@ -12,10 +12,6 @@ type Props = {
 export default function SourceCard(props:Props) {
   const t = useTranslations('searchSummaries'); 
 
-  let score =""
-  if (props.credibility_score === null){score=t('NA')}
-  else score = `${Math.trunc(props.credibility_score*100)}%`
-
   return (
     <div className={styles.sourceCardWrapper}>
       <div className={styles.topText}>
