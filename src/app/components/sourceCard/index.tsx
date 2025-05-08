@@ -1,5 +1,4 @@
 import styles from "./sourceCard.module.scss";
-import { useTranslations } from "next-intl";
 
 type Props = {
   title: string;
@@ -9,8 +8,7 @@ type Props = {
   credibility_score: number;
 }
 
-export default function SourceCard(props:Props) {
-  const t = useTranslations('searchSummaries'); 
+export default function SourceCard(props:Props) { 
 
   return (
     <div className={styles.sourceCardWrapper}>
