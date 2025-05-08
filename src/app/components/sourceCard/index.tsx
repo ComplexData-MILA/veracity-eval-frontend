@@ -23,7 +23,6 @@ export default function SourceCard(props:Props) {
       </div>
       <a href={props.url} target="_blank">
         <div className={styles.sourceCard}>
-            <p className={styles.sourceNumberParagraph}><span className={(score === t('NA'))? styles.sourceGrayBlock : styles.sourceColorBlock}>{t('credibility')} {score}</span></p>
             <h3 className={styles.sourceHeading}>{props.title}</h3>
             <p className={styles.sourcesDescription}>{props.snippet}</p>
             <p className={styles.sourceName}>{props.url.length > 35 ? `${props.url.substring(0,35)}...` : props.url}</p>
