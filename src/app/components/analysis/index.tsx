@@ -1,5 +1,5 @@
 "use client"
-import { FinalAnalysis, Source } from "@/app/types";
+import { FinalAnalysis } from "@/app/types";
 import styles from "./analysis.module.scss";
 import Feedback from "./feedback";
 import Score from "./score";
