@@ -284,7 +284,6 @@ export default function ChatWindow() {
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
   <SourceWindow sourceWindow={sourceWindow} 
-                setSourceWindow={setSourceWindow}  
                 isLoadingSources={isLoadingSources}
                 sources={sources}
                 searches={searchesUsed} />

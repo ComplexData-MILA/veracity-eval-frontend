@@ -11,12 +11,11 @@ import { useTranslations } from "next-intl";
 type Props = {
   sourceWindow: number;
   isLoadingSources: boolean;
-  setSourceWindow: (arg0: number) => void;
   sources: Source[];
   searches: Search[];
 }
 
-export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingSources, sources, searches }: Props) {
+export default function SourceWindow({ sourceWindow, isLoadingSources, sources, searches }: Props) {
   const t = useTranslations('searchSummaries'); 
 
   const sourceData = sources.map((source, index) =>

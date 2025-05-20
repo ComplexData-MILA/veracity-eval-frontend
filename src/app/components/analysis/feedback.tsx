@@ -9,11 +9,10 @@ import { useTranslations } from "next-intl";
 import { API_URL} from "@/app/constants";
 
 type Props = {
-  setSourceWindow: (arg0: number) => void;
   claimId: string | null;
 };
 
-export default function Feedback({ setSourceWindow, claimId }: Props) {
+export default function Feedback({claimId }: Props) {
   const t = useTranslations('chatpage');
   /*This is the user rating, all other states depend on it*/
   const [voteSignal, setVoteSignal] = useState(0);

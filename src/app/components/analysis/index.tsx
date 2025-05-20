@@ -24,7 +24,7 @@ export default function Analysis({ setSourceWindow, finalAnalysis, claimId }: Pr
       <Score veracityScore={finalAnalysis.veracity_score} text={finalAnalysis.analysis_text} setActiveModal={setActiveModal}/>
       {activeModal === 100 ? <ScoreInfo setActiveModal={setActiveModal} /> : <></>}
     </section>
-    <Feedback setSourceWindow={setSourceWindow} claimId={claimId} />
+    <Feedback claimId={claimId} />
     </>
   );
 }

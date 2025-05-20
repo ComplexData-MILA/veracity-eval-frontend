@@ -1,5 +1,4 @@
 "use client"
-import Link from "next/link";
 import styles from "../analysis.module.scss";
 import Donut from "./donut";
 import Image from "next/image";
