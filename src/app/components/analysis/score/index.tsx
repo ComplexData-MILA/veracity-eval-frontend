@@ -1,7 +1,5 @@
 "use client"
 import styles from "../analysis.module.scss";
-import { useTranslations } from "next-intl";
-
 
 type Props = {
   text: string;
