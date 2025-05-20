@@ -272,7 +272,7 @@ export default function ChatWindow() {
         {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
-        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} claimId={claimId} /></>
+        <Analysis finalAnalysis={finalAnalysis} claimId={claimId} /></>
         :<></>}
       {error? <p>{error}</p> : ""}
       </div>
