@@ -22,7 +22,7 @@ export default function ChatWindow() {
   const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
   /*UI window states*/
   const [helpIsOpen, setHelpIsOpen] = useState<boolean>(false);
-  const [sourceWindow, setSourceWindow] = useState<number>(1);
+  const sourceWindow = 1;
   /*input state*/
   const [claim, setClaim] = useState<string>("");
   const [claimId, setClaimId] = useState<string | null>(null);
