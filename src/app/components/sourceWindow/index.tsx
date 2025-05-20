@@ -34,7 +34,6 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
     <section className={styles.sourceInspectColumn}>
           <div className={styles.controlRow}>
             <h2 className={styles.sourceHeading}>{t('altTitle')}</h2>
-            <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
           </div>
           {isLoadingSources? <p>loading...</p>: 
           <>
@@ -54,7 +53,6 @@ export default function SourceWindow({ sourceWindow, setSourceWindow, isLoadingS
           style={{cursor:'pointer'}}
           onClick={()=> setActiveModal(10)} />
           </h2>
-          <p className={styles.exit} onClick={()=> setSourceWindow(0)}>&times;</p>
         </div>
       {searchData}
       {activeModal !== 0 ? <SearchSummariesModal setActiveModal={setActiveModal} /> : <></>}
