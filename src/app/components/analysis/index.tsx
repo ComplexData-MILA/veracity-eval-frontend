@@ -7,14 +7,13 @@ import { useState } from "react";
 import ScoreInfo from "../modals/info/scoreInfo";
 
 type Props = {
-  setSourceWindow: (arg0: number) => void;
   finalAnalysis: FinalAnalysis
   claimId: string | null;
 };
 
 
 
-export default function Analysis({ setSourceWindow, finalAnalysis, claimId }: Props) {
+export default function Analysis({finalAnalysis, claimId }: Props) {
 
   const [activeModal, setActiveModal] = useState(0)
 
