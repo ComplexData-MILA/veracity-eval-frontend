@@ -1,7 +1,5 @@
 "use client"
 import styles from "../analysis.module.scss";
-import Donut from "./donut";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 
@@ -22,20 +20,8 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
 
   return (
       <section className={styles.score}>
-        <div className={styles.scoreHeader}>
-          <div>
-            <h4 className={styles.heading}>{t('reliabilityScore')}
-            <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
-          style={{cursor:'pointer'}}
-          onClick={()=> setActiveModal(100)} />
-            </h4>
-          </div>
-        </div>
         <div className={styles.scoreMain} >
-          <Donut reliability={reliability} colour={getColour(reliability)} />
-          <div className={styles.scoreText}>
             <p className={styles.reliabilitySummary}>{text}</p>
-          </div>
         </div>
       </section>
   );
