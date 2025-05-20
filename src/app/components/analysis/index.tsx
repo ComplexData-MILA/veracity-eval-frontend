@@ -20,7 +20,7 @@ export default function Analysis({finalAnalysis, claimId }: Props) {
   return (
     <>
     <section className={styles.analysis}>
-      <Score veracityScore={finalAnalysis.veracity_score} text={finalAnalysis.analysis_text} setActiveModal={setActiveModal}/>
+      <Score text={finalAnalysis.analysis_text}/>
       {activeModal === 100 ? <ScoreInfo setActiveModal={setActiveModal} /> : <></>}
     </section>
     <Feedback claimId={claimId} />

@@ -4,19 +4,10 @@ import { useTranslations } from "next-intl";
 
 
 type Props = {
-  veracityScore: number;
   text: string;
-  setActiveModal: (arg0: number) => void;
 };
 
-export default function Score({veracityScore, text, setActiveModal}: Props) {
-  const t = useTranslations('chatpage');
-  const reliability:number = veracityScore*100
-
-  function getColour(reliability: number) {
-    if (reliability>60){return "#0CB950"}
-    else {return "#1683FF"}
-  }
+export default function Score({text}: Props) {
 
   return (
       <section className={styles.score}>
