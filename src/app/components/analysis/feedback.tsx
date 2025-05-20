@@ -166,7 +166,6 @@ export default function Feedback({ setSourceWindow, claimId }: Props) {
             <p className={styles.convinceText}>{t('convincing')}</p>
             {fillStars(voteSignal)}
         </div>
-        <p className={styles.interpretedLink} onClick={()=> setSourceWindow(2)}>{t('interpreted')}</p>
       </div>
       {feedbackIsOpen ? drawer : <></>}
       <div ref={drawerRef} />
