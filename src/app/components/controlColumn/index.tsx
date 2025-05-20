@@ -1,6 +1,5 @@
 "use client"
 
-import AddTab from "../../components/addTab";
 import styles from "../../chat/page.module.scss";
 import { useState } from "react";
 import UserModal from "../modals/userModal";
@@ -16,7 +15,6 @@ export default function ControlColumn() {
   return (
     <section className={styles.controlColumn}>
           <div className={styles.tabSection}>
-            <AddTab />
           </div>
           <div className={styles.profileWrapper}>
             <img src={GetUserPhoto()} alt="Profile Picture" width="50" height="50" className={styles.profilePic} onClick={()=> setAccountControlIsOpen(true)}

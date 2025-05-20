@@ -35,13 +35,10 @@
             }
         }
         .donutSection{
-            margin-top:50px;
-            @media screen and (max-width: 550px)  {
-            canvas{
-                margin: auto;
-            }
-            margin-bottom: -50px;
-            }
+            margin-top:120px;
+            margin-left: 10px;
+            margin-right: 10px;
+            
         }
         .scoreMain{
             display: flex;
