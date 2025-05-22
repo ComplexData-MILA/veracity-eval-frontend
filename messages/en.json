@@ -36,7 +36,7 @@
         "canShare": "you can share with your network.",
         "canNotShare": "you should not share with your network.",
         "interpreted": "How Veracity interpreted your prompt",
-        "convincing": "How convincing is my presented analysis for this claim?",
+        "convincing": "What is your estimation of the confidence score?",
         "confident": "Indicates how confident we are in its reliability.",
         "averageCredibility": "Avg. Source Credibility",
         "showAllSources": "Show all sources",
@@ -118,7 +118,7 @@
         "privacyPolicy": "Privacy Policy & Terms of Service.",
         "cancel": "Cancel",
         "submit": "Submit",
-        "thanks": "Thank you for your feedback"
+        "thanks": "Response recorded"
     },
     "privacy":
     {
