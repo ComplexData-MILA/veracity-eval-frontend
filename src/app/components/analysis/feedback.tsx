@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useState } from "react";
+import { useState } from "react";
 import styles from "./analysis.module.scss";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { useTranslations } from "next-intl";
