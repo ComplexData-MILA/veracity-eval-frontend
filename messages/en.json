@@ -36,7 +36,7 @@
         "canShare": "you can share with your network.",
         "canNotShare": "you should not share with your network.",
         "interpreted": "How Veracity interpreted your prompt",
-        "convincing": "What is your estimation of the confidence score?",
+        "convincing": "What do you think the confidence of the answer is?",
         "confident": "Indicates how confident we are in its reliability.",
         "averageCredibility": "Avg. Source Credibility",
         "showAllSources": "Show all sources",
