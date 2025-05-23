@@ -5,7 +5,6 @@ import LoginButton from "./components/login";
 import Image from "next/image";
 import Link from "next/link";
 import {useTranslations} from 'next-intl';
-import LangSwitcherHome from "./components/langSelect/homepage";
 import TinyLogin from "./components/login/tinyLogin";
 import { useEffect } from 'react';
 import {setUserLocale} from '@/services/locale';
