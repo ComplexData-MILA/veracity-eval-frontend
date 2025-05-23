@@ -1,15 +1,25 @@
+"use client"
+
 import styles from "./page.module.scss";
 import LoginButton from "./components/login";
 import Image from "next/image";
 import Link from "next/link";
-import {useLocale, useTranslations} from 'next-intl';
+import {useTranslations} from 'next-intl';
 import LangSwitcherHome from "./components/langSelect/homepage";
 import TinyLogin from "./components/login/tinyLogin";
+import { useEffect } from 'react';
+import {setUserLocale} from '@/services/locale';
 
 
 export default function Home() {
-  const locale = useLocale();
+  const locale = "en";
   const t = useTranslations('homepage');
+
+    useEffect(() => {
+      // This runs only once, on initial mount
+      setUserLocale(locale)
+      
+    }, []);
 
   return (
     <div className={styles.page}>
@@ -17,8 +27,7 @@ export default function Home() {
       <Link href="/how-the-ai-works" className={styles.headerItem}>{t('howItWorks')}</Link>
         <Link href="/privacy" className={styles.headerItem}>{t('privacy')}</Link>
         <a href="https://www.complexdatalab.com/people/" className={styles.headerItem}>{t('contactUs')}</a>
-        <TinyLogin label={t('loginButton')}  />
-        {locale === "fr" ? <LangSwitcherHome lang="en" /> : <LangSwitcherHome lang="fr" />}
+        <div className={styles.loginWrapper}><TinyLogin label={t('loginButton') }  /> </div>
       </header>
       <main className={styles.main}>
         <div className={styles.textWrapper}>
