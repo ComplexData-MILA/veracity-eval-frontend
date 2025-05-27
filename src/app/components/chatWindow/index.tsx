@@ -25,7 +25,6 @@ export default function ChatWindow() {
   const sourceWindow = 1;
   /*input state*/
   const [claim, setClaim] = useState<string>("");
-  const [claimId, setClaimId] = useState<string | null>(null);
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
   /* Language */
   const locale = useLocale();
@@ -107,7 +106,6 @@ export default function ChatWindow() {
       
       const analysisData = await analysisResponse.json();
       setFinalAnalysis(analysisData);
-      setClaimId(analysisData.id); 
       await fetchSources(data.content.analysis_id);
       await fetchSearches(data.content.analysis_id);
     } catch (err) {
