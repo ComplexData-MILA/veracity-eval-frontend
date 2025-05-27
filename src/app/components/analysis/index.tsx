@@ -7,12 +7,11 @@ import ScoreInfo from "../modals/info/scoreInfo";
 
 type Props = {
   finalAnalysis: FinalAnalysis
-  claimId: string | null;
 };
 
 
 
-export default function Analysis({finalAnalysis, claimId }: Props) {
+export default function Analysis({finalAnalysis}: Props) {
 
   const [activeModal, setActiveModal] = useState(0)
 
