@@ -1,7 +1,6 @@
 "use client"
 import { FinalAnalysis } from "@/app/types";
 import styles from "./analysis.module.scss";
-import Feedback from "./feedback";
 import Score from "./score";
 import { useState } from "react";
 import ScoreInfo from "../modals/info/scoreInfo";
@@ -23,7 +22,6 @@ export default function Analysis({finalAnalysis, claimId }: Props) {
       <Score text={finalAnalysis.analysis_text}/>
       {activeModal === 100 ? <ScoreInfo setActiveModal={setActiveModal} /> : <></>}
     </section>
-    <Feedback claimId={claimId} />
     </>
   );
 }
