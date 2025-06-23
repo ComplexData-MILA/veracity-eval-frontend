@@ -143,7 +143,8 @@ export default function ChatWindow() {
         body: JSON.stringify({
           claim_text: claim,
           context: claim,
-          language: language
+          language: language,
+          batch_post_id: "group_one"
         })
       });
   
