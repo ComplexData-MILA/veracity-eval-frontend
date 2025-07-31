@@ -162,11 +162,7 @@ export default function ChatWindow() {
 
       const groupZeroClaims = claims.filter((claim: any) => claim.batch_user_id === "group_zero");
 
-      console.log(groupZeroClaims)
-
       const batchUserIds = groupZeroClaims.map((claim: any) => claim.batch_post_id).filter((id: string) => !!id);
-
-      console.log(batchUserIds)
 
       const levels = ['low', 'med', 'high'];
 
