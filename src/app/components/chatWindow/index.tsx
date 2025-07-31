@@ -13,7 +13,7 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
-import { FinalAnalysis, Search, Source } from "@/app/types";
+import { FinalAnalysis, Search, Source, Claim } from "@/app/types";
 import Link from "next/link";
 import { API_URL} from "@/app/constants";
 
@@ -164,9 +164,9 @@ export default function ChatWindow() {
 
       const claims = (await claimsListResponse.json()).items
 
-      const groupZeroClaims = claims.filter((claim: any) => claim.batch_user_id === "group_zero");
+      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "group_zero");
 
-      const batchUserIds = groupZeroClaims.map((claim: any) => claim.batch_post_id).filter((id: string) => !!id);
+      const batchUserIds = groupZeroClaims.map((claim: Claim) => claim.batch_post_id).filter((id: string) => !!id);
 
       const levels = ['low', 'med', 'high'];
 

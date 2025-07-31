@@ -41,4 +41,19 @@ interface StreamingMessage {
   streamedContent?: string;
 }
 
-  export type {Source, Search, FinalAnalysis, AnalysisStreamEvent, StreamingMessage}
+interface Claim {
+  id: string;
+  user_id: string;
+  claim_text: string;
+  context?: string;
+  status?: string;
+  language?: string;
+  created_at?: string;
+  updated_at?: string;
+  batch_user_id?: string;
+  batch_post_id?: string;
+  embedding?: number[];
+  source_credibility?: number;
+}
+
+  export type {Source, Search, FinalAnalysis, AnalysisStreamEvent, StreamingMessage, Claim}
