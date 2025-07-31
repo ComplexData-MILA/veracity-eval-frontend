@@ -87,7 +87,8 @@ export default function ChatWindow() {
     } 
   };
   
-  const handleAnalysisComplete = async (data: {
+  const handleAnalysisComplete = useCallback(
+    async (data: {
     type: 'analysis_complete';
     content: {
       analysis_id: string;
@@ -120,7 +121,10 @@ export default function ChatWindow() {
     } finally {
       eventSource?.close();
     }
-  };
+  }
+  ,
+  [setFinalAnalysis, fetchSources, fetchSearches, setError]
+  );
 
   const verifyClaim = useCallback(async () => {
     let eventSource: EventSource | null = null;
@@ -174,8 +178,6 @@ export default function ChatWindow() {
       } else {
         result = batchUserIds[0]; 
       }
-      
-      console.log(result)
 
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
