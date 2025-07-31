@@ -97,7 +97,13 @@ export default function ChatWindow() {
   }, eventSource: EventSource | null) => {
     try {
       const analysisResponse = await fetchWithAuth(
-        `${API_URL}/v1/analysis/${data.content.analysis_id}`
+        `${API_URL}/v1/analysis/${data.content.analysis_id}/assertiveness`, {
+          method: 'GET',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
       );
       
       if (!analysisResponse.ok) {
@@ -134,6 +140,47 @@ export default function ChatWindow() {
       setSearchesUsed([]);
       setError(null);
 
+      const tokenResponse = await fetch('/api/auth/token');
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get authentication token');
+      }
+      const { accessToken } = await tokenResponse.json();
+
+      const claimsListResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
+      });
+
+      if (!claimsListResponse.ok) {
+        throw new Error(`Failed to create claim: ${await claimsListResponse.text()}`);
+      }
+
+      const claims = (await claimsListResponse.json()).items
+
+      const groupZeroClaims = claims.filter((claim: any) => claim.batch_user_id === "group_zero");
+
+      console.log(groupZeroClaims)
+
+      const batchUserIds = groupZeroClaims.map((claim: any) => claim.batch_post_id).filter((id: string) => !!id);
+
+      console.log(batchUserIds)
+
+      const levels = ['low', 'med', 'high'];
+
+      let result: string;
+
+      if (batchUserIds.length === 0) {
+        const randomIndex = Math.floor(Math.random() * 3); 
+        result = levels[randomIndex];
+      } else {
+        result = batchUserIds[0]; 
+      }
+      
+      console.log(result)
+
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
         headers: { 
@@ -144,7 +191,8 @@ export default function ChatWindow() {
           claim_text: claim,
           context: claim,
           language: language,
-          batch_post_id: "group_zero"
+          batch_user_id: "group_zero",
+          batch_post_id: result
         })
       });
   
@@ -163,14 +211,8 @@ export default function ChatWindow() {
       })
       .then(() => console.log('Embedding update completed successfully'))
       .catch(err => console.error('Embedding generation failed:', err));
-
-      const tokenResponse = await fetch('/api/auth/token');
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get authentication token');
-      }
-      const { accessToken } = await tokenResponse.json();
   
-      const streamUrl = `${API_URL}/v1/analysis/claim/${claimData.id}/stream`;
+      const streamUrl = `${API_URL}/v1/analysis/experiment/claim/${claimData.id}/stream`;
 
       const urlWithToken = new URL(streamUrl);
       urlWithToken.searchParams.append('access_token', accessToken);
