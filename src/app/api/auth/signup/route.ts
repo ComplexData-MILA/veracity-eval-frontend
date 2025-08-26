@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  // const url = new URL(req.url);
-  // const returnTo = url.searchParams.get('returnTo') || '/chat';
+  const url = new URL(req.url);
+  const returnTo = url.searchParams.get('returnTo') || '/chat';
 
   const origin = process.env.AUTH0_BASE_URL
   const auth0Domain = process.env.AUTH0_ISSUER_BASE_URL!;
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       response_type: 'code',
       scope: 'openid profile email',
       screen_hint: 'signup',
-      state: '/chat'
+      state: returnTo,
     }).toString();
 
   return NextResponse.redirect(signupUrl);
