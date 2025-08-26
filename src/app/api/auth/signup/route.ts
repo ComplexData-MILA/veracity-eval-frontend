@@ -8,10 +8,10 @@ export async function GET(req: NextRequest) {
   const auth0Domain = process.env.AUTH0_ISSUER_BASE_URL!;
   const clientId = process.env.AUTH0_CLIENT_ID!;
 
-  const signupUrl = `${auth0Domain}/authorize?` +
+  const signupUrl = `${auth0Domain}authorize?` +
     new URLSearchParams({
       client_id: clientId,
-      redirect_uri: `${origin}/api/auth/login`,
+      redirect_uri: `${origin}api/auth/login`,
       response_type: 'code',
       scope: 'openid profile email',
       screen_hint: 'signup',
