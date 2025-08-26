@@ -15,9 +15,15 @@ export default function TinyLogin(text: {label:string}) {
     redirect('/chat');
   } 
 
-  const handleAuth = (action: 'login' | 'logout') => (e: React.MouseEvent) => {
+  const handleAuth = (action: 'login' | 'logout' | 'signup') => (e: React.MouseEvent) => {
     e.preventDefault();
-    if (action === 'login') {router.push(`/api/auth/login?returnTo=/chat`)} else {router.push(`/api/auth/logout`)}
+    if (action === 'login') {
+      router.push(`/api/auth/login?returnTo=/chat`);
+    } else if (action === 'signup') {
+      router.push(`/api/auth/login?signup=true&returnTo=/chat`);
+    } else {
+      router.push(`/api/auth/logout`);
+  }
   };
 
   return (
