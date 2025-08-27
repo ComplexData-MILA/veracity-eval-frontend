@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
 
   if (session?.user) {
     // Already logged in → just redirect them where they want to go
+    console.log("already logged in")
     return NextResponse.redirect(new URL(origin));
   }
 
