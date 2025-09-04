@@ -15,13 +15,6 @@ export async function GET(req: NextRequest) {
     console.log("Has session")
     // Already logged in → just redirect them where they want to go
     // return NextResponse.redirect(new URL('/', origin));
-
-    const mainUrl = `${origin}/?` +
-      new URLSearchParams({
-        state: returnTo,
-      }).toString();
-
-    return NextResponse.redirect(mainUrl);
   }
 
   const signupUrl = `${auth0Domain}authorize?` +
