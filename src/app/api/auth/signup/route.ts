@@ -7,20 +7,19 @@ export async function GET(req: NextRequest) {
 
   const session = await getSession(req, NextResponse.next());
 
-  const origin = process.env.AUTH0_BASE_URL ||
-  "https://veracity-eval-frontend-git-g0frontend-complex-data-lab.vercel.app";
+  const origin = "https://veracity-eval-frontend-git-g0frontend-complex-data-lab.vercel.app";
   const auth0Domain = process.env.AUTH0_ISSUER_BASE_URL!;
   const clientId = process.env.AUTH0_CLIENT_ID!;
 
   if (session?.user) {
     // Already logged in → just redirect them where they want to go
-    return NextResponse.redirect(new URL(origin));
+    return NextResponse.redirect(new URL(returnTo, origin));
   }
 
   const signupUrl = `${auth0Domain}authorize?` +
     new URLSearchParams({
       client_id: clientId,
-      redirect_uri: `${origin}api/auth/login`,
+      redirect_uri: `${origin}/api/auth/login`,
       response_type: 'code',
       scope: 'openid profile email',
       screen_hint: 'signup',
