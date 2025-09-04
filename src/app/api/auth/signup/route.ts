@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   if (session?.user) {
     // Already logged in → just redirect them where they want to go
-    return NextResponse.redirect(new URL(returnTo, origin));
+    return NextResponse.redirect(new URL(origin));
   }
 
   const signupUrl = `${auth0Domain}authorize?` +
