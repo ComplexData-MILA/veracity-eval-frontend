@@ -12,8 +12,16 @@ export async function GET(req: NextRequest) {
   const clientId = process.env.AUTH0_CLIENT_ID!;
 
   if (session?.user) {
+    console.log("Has session")
     // Already logged in → just redirect them where they want to go
-    return NextResponse.redirect(new URL('/api/auth/login', origin));
+    // return NextResponse.redirect(new URL('/', origin));
+
+    const mainUrl = `${origin}/?` +
+      new URLSearchParams({
+        state: returnTo,
+      }).toString();
+
+    return NextResponse.redirect(mainUrl);
   }
 
   const signupUrl = `${auth0Domain}authorize?` +
