@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@auth0/nextjs-auth0';
 
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const returnTo = url.searchParams.get('returnTo') || '/chat';
+  // const url = new URL(req.url);
+  // const returnTo = url.searchParams.get('returnTo') || '/chat';
 
   const session = await getSession(req, NextResponse.next());
 
@@ -24,7 +24,6 @@ export async function GET(req: NextRequest) {
       response_type: 'code',
       scope: 'openid profile email',
       screen_hint: 'signup',
-      state: returnTo,
     }).toString();
 
   return NextResponse.redirect(signupUrl);
