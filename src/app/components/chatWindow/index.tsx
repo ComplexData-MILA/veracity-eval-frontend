@@ -117,7 +117,8 @@ export default function ChatWindow() {
       await fetchSearches(data.content.analysis_id);
     } catch (err) {
       console.error('Error handling analysis completion:', err);
-      setError(err instanceof Error ? err.message : 'Failed to complete analysis');
+      setError('Connection error: Please re-submit the claim')
+      // setError(err instanceof Error ? err.message : 'Failed to complete analysis');
     } finally {
       eventSource?.close();
     }
@@ -230,7 +231,8 @@ export default function ChatWindow() {
           const data = JSON.parse(event.data);
           
           if (data.type === 'error') {
-            throw new Error(data.content);
+            throw new Error('Connection error: Please re-submit the claim')
+            // throw new Error(data.content);
           }
           
   
@@ -271,7 +273,8 @@ export default function ChatWindow() {
   
     } catch (err) {
       console.error('Verification error:', err);
-      setError(err instanceof Error ? err.message : 'Error verifying claim');
+      setError('Connection error: Please re-submit the claim')
+      // setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
     }
   }, [locale,
