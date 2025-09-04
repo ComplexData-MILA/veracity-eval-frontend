@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0/edge';
+import { getSession } from '@auth0/nextjs-auth0';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   if (session?.user) {
     // Already logged in → just redirect them where they want to go
-    return NextResponse.redirect(new URL(origin));
+    return NextResponse.redirect(new URL('/', origin));
   }
 
   const signupUrl = `${auth0Domain}authorize?` +
