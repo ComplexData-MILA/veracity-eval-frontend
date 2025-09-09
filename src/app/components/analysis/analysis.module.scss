@@ -87,7 +87,8 @@
                 font-size: 16px;
                 font-weight: 500;
                 line-height: 24px;
-                white-space: pre-line;
+                white-space: pre-wrap; /* preserves spaces and newlines */
+                word-wrap: break-word;
                 @media screen and (max-width: 1350px)  {
                     font-size:14px;
                 }
