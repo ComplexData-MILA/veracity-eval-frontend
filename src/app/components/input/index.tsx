@@ -8,9 +8,10 @@ type Props = {
   setClaim: (arg0: string) => void;
   verifyClaim: () => void;
   claim: string;
+  isProcessingClaim: boolean;
 };
 
-export default function Input({setClaim, verifyClaim, claim}: Props) {
+export default function Input({setClaim, verifyClaim, claim, isProcessingClaim}: Props) {
   const t = useTranslations('chatpage');
   const [inputText, setInputText] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -47,7 +48,7 @@ export default function Input({setClaim, verifyClaim, claim}: Props) {
   return (
     <form ref={formRef} className={styles.inputWrapper} onSubmit={handleSubmit}>
                 <input className={styles.input} placeholder={t('inputPlaceholder')} onChange={(e) => handleChange(e.target.value)} value={inputText} />
-                <button className={styles.submit} type="submit">
+                <button className={styles.submit} type="submit" disabled={isProcessingClaim}>
                 <Image src="/assets/logoBlue.svg" alt="me" width="20" height="20" />
                 </button>
               </form>

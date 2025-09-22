@@ -26,6 +26,7 @@ export default function ChatWindow() {
   /*input state*/
   const [claim, setClaim] = useState<string>("");
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
+  const [isProcessingClaim, setIsProcessingClaim] = useState<boolean>(false);
   /* Language */
   const locale = useLocale();
   /*verification states*/
@@ -122,6 +123,7 @@ export default function ChatWindow() {
       // setError(err instanceof Error ? err.message : 'Failed to complete analysis');
     } finally {
       eventSource?.close();
+      // #TODO : add something for enable/disable 
     }
   }
   ,
@@ -141,6 +143,7 @@ export default function ChatWindow() {
 
     try {
       setClaimIsSent(true);
+      setIsProcessingClaim(true);
       setFinalAnalysis(null);
       setSources([]);
       setSearchesUsed([]);
@@ -224,6 +227,7 @@ export default function ChatWindow() {
   
       eventSource.onmessage = async (event) => {
         if (event.data === '[DONE]') {
+          setIsProcessingClaim(false);
           eventSource?.close();
           return;
         }
@@ -239,12 +243,14 @@ export default function ChatWindow() {
   
           if (data.type === 'analysis_complete' && data.content?.analysis_id) {
             await handleAnalysisComplete(data, eventSource);
+            setIsProcessingClaim(false);
           }
         } catch (err: unknown) {
           console.error('Error handling stream data:', err);
           if (err instanceof Error) {
             setError(err.message);
           }
+          setIsProcessingClaim(false);
           eventSource?.close();
         }
       };
@@ -263,12 +269,14 @@ export default function ChatWindow() {
         }
         
         setError(errorMessage);
+        setIsProcessingClaim(false);
         eventSource?.close();
       };
   
       return () => {
         if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
           eventSource.close();
+          setIsProcessingClaim(false);
         }
       };
   
@@ -276,6 +284,7 @@ export default function ChatWindow() {
       console.error('Verification error:', err);
       setError('Connection error: Please re-submit the claim')
       // setError(err instanceof Error ? err.message : 'Error verifying claim');
+      setIsProcessingClaim(false);
       eventSource?.close();
     }
   }, [locale,
@@ -311,7 +320,7 @@ export default function ChatWindow() {
       <div className={styles.mainChatColumn}>
         <ChatIn text={t('outputOne')}/>
         {claimIsSent === true ? <ChatOut text={claim} /> : <></>}
-        {claimIsSent && !finalAnalysis ? <ChatIn text="..."/> : ""}
+        {isProcessingClaim ? <ChatIn text="..."/> : ""}
         {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
@@ -322,7 +331,7 @@ export default function ChatWindow() {
     </div>
     <div className={styles.inputBar}>
     <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
-      <Input setClaim={setClaim} verifyClaim={verifyClaim} claim={claim} />
+      <Input setClaim={setClaim} verifyClaim={verifyClaim} claim={claim} isProcessingClaim={isProcessingClaim} />
     </div>
     <p className={styles.disclaimer}>{t('disclaimer')}</p>
   </section>
