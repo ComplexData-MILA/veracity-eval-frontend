@@ -64,7 +64,7 @@ export function useAuthApi() {
           token = await fetchToken();
           return fetchWithAuth(url, options, false); // Retry with new token
         }
-      } catch (e) {
+      } catch {
         router.push('/api/auth/login');
         throw new Error('Authentication expired, please log in again');
       }
