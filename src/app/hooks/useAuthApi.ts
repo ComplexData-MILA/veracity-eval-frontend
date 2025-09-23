@@ -31,7 +31,7 @@ export function useAuthApi() {
   }, [user, accessToken, fetchToken]);
 
   
-  const fetchWithAuth = useCallback(async (url: string, options = {}) => {
+  const fetchWithAuth = useCallback(async (url: string, options = {}, retry = true) => {
     if (!user && !isLoading) {
       console.log("no user?")
       router.push('/api/auth/login');
@@ -58,12 +58,16 @@ export function useAuthApi() {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token might be expired, try to fetch a new one
-        token = await fetchToken();
-        return fetchWithAuth(url, options); // Retry with new token
+      try {
+        if (response.status === 401 && retry) {
+          // Token might be expired, try to fetch a new one
+          token = await fetchToken();
+          return fetchWithAuth(url, options, false); // Retry with new token
+        }
+      } catch (e) {
+        router.push('/api/auth/login');
+        throw new Error('Authentication expired, please log in again');
       }
-      throw new Error('API request failed');
     }
 
     return response;
