@@ -170,7 +170,7 @@ export default function ChatWindow() {
       }
       const { accessToken } = await tokenResponse.json();
   
-      const streamUrl = `${API_URL}/v1/analysis/claim/${claimData.id}/stream`;
+      const streamUrl = `${API_URL}/v1/analysis/experiment/claim/${claimData.id}/stream`;
 
       const urlWithToken = new URL(streamUrl);
       urlWithToken.searchParams.append('access_token', accessToken);
