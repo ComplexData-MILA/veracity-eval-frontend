@@ -25,9 +25,6 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
         <div className={styles.scoreHeader}>
           <div>
             <h4 className={styles.heading}>{t('reliabilityScore')}
-            <Image src="/assets/infoBw.svg" alt="info" width="18" height="18" 
-          style={{cursor:'pointer'}}
-          onClick={()=> setActiveModal(100)} />
             </h4>
           </div>
         </div>
