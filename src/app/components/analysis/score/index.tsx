@@ -22,14 +22,9 @@ export default function Score({veracityScore, text}: Props) {
   return (
       <section className={styles.score}>
         <div className={styles.scoreHeader}>
-          <div>
-            <h4 className={styles.heading}>{t('reliabilityScore')}
-            </h4>
-          </div>
         </div>
         <div className={styles.scoreMain} >
 
-          <Donut reliability={reliability} colour={getColour(reliability)} />
             <p className={styles.reliabilitySummary}>
               {typeof text === "string" && text.split("\n").map((line, index) => (
                 <React.Fragment key={index}>
