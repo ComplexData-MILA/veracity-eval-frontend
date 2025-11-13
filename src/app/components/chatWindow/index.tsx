@@ -149,7 +149,7 @@ export default function ChatWindow() {
           claim_text: claim,
           context: claim,
           language: language,
-          batch_post_id: "group_one"
+          batch_post_id: "exp_one_treatment_part_two"
         })
       });
   
