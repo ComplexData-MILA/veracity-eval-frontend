@@ -56,7 +56,7 @@
     "scoreInfo":
     {
         "whatIsReliabilityScore": "What is a reliability score?",
-        "reliabilityScoreDescription": "A reliability score evaluates how trustworthy a claim is. It helps determine if a claim is credible or needs verification. The score is based on:",
+        "reliabilityScoreDescription": "This score reflects how certain the AI is in its own answer, based on its internal reasoning. It is an estimate of its own confidence, not a measure of factual accuracy.",
         "evidenceQuality": "Evidence Quality: Strength of supporting data.",
         "sourceCredibility": "Source Credibility: Reliability of the source.",
         "consistency": "Consistency: Alignment with verified facts.",
