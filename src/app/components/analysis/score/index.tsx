@@ -40,6 +40,7 @@ export default function Score({veracityScore, text, setActiveModal}: Props) {
                 <React.Fragment key={index}>
                   {line}
                   <br />
+                  <br />
                 </React.Fragment>
               ))}
             </p>
