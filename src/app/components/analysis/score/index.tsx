@@ -20,6 +20,7 @@ export default function Score({text}: Props) {
                 <React.Fragment key={index}>
                   {line}
                   <br />
+                  <br />
                 </React.Fragment>
               ))}
             </p>
