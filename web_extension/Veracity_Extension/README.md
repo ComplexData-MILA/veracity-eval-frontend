@@ -1,7 +1,7 @@
 # Veracity Side Panel Extension 
 
 
-## Project structure (source only)
+## Project structure 
 
 ```
 Veracity_Extension/
