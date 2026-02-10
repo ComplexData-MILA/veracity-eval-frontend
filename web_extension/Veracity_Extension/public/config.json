@@ -1,7 +1,0 @@
-{
-  "API_URL": "https://api.veri-fact.ai",
-  "AUTH0_CLIENT_ID": "IbuOc8IXQe6Z6PRsbCpPjxiJlub4npTp",
-  "FORGOT_PASSWORD_URL": "https://www.veri-fact.ai/",
-  "AUTH_LOGIN_URL": "https://www.veri-fact.ai/api/auth/login?returnTo=/chat",
-  "AUTH_RESET_URL": "https://www.veri-fact.ai/api/auth/login?screen_hint=reset"
-}
