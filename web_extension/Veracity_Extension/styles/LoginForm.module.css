@@ -1,0 +1,213 @@
+/**
+ * Module styles for a login form (likely an older or alternate UI).
+ * Not referenced by any current pages/ or public/ file in the extension.
+ * Effectively unused; safe to remove if you don't plan to use it.
+ */
+.loginShell {
+  padding: 16px 14px 18px;
+}
+
+.loginCard {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loginLogo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+}
+
+.loginTitle {
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin: 4px 0 0 0;
+}
+
+.loginSubtitle {
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  color: #4b5563;
+  text-align: center;
+  margin: 0;
+}
+
+.loginLabel {
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin: 6px 0 2px 0;
+}
+
+.loginInputWrap {
+  position: relative;
+}
+
+.loginInput {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.loginInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.pwdToggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.loginPrimary {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.loginPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  background: #1b46c2;
+}
+
+.loginHint {
+  font-size: 13px;
+  color: #0f172a;
+  text-align: center;
+  margin: 2px 0 0 0;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.googleBtn {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.googleBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  background: #f8fafc;
+}
+
+.loginHintRow {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #0f172a;
+  margin: 2px 0 0 0;
+}
+
+.loginHintLink {
+  color: #1683ff;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.loginHintLink:hover {
+  text-decoration: underline;
+}
+
+.forgotRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px 0 0 0;
+}
+
+.forgotLink {
+  color: #1683ff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.inlineInfo {
+  font-size: 12px;
+  color: #4b5563;
+  margin: 2px 0 0 0;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+}
+
+.errorText {
+  font-size: 12px;
+  color: #b91c1c;
+  margin: 4px 0 0 0;
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+}
+

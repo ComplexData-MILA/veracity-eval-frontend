@@ -1,0 +1,448 @@
+/**
+ * Component styles for index.tsx: .page, .panel, .authHero, .heroIcon, .heroTitle,
+ * buttons, card, textarea, etc. Class names are hashed (e.g. Home_page__Yvcrx).
+ * Imported in pages/index.tsx → Next bundles it. The exported HTML/CSS is what
+ * postbuild starts from; the panel then replaces the body but the same stylesheet
+ * is still linked.
+ */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px 12px;
+  background: #fff;
+}
+
+.panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.authHero {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 10px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heroIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.heroEyebrow {
+  font-size: 0px;
+  line-height: 0px;
+  color: #8a8f9a;
+  font-weight: 600;
+}
+
+.heroTitle {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 38px;
+  color: #0f172a;
+}
+
+.heroSubtext {
+  font-size: 13px;
+  color: #8a8f9a;
+  line-height: 20px;
+  max-width: 360px;
+}
+
+.heroButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.heroPrimaryBtn {
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 16px 24px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.heroPrimaryBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px #0000001a;
+  background: #111;
+}
+
+.heroSecondaryBtn {
+  background: #fff;
+  color: #000;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.privacyLine {
+  font-size: 12px;
+  color: #8a8f9a;
+  line-height: 17px;
+  max-width: 360px;
+}
+
+.loginCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: none;
+}
+
+.loginIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.loginTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.loginHint {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8a8f9a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+.passwordRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.authStatus {
+  font-size: 12px;
+  color: #d00;
+}
+
+.kicker {
+  display: none;
+}
+
+.title {
+  display: none;
+}
+
+.fancy {
+  display: none;
+}
+
+.subtitle {
+  display: none;
+}
+
+.tabList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow: visible;
+  padding: 0;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.tabButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 8px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 0;
+  flex: 1;
+  white-space: normal;
+  text-align: center;
+  overflow: visible;
+}
+
+.tabButton:hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+.tabButtonActive {
+  border-color: transparent;
+  background-image: var(--gradient-brand);
+  color: #ffffff;
+  box-shadow: var(--shadow-soft);
+}
+
+.tabLabel {
+  display: block;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: none;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.pillRow {
+  display: none;
+}
+
+.pill {
+  display: none;
+}
+
+.pillStrong {
+  display: none;
+}
+
+.pillAccent {
+  display: none;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.testBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f8f8f8;
+  color: #555;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid #e5e5e5;
+  opacity: 0.75;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  background: #fff;
+  color: var(--color-ink);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.buttonRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  flex: 0 0 auto;
+  min-width: 120px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.primaryBtn {
+  background-image: var(--gradient-brand);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.primaryBtn:hover,
+.secondaryBtn:hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+.logBox {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.logHeader {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.logArea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 140px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 16px;
+  color: #222;
+  background: #fff;
+  border: none;
+  white-space: pre-wrap;
+}
+
+.scoreBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.scoreHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scoreValue {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.scoreLabel {
+  font-size: 13px;
+  color: #555;
+  font-weight: 700;
+}
+
+.scoreSummary {
+  font-size: 12px;
+  color: #3a3f4b;
+  line-height: 16px;
+}
+
+.authCta {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.authText {
+  font-size: 12px;
+  color: #333;
+  font-weight: 600;
+}
+
+.authButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.authStatus {
+  font-size: 12px;
+  color: #555;
+}
+
+.sectionBody {
+  font-size: 14px;
+  color: #3a3a3a;
+  line-height: 18px;
+}
+
+.insight {
+  display: none;
+}
+
+.footer {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-muted);
+  text-align: center;
+  padding: 8px 0;
+}
+

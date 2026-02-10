@@ -1,0 +1,111 @@
+/**
+ * Standalone styles for the landing hero (heading, subheading, description,
+ * login button, privacy line, etc.). Uses classes like .textWrapper, .heading,
+ * .loginButton. Not imported by React. postbuild.js copies this file to
+ * dist/webapp-hero.css and adds <link rel="stylesheet" href="./webapp-hero.css">
+ * to the panel HTML. The inlined panel script renders the landing hero with
+ * those class names, so this file styles the logged-out view.
+ */
+.textWrapper {
+  font-family: 'figtree', Arial, Helvetica, sans-serif;
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  margin: 12px 0 6px 0;
+  font-family: Figtree;
+  font-size: clamp(22px, 4.4vw, 26px);
+  font-weight: 600;
+  line-height: clamp(26px, 5vw, 32px);
+  color: #8a8f9a;
+}
+
+.subheading {
+  font-family: Figtree;
+  font-size: clamp(28px, 7.4vw, 48px);
+  font-weight: 700;
+  line-height: clamp(34px, 8vw, 58px);
+  margin: 8px 0 10px 0;
+}
+
+.fancyText {
+  background: linear-gradient(269.47deg, #11F90E 3.4%, #1683FF 99.98%);
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.description {
+  font-family: Figtree;
+  font-size: clamp(13px, 3.2vw, 15px);
+  line-height: clamp(18px, 4vw, 22px);
+  font-weight: 600;
+  color: #8a8f9a;
+  margin: 6px 0 10px 0;
+}
+
+.loginButton {
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 30px #00000022;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  align-self: center;
+}
+
+.loginButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 38px #0000002e;
+  background: #111;
+}
+
+.privacyLine {
+  font-size: 13px;
+  color: #0f172a;
+  line-height: 18px;
+  max-width: 420px;
+  margin: 10px 0 4px 0;
+  font-weight: 500;
+}
+
+.heroLinkLine {
+  font-size: 13px;
+  color: #0f172a;
+  line-height: 18px;
+  margin: 0 0 2px 0;
+  font-weight: 500;
+}
+
+.heroLinkLine a {
+  color: #1683ff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.heroLinkLine a:hover {
+  text-decoration: underline;
+}
+
+@media only screen and (max-width: 850px) {
+  .heading {
+    font-size: 22px;
+    line-height: 26px;
+  }
+  .subheading {
+    font-size: 28px;
+    line-height: 34px;
+  }
+  .description {
+    font-size: 13px;
+    line-height: 18px;
+  }
+}
+
