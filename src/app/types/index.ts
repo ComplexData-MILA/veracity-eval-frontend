@@ -29,6 +29,7 @@ interface FinalAnalysis {
   id: string;
   veracity_score: number;
   confidence_score: number;
+  confidence_percentile: number;
   analysis_text: string;
   status: string;
 }

@@ -14,7 +14,7 @@ type Props = {
 
 export default function Score({veracityScore, text, setActiveModal}: Props) {
   const t = useTranslations('chatpage');
-  const reliability:number = veracityScore*100
+  const reliability:number = parseFloat((veracityScore*100).toFixed(2))
 
   function getColour(reliability: number) {
     if (reliability>60){return "#0CB950"}
