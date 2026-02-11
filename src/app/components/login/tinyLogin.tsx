@@ -3,17 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from "./login.module.scss";
-// import { redirect } from "next/navigation";
 import { useAuthApi } from '@/app/hooks/useAuthApi';
 
 export default function TinyLogin({ label }: { label: string }) {
   const { user, error, fetchToken } = useAuthApi();
   const router = useRouter();
-
-  // if (user){
-  //   fetchToken().catch(console.error);
-  //   redirect('/chat');
-  // } 
 
   useEffect(() => {
     if (user) {
