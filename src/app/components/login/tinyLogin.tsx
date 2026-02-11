@@ -10,10 +10,10 @@ export default function TinyLogin({ label }: { label: string }) {
   const { user, error, fetchToken } = useAuthApi();
   const router = useRouter();
 
-  if (user){
-    fetchToken().catch(console.error);
-    redirect('/chat');
-  } 
+  // if (user){
+  //   fetchToken().catch(console.error);
+  //   redirect('/chat');
+  // } 
 
   useEffect(() => {
     if (user) {
@@ -26,14 +26,13 @@ export default function TinyLogin({ label }: { label: string }) {
 
   const handleAuth = (action: 'login' | 'logout' | 'signup') => (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    // Use window.location.assign for a clean browser-level redirect
-    // This bypasses the Next.js background "fetch" that triggers CORS errors
+  
     if (action === 'login') {
+      // This hits the default login handler
       window.location.assign('/api/auth/login?returnTo=/chat');
     } else if (action === 'signup') {
-      // Note: screen_hint=signup is the standard for most Auth0 SDKs
-      window.location.assign('/api/auth/login?screen_hint=signup&returnTo=/chat');
+      // This hits your specific signup handler defined in your GET route
+      window.location.assign('/api/auth/signup'); 
     } else {
       window.location.assign('/api/auth/logout');
     }
