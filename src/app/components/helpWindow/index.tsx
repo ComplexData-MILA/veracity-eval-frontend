@@ -15,12 +15,6 @@ export default function HelpWindow() {
       <p className={styles.helpTextResponse}>{t('answer3')}</p>
       <p className={styles.helpText}>{t('question4')}</p>
       <p className={styles.helpTextResponse}>{t('answer4')}</p>
-      <p className={styles.helpText}>{t('question5')}</p>
-      <p className={styles.helpTextResponse}>{t('answer5')}</p>
-      <p className={styles.helpText}>{t('question6')}</p>
-      <p className={styles.helpTextResponse}>{t('answer6')}</p>
-      <p className={styles.helpText}>{t('question7')}</p>
-      <p className={styles.helpTextResponse}>{t('answer7')}</p>
     </section>
   );
 }
