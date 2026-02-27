@@ -241,11 +241,20 @@ export default function ChatWindow() {
       };
   
     } catch (err) {
-      console.error('Verification error:', err);
-      setError('Connection error: Please re-submit the claim')
-      // setError(err instanceof Error ? err.message : 'Error verifying claim');
-      setIsProcessingClaim(false);
-      eventSource?.close();
+      console.error('EventSource error or network drop:', err);
+        
+        if (eventSource?.readyState === EventSource.CONNECTING) {
+          console.warn('Connection lost. Reconnecting...');
+          // Don't set isProcessingClaim(false) so the loading spinner stays active
+          return; 
+        }
+
+        if (eventSource?.readyState === EventSource.CLOSED) {
+          // The connection is permanently dead and won't retry.
+          setError('Connection closed unexpectedly. Please try again.');
+          setIsProcessingClaim(false);
+          eventSource?.close();
+        }
     }
   }, [locale,
     fetchWithAuth,
