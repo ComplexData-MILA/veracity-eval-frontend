@@ -159,7 +159,7 @@ export default function ChatWindow() {
 
       const claims = (await claimsListResponse.json()).items
 
-      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "study_3_no_score");
+      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "study_3_score");
 
       const batchUserIds = groupZeroClaims.map((claim: Claim) => claim.batch_post_id).filter((id: string) => !!id);
 
@@ -184,7 +184,7 @@ export default function ChatWindow() {
           claim_text: claim,
           context: claim,
           language: language,
-          batch_user_id: "study_3_no_score",
+          batch_user_id: "study_3_score",
           batch_post_id: result
         })
       });
