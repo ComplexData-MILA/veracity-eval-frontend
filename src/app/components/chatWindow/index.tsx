@@ -139,6 +139,41 @@ export default function ChatWindow() {
       setSearchesUsed([]);
       setError(null);
 
+      const tokenResponse = await fetch('/api/auth/token');
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get authentication token');
+      }
+      const { accessToken } = await tokenResponse.json();
+
+      const claimsListResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
+      });
+
+      if (!claimsListResponse.ok) {
+        throw new Error(`Failed to create claim: ${await claimsListResponse.text()}`);
+      }
+
+      const claims = (await claimsListResponse.json()).items
+
+      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "study_3_no_score");
+
+      const batchUserIds = groupZeroClaims.map((claim: Claim) => claim.batch_post_id).filter((id: string) => !!id);
+
+      const levels = ['low', 'high'];
+
+      let result: string;
+
+      if (batchUserIds.length === 0) {
+        const randomIndex = Math.floor(Math.random() * 2); 
+        result = levels[randomIndex];
+      } else {
+        result = batchUserIds[0]; 
+      }
+
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
         headers: { 
@@ -149,7 +184,8 @@ export default function ChatWindow() {
           claim_text: claim,
           context: claim,
           language: language,
-          batch_post_id: "exp_one_treatment_part_two"
+          batch_user_id: "study_3_no_score",
+          batch_post_id: result
         })
       });
   
@@ -168,12 +204,6 @@ export default function ChatWindow() {
       })
       .then(() => console.log('Embedding update completed successfully'))
       .catch(err => console.error('Embedding generation failed:', err));
-
-      const tokenResponse = await fetch('/api/auth/token');
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get authentication token');
-      }
-      const { accessToken } = await tokenResponse.json();
   
       const streamUrl = `${API_URL}/v1/analysis/experiment/claim/${claimData.id}/stream`;
 
