@@ -169,16 +169,16 @@ export default function ChatWindow() {
 
       const claims = (await claimsListResponse.json()).items
 
-      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "group_zero");
+      const groupZeroClaims = claims.filter((claim: Claim) => claim.batch_user_id === "study_3_no_score");
 
       const batchUserIds = groupZeroClaims.map((claim: Claim) => claim.batch_post_id).filter((id: string) => !!id);
 
-      const levels = ['low', 'med', 'high'];
+      const levels = ['low', 'high'];
 
       let result: string;
 
       if (batchUserIds.length === 0) {
-        const randomIndex = Math.floor(Math.random() * 3); 
+        const randomIndex = Math.floor(Math.random() * 2); 
         result = levels[randomIndex];
       } else {
         result = batchUserIds[0]; 
@@ -194,7 +194,7 @@ export default function ChatWindow() {
           claim_text: claim,
           context: claim,
           language: language,
-          batch_user_id: "group_zero",
+          batch_user_id: "study_3_no_score",
           batch_post_id: result
         })
       });
