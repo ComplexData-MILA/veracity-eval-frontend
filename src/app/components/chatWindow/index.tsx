@@ -13,7 +13,7 @@ import Analysis from "../analysis";
 import SourceWindow from "../sourceWindow";
 import { useAuthApi } from "@/app/hooks/useAuthApi";
 import { redirect } from "next/navigation";
-import { FinalAnalysis, Search, Source } from "@/app/types";
+import { FinalAnalysis, Search, Source, Claim } from "@/app/types";
 import Link from "next/link";
 import { API_URL} from "@/app/constants";
 
