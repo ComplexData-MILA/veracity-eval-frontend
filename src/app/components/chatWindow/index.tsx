@@ -98,7 +98,13 @@ export default function ChatWindow() {
   }, eventSource: EventSource | null) => {
     try {
       const analysisResponse = await fetchWithAuth(
-        `${API_URL}/v1/analysis/${data.content.analysis_id}`
+        `${API_URL}/v1/analysis/${data.content.analysis_id}/assertiveness`, {
+          method: 'GET',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
       );
       
       if (!analysisResponse.ok) {
