@@ -173,7 +173,7 @@ export default function ChatWindow() {
       } else {
         result = batchUserIds[0]; 
       }
-
+      // Added a score flag
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
         headers: { 
