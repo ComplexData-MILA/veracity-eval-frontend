@@ -1,40 +1,81 @@
 "use client"
 
-import styles from "../../chat/page.module.scss";
+import { API_URL } from "@/app/constants";
+import { useAuthApi } from "@/app/hooks/useAuthApi";
+import { FinalAnalysis, Search, Source } from "@/app/types";
+import { useLocale, useTranslations } from "next-intl";
 import Image from 'next/image';
-import { useState, useCallback  } from 'react';
-import Help from '../help';
-import Input from '../input';
-import HelpWindow from "../helpWindow";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import styles from "../../chat/page.module.scss";
+import Analysis from "../analysis";
 import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
-import { useTranslations, useLocale } from "next-intl";
-import Analysis from "../analysis";
+import Help from '../help';
+import HelpWindow from "../helpWindow";
+import Input from '../input';
 import SourceWindow from "../sourceWindow";
-import { useAuthApi } from "@/app/hooks/useAuthApi";
-import { redirect } from "next/navigation";
-import { FinalAnalysis, Search, Source } from "@/app/types";
-import Link from "next/link";
-import { API_URL} from "@/app/constants";
+
+/* NEW: response shape returned by backend /v1/media/verify */
+type MediaVerificationResult = {
+  media_type?: string;
+  p_fake: number;
+  reliability: number;
+  reliability_score: number;
+  verdict: string;
+  n_frames?: number;
+  frame_probs?: number[] | null;
+  explanation: string;
+};
 
 export default function ChatWindow() {
   const t = useTranslations('chatpage');
   const { fetchWithAuth, user, error: authError, isLoading: authLoading } = useAuthApi();
-  /*UI window states*/
+
+  /* UI window states */
   const [helpIsOpen, setHelpIsOpen] = useState<boolean>(false);
   const [sourceWindow, setSourceWindow] = useState<number>(1);
-  /*input state*/
+
+  /* NEW: popup explaining media reliability score */
+  const [mediaScoreInfoOpen, setMediaScoreInfoOpen] = useState<boolean>(false);
+
+  /* input state */
   const [claim, setClaim] = useState<string>("");
   const [claimId, setClaimId] = useState<string | null>(null);
   const [claimIsSent, setClaimIsSent] = useState<boolean>(false);
+
   /* Language */
   const locale = useLocale();
-  /*verification states*/
+
+  /* verification states */
   const [finalAnalysis, setFinalAnalysis] = useState<FinalAnalysis | null>(null);
   const [isLoadingSources, setIsLoadingSources] = useState<boolean>(false);
   const [sources, setSources] = useState<Source[]>([]);
   const [searchesUsed, setSearchesUsed] = useState<Search[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  /* NEW: media verification loading state */
+  const [isVerifyingMedia, setIsVerifyingMedia] = useState<boolean>(false);
+
+  /* NEW: media verification result shown inside the chat */
+  const [mediaResult, setMediaResult] = useState<MediaVerificationResult | null>(null);
+  const [submittedMediaName, setSubmittedMediaName] = useState<string | null>(null);
+  const [submittedMediaPreview, setSubmittedMediaPreview] = useState<string | null>(null);
+  const [submittedMediaType, setSubmittedMediaType] = useState<string | null>(null);
+
+  const showMediaVerification = Boolean(
+    submittedMediaPreview || isVerifyingMedia || mediaResult
+  );
+
+  /* NEW: cleanup browser preview URL when media preview changes/unmounts */
+  useEffect(() => {
+    return () => {
+      if (submittedMediaPreview) {
+        URL.revokeObjectURL(submittedMediaPreview);
+      }
+    };
+  }, [submittedMediaPreview]);
 
   const fetchSources = async (analysisId: string) => {
     try {
@@ -80,14 +121,15 @@ export default function ChatWindow() {
       if (!searchesResponse.ok) {
         throw new Error(`Failed to fetch search ID's: ${await searchesResponse.text()}`);
       }
+
       const searchData = await searchesResponse.json();
       setSearchesUsed(searchData);
     } catch (err) {
       console.error('Error fetching sources:', err);
       setError(err instanceof Error ? err.message : 'Failed to load sources');
-    } 
+    }
   };
-  
+
   const handleAnalysisComplete = async (data: {
     type: 'analysis_complete';
     content: {
@@ -100,14 +142,15 @@ export default function ChatWindow() {
       const analysisResponse = await fetchWithAuth(
         `${API_URL}/v1/analysis/${data.content.analysis_id}`
       );
-      
+
       if (!analysisResponse.ok) {
         throw new Error(`Failed to fetch final analysis: ${await analysisResponse.text()}`);
       }
-      
+
       const analysisData = await analysisResponse.json();
       setFinalAnalysis(analysisData);
-      setClaimId(analysisData.id); 
+      setClaimId(analysisData.id);
+
       await fetchSources(data.content.analysis_id);
       await fetchSearches(data.content.analysis_id);
     } catch (err) {
@@ -121,16 +164,23 @@ export default function ChatWindow() {
   const verifyClaim = useCallback(async () => {
     let eventSource: EventSource | null = null;
 
-    let language = ''
+    let language = '';
 
     if (locale == 'en') {
       language = 'english';
-    } else if (locale == 'fr'){
-      language = 'french'
+    } else if (locale == 'fr') {
+      language = 'french';
     }
 
     try {
       setClaimIsSent(true);
+
+      /* NEW: clear media result when user starts text verification */
+      setMediaResult(null);
+      setSubmittedMediaName(null);
+      setSubmittedMediaPreview(null);
+      setSubmittedMediaType(null);
+
       setFinalAnalysis(null);
       setSources([]);
       setSearchesUsed([]);
@@ -138,7 +188,7 @@ export default function ChatWindow() {
 
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
@@ -148,7 +198,7 @@ export default function ChatWindow() {
           language: language
         })
       });
-  
+
       if (!claimResponse.ok) {
         throw new Error(`Failed to create claim: ${await claimResponse.text()}`);
       }
@@ -157,60 +207,60 @@ export default function ChatWindow() {
 
       fetchWithAuth(`${API_URL}/v1/claims/${claimData.id}/embedding`, {
         method: 'PATCH',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         }
       })
-      .then(() => console.log('Embedding update completed successfully'))
-      .catch(err => console.error('Embedding generation failed:', err));
+        .then(() => console.log('Embedding update completed successfully'))
+        .catch(err => console.error('Embedding generation failed:', err));
 
       const tokenResponse = await fetch('/api/auth/token');
       if (!tokenResponse.ok) {
         throw new Error('Failed to get authentication token');
       }
+
       const { accessToken } = await tokenResponse.json();
-  
+
       const streamUrl = `${API_URL}/v1/analysis/claim/${claimData.id}/stream`;
 
       const urlWithToken = new URL(streamUrl);
       urlWithToken.searchParams.append('access_token', accessToken);
       eventSource = new EventSource(urlWithToken.toString(), { withCredentials: true });
-  
+
       eventSource.onopen = () => {
         console.log('EventSource connection established');
       };
-  
+
       eventSource.onmessage = async (event) => {
         if (event.data === '[DONE]') {
           eventSource?.close();
           return;
         }
-  
+
         try {
           const data = JSON.parse(event.data);
-          
+
           if (data.type === 'error') {
             throw new Error(data.content);
           }
-          
-  
+
           if (data.type === 'analysis_complete' && data.content?.analysis_id) {
             await handleAnalysisComplete(data, eventSource);
           }
         } catch (err: unknown) {
-          console.error('Error handling stream data:', err);
+          console.log('Error handling stream data:', err);
           if (err instanceof Error) {
             setError(err.message);
           }
-          eventSource?.close();
-        }
-      };
-  
-      eventSource.onerror = (err) => {
-        console.error('EventSource error:', err);
+          else {
+            setError('Sorry, we couldn’t complete the analysis. Please try again.');}
+            eventSource?.close();}};
+
+      eventSource.onerror = () => {
+        console.log('EventSource error');
         let errorMessage = 'Connection to analysis stream failed. Please try again.';
-        
+
         switch (eventSource?.readyState) {
           case EventSource.CONNECTING:
             errorMessage = 'Connection failed. Please check your internet connection.';
@@ -219,23 +269,24 @@ export default function ChatWindow() {
             errorMessage = 'Connection closed unexpectedly. Please try again.';
             break;
         }
-        
+
         setError(errorMessage);
         eventSource?.close();
       };
-  
+
       return () => {
         if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
           eventSource.close();
         }
       };
-  
+
     } catch (err) {
-      console.error('Verification error:', err);
+      console.log('Verification error:', err);
       setError(err instanceof Error ? err.message : 'Error verifying claim');
       eventSource?.close();
     }
-  }, [locale,
+  }, [
+    locale,
     fetchWithAuth,
     claim,
     handleAnalysisComplete,
@@ -244,50 +295,281 @@ export default function ChatWindow() {
     setSources,
     setSearchesUsed,
     setError
-
-
   ]);
+
+  /* NEW: sends selected image/video/GIF to backend /v1/media/verify */
+  const verifyMedia = useCallback(
+    async (file: File) => {
+      try {
+        setIsVerifyingMedia(true);
+        setError(null);
+
+        /* NEW: show selected media preview and clear old media result */
+        setSubmittedMediaName(file.name);
+        setSubmittedMediaPreview(URL.createObjectURL(file));
+        setSubmittedMediaType(file.type);
+        setMediaResult(null);
+
+        /* NEW: clear text-analysis UI so old text results do not mix with media results */
+        setClaim("");
+        setClaimId(null);
+        setClaimIsSent(false);
+        setFinalAnalysis(null);
+        setSources([]);
+        setSearchesUsed([]);
+
+        /*
+          NEW: FormData sends the file to the backend.
+          The image/video is not stored by the frontend.
+        */
+        const formData = new FormData();
+        formData.append("file", file);
+
+        console.log("Calling media endpoint:", `${API_URL}/v1/media/verify`);
+
+        const response = await fetchWithAuth(`${API_URL}/v1/media/verify`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+
+        console.log("OpenFake media result:", data);
+
+        /* NEW: save backend response so it renders in the chat */
+        setMediaResult(data);
+      } catch (err) {
+        console.log("Media verification error:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Could not verify this media."
+        );
+      } finally {
+        setIsVerifyingMedia(false);
+      }
+    },
+    [fetchWithAuth]
+  );
 
   /*check auth0 user, send back to homepage if user is not logged in*/
   if (authLoading) return <div>Loading...</div>;
   if (authError) return <div>Authentication error: {authError.message}</div>;
   if (!user) redirect('/');
-  
+
   return (
     <div className={styles.mainWrapper}>
-    <section className={styles.mainSection}>
-    <div className={styles.titleBar}>
-      <h1 className={styles.title}>{t('title')}</h1>
-      <div className={styles.learnMoreWrapper}>
-      <Image src="/assets/info.svg" alt="me" width="20" height="20" />
-        <Link href="/user-guidelines" target="_blank" rel="noopener noreferrer" className={styles.learnMoreText} >{t('learnMore')} </Link>
-      </div>
+      <section
+        className={`${styles.mainSection} ${
+          showMediaVerification ? styles.mediaModeMainSection : ""
+        }`}
+      >
+        <div className={styles.titleBar}>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <div className={styles.learnMoreWrapper}>
+            <Image src="/assets/info.svg" alt="me" width="20" height="20" />
+            <Link href="/user-guidelines" target="_blank" rel="noopener noreferrer" className={styles.learnMoreText}>
+              {t('learnMore')}
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.chatWindow}>
+          {helpIsOpen === true ? <HelpWindow /> : ""}
+          <div className={styles.mainChatColumn}>
+            <ChatIn text={t('outputOne')} />
+
+            {claimIsSent === true ? <ChatOut text={claim} /> : <></>}
+
+            {claimIsSent && !finalAnalysis ? <ChatIn text="..." /> : ""}
+
+            {finalAnalysis && finalAnalysis.analysis_text ?
+              <>
+                <ChatIn text={t('outputTwo')} />
+                <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} claimId={claimId} />
+              </>
+              : <></>}
+
+            {/* NEW: media verification layout */}
+            {showMediaVerification ? (
+              <div className={styles.mediaVerificationLayout}>
+                <div className={styles.mediaMainColumn}>
+                  {/* NEW: uploaded image/video preview instead of filename text */}
+                  {submittedMediaPreview ? (
+                    <div className={styles.mediaPreviewCard}>
+                      {submittedMediaType?.startsWith("video/") ? (
+                        <video
+                          src={submittedMediaPreview}
+                          controls
+                          className={styles.mediaPreviewImage}
+                        />
+                      ) : (
+                        <img
+                          src={submittedMediaPreview}
+                          alt={submittedMediaName || "Uploaded media"}
+                          className={styles.mediaPreviewImage}
+                        />
+                      )}
+                    </div>
+                  ) : null}
+
+                  {/* NEW: loading state while OpenFake is analyzing the media */}
+                  {isVerifyingMedia ? <ChatIn text="Analyzing media..." /> : ""}
+
+                  {/* NEW: text-check style reliability score result */}
+                  {mediaResult ? (
+                    <div className={styles.mediaReliabilityCard}>
+                      <div className={styles.mediaReliabilityTop}>
+                        <div className={styles.mediaReliabilityTitleRow}>
+                          <h3 className={styles.mediaReliabilityTitle}>Reliability score</h3>
+                          <span className={styles.mediaInfoIcon}>i</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.mediaReliabilityLink}
+                          onClick={() => setMediaScoreInfoOpen(true)}
+                        >
+                          How is this calculated?
+                        </button>
+                      </div>
+
+                      <div className={styles.mediaReliabilityContent}>
+                        <div
+                          className={styles.mediaScoreCircle}
+                          style={{ "--score": mediaResult.reliability_score } as CSSProperties}
+                        >
+                          <div className={styles.mediaScoreInner}>
+                            <span className={styles.mediaScoreLabel}>Reliability</span>
+                            <span className={styles.mediaScoreValue}>
+                              {mediaResult.reliability_score}%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className={styles.mediaVerdictBlock}>
+                          <h2 className={styles.mediaVerdictHeadline}>
+                            {mediaResult.verdict === "Likely real"
+                              ? "This media is likely reliable,"
+                              : mediaResult.verdict === "Likely fake"
+                              ? "This media may be manipulated,"
+                              : "This media should be reviewed carefully,"}
+                          </h2>
+
+                          <p className={styles.mediaVerdictSubtext}>
+                            {mediaResult.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* NEW: right-side privacy and limitations panel */}
+                <aside className={styles.mediaSidePanel}>
+                  <p className={styles.mediaSideLead}>
+                    Files are processed in memory and not stored.
+                  </p>
+
+                  <p className={styles.mediaSideText}>
+                    The detector can make mistakes. Results are probabilistic and should not
+                    be treated as ground truth.
+                  </p>
+
+                  <div className={styles.mediaSideLimitations}>
+                    <h4>Known limitations:</h4>
+                    <ul>
+                      <li>Performance is strongest on fully AI-generated images.</li>
+                      <li>
+                        Subtle manipulations such as lip sync and localized inpainting may
+                        not be reliably detected.
+                      </li>
+                      <li>
+                        Images with text overlays are frequently misclassified as
+                        AI-generated.
+                      </li>
+                      <li>
+                        Video analysis may be less accurate in scenes with heavy motion
+                        blur.
+                      </li>
+                      <li>
+                        The model is better on realistic images and can fail on non-AI art,
+                        3D models, or drawings.
+                      </li>
+                    </ul>
+                  </div>
+                </aside>
+              </div>
+            ) : null}
+
+            {error ? <p>{error}</p> : ""}
+          </div>
+        </div>
+
+        <div className={styles.inputBar}>
+          <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
+          <Input
+            setClaim={setClaim}
+            verifyClaim={verifyClaim}
+            claim={claim}
+            verifyMedia={verifyMedia}
+            isVerifyingMedia={isVerifyingMedia}
+          />
+        </div>
+
+        <p className={styles.disclaimer}>{t('disclaimer')}</p>
+      </section>
+
+      {/* NEW: hide the normal Sources panel during media verification so the
+          reliability card and limitations panel can sit side by side */}
+      {!showMediaVerification ? (
+        <SourceWindow
+          sourceWindow={sourceWindow}
+          setSourceWindow={setSourceWindow}
+          isLoadingSources={isLoadingSources}
+          sources={sources}
+          searches={searchesUsed}
+        />
+      ) : null}
+
+      {/* NEW: popup explaining how media reliability score is computed */}
+      {mediaScoreInfoOpen ? (
+        <div
+          className={styles.mediaScorePopupOverlay}
+          onClick={() => setMediaScoreInfoOpen(false)}
+        >
+          <div
+            className={styles.mediaScorePopup}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.mediaScorePopupClose}
+              onClick={() => setMediaScoreInfoOpen(false)}
+              aria-label="Close score explanation"
+            >
+              ×
+            </button>
+
+            <h3>How the score is computed</h3>
+
+            <p>
+              We use a Swin Transformer V2 model fine-tuned to distinguish real
+              photographs from AI-generated images. For videos and GIFs, we sample 5
+              frames evenly across the duration and average the model&apos;s
+              confidence. The score shown is the model&apos;s estimated probability
+              that the content was generated by AI.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </div>
-    <div className={styles.chatWindow}>
-    {helpIsOpen === true ? <HelpWindow />:""}
-      <div className={styles.mainChatColumn}>
-        <ChatIn text={t('outputOne')}/>
-        {claimIsSent === true ? <ChatOut text={claim} /> : <></>}
-        {claimIsSent && !finalAnalysis ? <ChatIn text="..."/> : ""}
-        {finalAnalysis && finalAnalysis.analysis_text ? 
-        <>
-        <ChatIn text={t('outputTwo')} />
-        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} claimId={claimId} /></>
-        :<></>}
-      {error? <p>{error}</p> : ""}
-      </div>
-    </div>
-    <div className={styles.inputBar}>
-    <Help helpIsOpen={helpIsOpen} setHelpIsOpen={setHelpIsOpen} />
-      <Input setClaim={setClaim} verifyClaim={verifyClaim} claim={claim} />
-    </div>
-    <p className={styles.disclaimer}>{t('disclaimer')}</p>
-  </section>
-  <SourceWindow sourceWindow={sourceWindow} 
-                setSourceWindow={setSourceWindow}  
-                isLoadingSources={isLoadingSources}
-                sources={sources}
-                searches={searchesUsed} />
-  </div>
   );
 }

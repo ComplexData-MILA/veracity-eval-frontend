@@ -1,7 +1,7 @@
 "use client"
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useAuthApi() {
   const { user, error: userError, isLoading } = useUser();
@@ -31,47 +31,59 @@ export function useAuthApi() {
   }, [user, accessToken, fetchToken]);
 
   
-  const fetchWithAuth = useCallback(async (url: string, options = {}, retry = true) => {
+  const fetchWithAuth = useCallback(
+  async (url: string, options: RequestInit = {}, retry = true) => {
     if (!user && !isLoading) {
-      console.log("no user?")
-      router.push('/api/auth/login');
-      throw new Error('Not authenticated');
+      console.log("no user?");
+      router.push("/api/auth/login");
+      throw new Error("Not authenticated");
     }
 
     if (isLoading) {
       console.log("Waiting for user to load...");
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     let token = accessToken;
+
     if (!token) {
       token = await fetchToken();
     }
 
+    const headers = new Headers(options.headers);
+
+    headers.set("Authorization", `Bearer ${token}`);
+
+    const isFormData = options.body instanceof FormData;
+
+    if (isFormData) {
+      headers.delete("Content-Type");
+    } else if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+
     const response = await fetch(url, {
       ...options,
-      credentials: 'include',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      credentials: "include",
+      headers,
     });
 
     if (!response.ok) {
       try {
         if (response.status === 401 && retry) {
-          // Token might be expired, try to fetch a new one
           token = await fetchToken();
-          return fetchWithAuth(url, options, false); // Retry with new token
+          return fetchWithAuth(url, options, false);
         }
       } catch {
-        router.push('/api/auth/login');
-        throw new Error('Authentication expired, please log in again');
+        router.push("/api/auth/login");
+        throw new Error("Authentication expired, please log in again");
       }
     }
 
     return response;
-  }, [user, router, accessToken, fetchToken]);
+  },
+  [user, isLoading, router, accessToken, fetchToken]
+);
 
   return { fetchWithAuth, fetchToken, user, isLoading, error: userError };
 }

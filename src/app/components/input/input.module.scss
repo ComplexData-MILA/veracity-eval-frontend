@@ -1,31 +1,100 @@
-.inputWrapper{
-    width:80%;
-    border-radius: 20px;
-    margin-right:5px;
-    .input{
-        width: 80%;
-        padding-left: 12px;
-        height: 40px;
-        background: #f0f0f0;
-        border:0;
-        border-radius: 20px 0px 0px 20px;
-    }
-    .submit{
-        width: 50px;
-        height: 40px;
-        position: relative;
-        top:3px;
-        background: #f0f0f0;
-        border:0;
-        border-radius: 0px 20px 20px 0px;
-        cursor: pointer;
-    }
-    @media screen and (max-width: 850px)  {
-        margin-left:15%;
-        .input{
-            width:70%;
-            font-size: 14px;
-            
-        }
-    }
+.inputWrapper {
+  width: 80%;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+
+.modeToggle {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  border-radius: 20px 0 0 20px;
+  padding-left: 6px;
+  padding-right: 4px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.modeButton {
+  width: 34px;
+  height: 28px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: #7a7a7a;
+  font-family: Figtree, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modeButtonActive {
+  background: #ffffff;
+  color: #282828;
+  box-shadow: 0 1px 4px 0 #0000001a;
+}
+
+.input {
+  flex: 1;
+  height: 40px;
+  background: #f0f0f0;
+  border: 0;
+  border-radius: 0;
+  color: #282828;
+  font-family: Figtree, sans-serif;
+  font-size: 16px;
+  padding-left: 12px;
+  min-width: 0;
+}
+
+.fileInputLabel {
+  flex: 1;
+  height: 40px;
+  background: #f0f0f0;
+  border: 0;
+  color: #777777;
+  font-family: Figtree, sans-serif;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.fileInputText {
+  padding-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.submit {
+  width: 50px;
+  height: 40px;
+  background: #f0f0f0;
+  color: #1683ff;
+  border: 0;
+  border-radius: 0 20px 20px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
