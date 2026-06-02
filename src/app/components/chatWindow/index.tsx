@@ -64,10 +64,12 @@ export default function ChatWindow() {
   const [submittedMediaPreview, setSubmittedMediaPreview] = useState<string | null>(null);
   const [submittedMediaType, setSubmittedMediaType] = useState<string | null>(null);
 
-  const showMediaVerification = Boolean(
-    submittedMediaPreview || isVerifyingMedia || mediaResult
-  );
-
+  const showMediaSubmission = Boolean(submittedMediaPreview);
+  const showMediaResult = Boolean(mediaResult);
+  const showMediaVerification = Boolean(submittedMediaPreview || isVerifyingMedia || mediaResult);
+  /* NEW: frontend-only feedback for media result */
+  const [mediaFeedbackRating, setMediaFeedbackRating] = useState<number | null>(null);
+  const [mediaFeedbackSubmitted, setMediaFeedbackSubmitted] = useState<boolean>(false);
   /* NEW: cleanup browser preview URL when media preview changes/unmounts */
   useEffect(() => {
     return () => {
@@ -185,6 +187,9 @@ export default function ChatWindow() {
       setSources([]);
       setSearchesUsed([]);
       setError(null);
+
+      setMediaFeedbackRating(null);
+      setMediaFeedbackSubmitted(false);
 
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
@@ -397,118 +402,144 @@ export default function ChatWindow() {
               </>
               : <></>}
 
-            {/* NEW: media verification layout */}
-            {showMediaVerification ? (
-              <div className={styles.mediaVerificationLayout}>
-                <div className={styles.mediaMainColumn}>
-                  {/* NEW: uploaded image/video preview instead of filename text */}
-                  {submittedMediaPreview ? (
-                    <div className={styles.mediaPreviewCard}>
-                      {submittedMediaType?.startsWith("video/") ? (
-                        <video
-                          src={submittedMediaPreview}
-                          controls
-                          className={styles.mediaPreviewImage}
-                        />
-                      ) : (
-                        <img
-                          src={submittedMediaPreview}
-                          alt={submittedMediaName || "Uploaded media"}
-                          className={styles.mediaPreviewImage}
-                        />
-                      )}
-                    </div>
-                  ) : null}
+            {/* NEW: uploaded media shown as the user's submitted input on the right */}
+{showMediaSubmission ? (
+  <div className={styles.mediaUserMessageRow}>
+    <div className={styles.mediaUserPreviewBubble}>
+      {submittedMediaType?.startsWith("video/") ? (
+        <video
+          src={submittedMediaPreview || ""}
+          controls
+          className={styles.mediaUserPreview}
+        />
+      ) : (
+        <img
+          src={submittedMediaPreview || ""}
+          alt={submittedMediaName || "Uploaded media"}
+          className={styles.mediaUserPreview}
+        />
+      )}
+    </div>
 
-                  {/* NEW: loading state while OpenFake is analyzing the media */}
-                  {isVerifyingMedia ? <ChatIn text="Analyzing media..." /> : ""}
+    <div className={styles.mediaUserAvatar}>SA</div>
+  </div>
+) : null}
 
-                  {/* NEW: text-check style reliability score result */}
-                  {mediaResult ? (
-                    <div className={styles.mediaReliabilityCard}>
-                      <div className={styles.mediaReliabilityTop}>
-                        <div className={styles.mediaReliabilityTitleRow}>
-                          <h3 className={styles.mediaReliabilityTitle}>Reliability score</h3>
-                          <span className={styles.mediaInfoIcon}>i</span>
-                        </div>
+{/* NEW: loading state while OpenFake is analyzing the media */}
+{isVerifyingMedia ? <ChatIn text="Analyzing media..." /> : ""}
 
-                        <button
-                          type="button"
-                          className={styles.mediaReliabilityLink}
-                          onClick={() => setMediaScoreInfoOpen(true)}
-                        >
-                          How is this calculated?
-                        </button>
-                      </div>
+{/* NEW: reliability score and limitations shown together after result is ready */}
+{showMediaResult && mediaResult ? (
+  <div className={styles.mediaResultGrid}>
+    <div className={styles.mediaReliabilityCard}>
+      <div className={styles.mediaReliabilityTop}>
+        <div className={styles.mediaReliabilityTitleRow}>
+          <h3 className={styles.mediaReliabilityTitle}>Reliability score</h3>
+          <span className={styles.mediaInfoIcon}>i</span>
+        </div>
 
-                      <div className={styles.mediaReliabilityContent}>
-                        <div
-                          className={styles.mediaScoreCircle}
-                          style={{ "--score": mediaResult.reliability_score } as CSSProperties}
-                        >
-                          <div className={styles.mediaScoreInner}>
-                            <span className={styles.mediaScoreLabel}>Reliability</span>
-                            <span className={styles.mediaScoreValue}>
-                              {mediaResult.reliability_score}%
-                            </span>
-                          </div>
-                        </div>
+        <button
+          type="button"
+          className={styles.mediaReliabilityLink}
+          onClick={() => setMediaScoreInfoOpen(true)}
+        >
+          How is this calculated?
+        </button>
+      </div>
 
-                        <div className={styles.mediaVerdictBlock}>
-                          <h2 className={styles.mediaVerdictHeadline}>
-                            {mediaResult.verdict === "Likely real"
-                              ? "This media is likely reliable,"
-                              : mediaResult.verdict === "Likely fake"
-                              ? "This media may be manipulated,"
-                              : "This media should be reviewed carefully,"}
-                          </h2>
+      <div className={styles.mediaReliabilityContent}>
+        <div
+          className={styles.mediaScoreCircle}
+          style={{ "--score": mediaResult.reliability_score } as CSSProperties}
+        >
+          <div className={styles.mediaScoreInner}>
+            <span className={styles.mediaScoreLabel}>Reliability</span>
+            <span className={styles.mediaScoreValue}>
+              {mediaResult.reliability_score}%
+            </span>
+          </div>
+        </div>
 
-                          <p className={styles.mediaVerdictSubtext}>
-                            {mediaResult.explanation}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
+        <div className={styles.mediaVerdictBlock}>
+          <h2 className={styles.mediaVerdictHeadline}>
+            {mediaResult.verdict === "Likely real"
+              ? "This media is likely reliable,"
+              : mediaResult.verdict === "Likely fake"
+              ? "This media may be manipulated,"
+              : "This media should be reviewed carefully,"}
+          </h2>
 
-                {/* NEW: right-side privacy and limitations panel */}
-                <aside className={styles.mediaSidePanel}>
-                  <p className={styles.mediaSideLead}>
-                    Files are processed in memory and not stored.
-                  </p>
+          <p className={styles.mediaVerdictSubtext}>
+            {mediaResult.explanation}
+          </p>
+        </div>
+      </div>
+      {/* NEW: media feedback row */}
+<div className={styles.mediaFeedbackRow}>
+  <span>How convincing is this media analysis?</span>
 
-                  <p className={styles.mediaSideText}>
-                    The detector can make mistakes. Results are probabilistic and should not
-                    be treated as ground truth.
-                  </p>
+  <div className={styles.mediaFeedbackStars} aria-label="Rate media analysis">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+        className={
+          mediaFeedbackRating && star <= mediaFeedbackRating
+            ? styles.mediaFeedbackStarActive
+            : ""
+        }
+        onClick={() => {
+          setMediaFeedbackRating(star);
+          setMediaFeedbackSubmitted(true);
+        }}
+      >
+        ☆
+      </button>
+    ))}
+  </div>
 
-                  <div className={styles.mediaSideLimitations}>
-                    <h4>Known limitations:</h4>
-                    <ul>
-                      <li>Performance is strongest on fully AI-generated images.</li>
-                      <li>
-                        Subtle manipulations such as lip sync and localized inpainting may
-                        not be reliably detected.
-                      </li>
-                      <li>
-                        Images with text overlays are frequently misclassified as
-                        AI-generated.
-                      </li>
-                      <li>
-                        Video analysis may be less accurate in scenes with heavy motion
-                        blur.
-                      </li>
-                      <li>
-                        The model is better on realistic images and can fail on non-AI art,
-                        3D models, or drawings.
-                      </li>
-                    </ul>
-                  </div>
-                </aside>
-              </div>
-            ) : null}
+  {mediaFeedbackSubmitted ? (
+    <span className={styles.mediaFeedbackThanks}>Thanks!</span>
+  ) : null}
+</div>
+    </div>
 
+    <aside className={styles.mediaSidePanel}>
+      <p className={styles.mediaSideLead}>
+        Files are processed in memory and not stored.
+      </p>
+
+      <p className={styles.mediaSideText}>
+        The detector can make mistakes. Results are probabilistic and should not
+        be treated as ground truth.
+      </p>
+
+      <div className={styles.mediaSideLimitations}>
+        <h4>Known limitations:</h4>
+        <ul>
+          <li>Performance is strongest on fully AI-generated images.</li>
+          <li>
+            Subtle manipulations such as lip sync and localized inpainting may
+            not be reliably detected.
+          </li>
+          <li>
+            Images with text overlays are frequently misclassified as
+            AI-generated.
+          </li>
+          <li>
+            Video analysis may be less accurate in scenes with heavy motion
+            blur.
+          </li>
+          <li>
+            The model is better on realistic images and can fail on non-AI art,
+            3D models, or drawings.
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+) : null}
             {error ? <p>{error}</p> : ""}
           </div>
         </div>
