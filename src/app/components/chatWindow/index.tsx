@@ -114,6 +114,7 @@ export default function ChatWindow() {
       const analysisData = await analysisResponse.json();
       setFinalAnalysis(analysisData);
       console.log(JSON.stringify(analysisData.analysis_text));
+      console.log(JSON.stringify(analysisData.confidence_percentile));
       await fetchSources(data.content.analysis_id);
       await fetchSearches(data.content.analysis_id);
     } catch (err) {
