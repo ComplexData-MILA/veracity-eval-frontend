@@ -20,7 +20,7 @@
         "help": "Aide",
         "disclaimer": "Bien que nous nous efforcions d'être précis, certaines réponses de l'IA peuvent varier",
         "inputPlaceholder": "Commencer à taper un nouvel énoncé...",
-        "outputOne": "Que souhaitez-vous verifier ajourd'hui?",
+        "outputOne": "Que souhaitez-vous vérifier aujourd’hui ?",
         "outputTwo": "Voici mon analyse:",
         "preferences": "Préférences",
         "language": "Langue",
@@ -40,7 +40,9 @@
         "confident": "Comment Veracity sélectionne-t-il les sources?",
         "averageCredibility": "Crédibilité moy. des sources",
         "showAllSources": "Voir toutes les sources",
-        "close": "Fermez"
+        "close": "Fermez",
+        "mediaInputPlaceholder": "Glissez-déposez un média ici, ou choisissez un fichier",
+        "mediaDropPlaceholder": "Déposez le média ici"
     },
     "userMenu":
     {

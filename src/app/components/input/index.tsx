@@ -2,10 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import type { FormEvent } from "react";
+import type { DragEvent, FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./input.module.scss";
-
 /* NEW: local input mode for switching between text and media */
 type VerificationMode = "text" | "media";
 
@@ -65,10 +64,48 @@ export default function Input({
 
   /* NEW: local selected file state */
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  /* NEW: highlights media input while dragging a file */
+  const [isDraggingMedia, setIsDraggingMedia] = useState<boolean>(false);
 
   const formRef = useRef<HTMLFormElement>(null);
   /* NEW: prevents the same text claim from being verified repeatedly */
   const lastVerifiedClaimRef = useRef<string>("");
+  /* NEW: only allow image/video files */
+const isSupportedMediaFile = (file: File) => {
+  return file.type.startsWith("image/") || file.type.startsWith("video/");
+};
+
+/* NEW: allow drag-over behavior */
+const handleMediaDragOver = (e: DragEvent<HTMLLabelElement>) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDraggingMedia(true);
+};
+
+/* NEW: remove drag highlight */
+const handleMediaDragLeave = (e: DragEvent<HTMLLabelElement>) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDraggingMedia(false);
+};
+
+/* NEW: select dropped media file */
+const handleMediaDrop = (e: DragEvent<HTMLLabelElement>) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDraggingMedia(false);
+
+  const droppedFile = e.dataTransfer.files?.[0];
+
+  if (!droppedFile) return;
+
+  if (!isSupportedMediaFile(droppedFile)) {
+    console.log("Unsupported media file:", droppedFile.type);
+    return;
+  }
+
+  setSelectedFile(droppedFile);
+};
   const handleChange = (newText: string) => {
     setInputText(newText);
   };
@@ -169,18 +206,30 @@ export default function Input({
         />
       ) : (
         /* NEW: styled file picker */
-        <label className={styles.fileInputLabel}>
-          <span className={styles.fileInputText}>
-            {selectedFile ? selectedFile.name : "Choose media file"}
-          </span>
+        <label
+  className={`${styles.fileInputLabel} ${
+    isDraggingMedia ? styles.fileInputLabelDragging : ""
+  }`}
+  onDragOver={handleMediaDragOver}
+  onDragEnter={handleMediaDragOver}
+  onDragLeave={handleMediaDragLeave}
+  onDrop={handleMediaDrop}
+>
+  <span className={styles.fileInputText}>
+    {selectedFile
+      ? selectedFile.name
+      : isDraggingMedia
+      ? t("mediaDropPlaceholder")
+      : t("mediaInputPlaceholder")}
+  </span>
 
-          <input
-            className={styles.hiddenFileInput}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm,video/x-matroska"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-          />
-        </label>
+  <input
+    className={styles.hiddenFileInput}
+    type="file"
+    accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm,video/x-matroska"
+    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+  />
+</label>
       )}
 
       <button
