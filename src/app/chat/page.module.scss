@@ -159,3 +159,497 @@ box-shadow: 2px 2px 10px 0px #0000001A;
   }
   }
 }
+
+.mediaReliabilityTitle {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mediaInfoIcon {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #282828;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mediaReliabilityLink {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #6d6d6d;
+  text-decoration: underline;
+  margin-top: 6px;
+  cursor: pointer;
+  font-family: Figtree, sans-serif;
+}
+
+.mediaReliabilityContent {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.mediaScoreCircle {
+  width: 290px;
+  height: 290px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #15bf4e 0deg,
+    #15bf4e calc(var(--score) * 3.6deg),
+    #e8e8e8 calc(var(--score) * 3.6deg),
+    #e8e8e8 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* fallback if CSS variable is not set yet */
+.mediaReliabilityCard .mediaScoreCircle {
+  --score: 92;
+}
+
+.mediaScoreInner {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mediaScoreLabel {
+  font-size: 20px;
+  color: #5f5f5f;
+  margin-bottom: 8px;
+}
+
+.mediaScoreValue {
+  font-size: 62px;
+  line-height: 1;
+  font-weight: 800;
+  color: #000000;
+}
+
+.mediaVerdictBlock {
+  min-width: 0;
+}
+
+.mediaVerdictHeadline {
+  font-size: 34px;
+  line-height: 1.12;
+  font-weight: 800;
+  color: #15bf4e;
+  margin: 0 0 16px 0;
+}
+
+.mediaVerdictSubtext {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #282828;
+  margin: 0;
+}
+
+/* ===== Popup ===== */
+
+.mediaScorePopupOverlay {
+  position: fixed;
+  inset: 0;
+  background: #00000040;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.mediaScorePopup {
+  position: relative;
+  max-width: 520px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 28px 30px;
+  box-shadow: 2px 2px 20px 0px #00000033;
+  font-family: Figtree, sans-serif;
+  color: #282828;
+}
+
+.mediaScorePopup h3 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 14px 0;
+}
+
+.mediaScorePopup p {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.mediaScorePopupClose {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #282828;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ===== Responsive ===== */
+
+@media screen and (max-width: 1200px) {
+  .mediaVerificationLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaReliabilityContent {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaSidePanel {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .mediaReliabilityTitle {
+    font-size: 24px;
+  }
+
+  .mediaScoreCircle {
+    width: 220px;
+    height: 220px;
+  }
+
+  .mediaScoreInner {
+    width: 165px;
+    height: 165px;
+  }
+
+  .mediaScoreValue {
+    font-size: 42px;
+  }
+
+  .mediaVerdictHeadline {
+    font-size: 26px;
+  }
+
+  .mediaVerdictSubtext {
+    font-size: 16px;
+  }
+}
+/* ===== Uploaded media as user input ===== */
+
+.mediaUserMessageRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin: 18px 0 24px;
+}
+
+.mediaUserPreviewBubble {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 12px;
+  box-shadow: 2px 2px 10px 0px #0000001a;
+  max-width: 360px;
+}
+
+.mediaUserPreview {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.mediaUserAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #839092;
+  color: #ffffff;
+  font-family: Figtree, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ===== Result + limitations side by side ===== */
+
+.mediaResultGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.mediaReliabilityCard {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: 2px 2px 10px 0px #0000001a;
+  color: #282828;
+  font-family: Figtree, sans-serif;
+}
+
+.mediaReliabilityTop {
+  margin-bottom: 20px;
+}
+
+.mediaReliabilityTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mediaReliabilityTitle {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mediaInfoIcon {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #282828;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mediaReliabilityLink {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #6d6d6d;
+  text-decoration: underline;
+  margin-top: 6px;
+  cursor: pointer;
+  font-family: Figtree, sans-serif;
+}
+
+.mediaReliabilityContent {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.mediaScoreCircle {
+  width: 290px;
+  height: 290px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #15bf4e 0deg,
+    #15bf4e calc(var(--score) * 3.6deg),
+    #e8e8e8 calc(var(--score) * 3.6deg),
+    #e8e8e8 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mediaScoreInner {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mediaScoreLabel {
+  font-size: 20px;
+  color: #5f5f5f;
+  margin-bottom: 8px;
+}
+
+.mediaScoreValue {
+  font-size: 62px;
+  line-height: 1;
+  font-weight: 800;
+  color: #000000;
+}
+
+.mediaVerdictHeadline {
+  font-size: 34px;
+  line-height: 1.12;
+  font-weight: 800;
+  color: #15bf4e;
+  margin: 0 0 16px 0;
+}
+
+.mediaVerdictSubtext {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #282828;
+  margin: 0;
+}
+
+/* ===== Right-side limitations panel ===== */
+
+.mediaSidePanel {
+  width: 100%;
+  box-sizing: border-box;
+  background: #f8f8f8;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 2px 2px 10px 0px #0000001a;
+  color: #282828;
+  font-family: Figtree, sans-serif;
+}
+
+.mediaSideLead {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.mediaSideText {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.mediaSideLimitations h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.mediaSideLimitations ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.mediaSideLimitations li {
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* ===== Responsive ===== */
+
+@media screen and (max-width: 1200px) {
+  .mediaResultGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaReliabilityContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .mediaUserMessageRow {
+    justify-content: center;
+  }
+
+  .mediaUserAvatar {
+    display: none;
+  }
+
+  .mediaReliabilityTitle {
+    font-size: 24px;
+  }
+
+  .mediaScoreCircle {
+    width: 220px;
+    height: 220px;
+  }
+
+  .mediaScoreInner {
+    width: 165px;
+    height: 165px;
+  }
+
+  .mediaScoreValue {
+    font-size: 42px;
+  }
+
+  .mediaVerdictHeadline {
+    font-size: 26px;
+  }
+
+  .mediaVerdictSubtext {
+    font-size: 16px;
+  }
+}
+/* ===== Media feedback stars ===== */
+
+.mediaFeedbackRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8e8;
+  color: #6d6d6d;
+  font-family: Figtree, sans-serif;
+  font-size: 15px;
+  flex-wrap: wrap;
+}
+
+.mediaFeedbackStars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+
+.mediaFeedbackStars button {
+  border: 0;
+  background: transparent;
+  color: #9a9a9a;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mediaFeedbackStars button:hover,
+.mediaFeedbackStarActive {
+  color: #282828 !important;
+}
+
+.mediaFeedbackThanks {
+  color: #15bf4e;
+  font-size: 14px;
+  font-weight: 600;
+}

@@ -40,7 +40,9 @@
         "confident": "Comment Veracity sélectionne-t-il les sources?",
         "averageCredibility": "Crédibilité moy. des sources",
         "showAllSources": "Voir toutes les sources",
-        "close": "Fermez"
+        "close": "Fermez",
+        "mediaInputPlaceholder": "Glissez-déposez un média ici, ou choisissez un fichier",
+        "mediaDropPlaceholder": "Déposez le média ici"
     },
     "userMenu":
     {

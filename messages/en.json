@@ -40,7 +40,9 @@
         "confident": "Indicates how confident we are in its reliability.",
         "averageCredibility": "Avg. Source Credibility",
         "showAllSources": "Show all sources",
-        "close":"Close"
+        "close":"Close",
+        "mediaInputPlaceholder": "Drag and drop media here, or choose a file",
+        "mediaDropPlaceholder": "Drop media file here"
     },
     "userMenu":
     {
