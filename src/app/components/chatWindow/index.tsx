@@ -281,17 +281,16 @@ export default function ChatWindow() {
         }
       };
   
-    } catch (err) {
-      console.error('Verification error:', err);
-      setError('Connection error: Please re-submit the claim')
-      // setError(err instanceof Error ? err.message : 'Error verifying claim');
-      console.error('Error handling stream data:', err); 
-     
-      setError( err instanceof Error ? err.message : 'Analysis failed.' );
-   
-      setIsProcessingClaim(false);
-      eventSource?.close();
-    }
+   } catch (err) {
+  console.error('Error handling stream data:', err);
+
+  setError(
+    err instanceof Error ? err.message : 'Analysis failed.'
+  );
+
+  setIsProcessingClaim(false);
+  eventSource?.close();
+}
   }, [locale,
     fetchWithAuth,
     claim,
