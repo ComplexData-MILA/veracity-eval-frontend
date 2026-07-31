@@ -117,11 +117,13 @@ export default function ChatWindow() {
       console.log(JSON.stringify(analysisData.confidence_percentile));
       await fetchSources(data.content.analysis_id);
       await fetchSearches(data.content.analysis_id);
-    } catch (err) {
-      console.error('Error handling analysis completion:', err);
-      setError('Connection error: Please re-submit the claim')
-      // setError(err instanceof Error ? err.message : 'Failed to complete analysis');
-    } finally {
+    } catch (error) {
+    console.error('Error handling stream data:', error);
+    console.error('Received stream data:', data);
+    setError(
+    error instanceof Error ? error.message : 'Analysis failed.'
+    );
+    }finally {
       eventSource?.close();
       // #TODO : add something for enable/disable 
     }
