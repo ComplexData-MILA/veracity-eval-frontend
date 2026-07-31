@@ -1,21 +1,21 @@
 "use client"
 
-import styles from "../../chat/page.module.scss";
+import { API_URL } from "@/app/constants";
+import { useAuthApi } from "@/app/hooks/useAuthApi";
+import { Claim, FinalAnalysis, Search, Source } from "@/app/types";
+import { useLocale, useTranslations } from "next-intl";
 import Image from 'next/image';
-import { useState, useCallback  } from 'react';
-import Help from '../help';
-import Input from '../input';
-import HelpWindow from "../helpWindow";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { useCallback, useState } from 'react';
+import styles from "../../chat/page.module.scss";
+import Analysis from "../analysis";
 import ChatIn from "../chatBubbles/chatIn";
 import ChatOut from "../chatBubbles/chatOut";
-import { useTranslations, useLocale } from "next-intl";
-import Analysis from "../analysis";
+import Help from '../help';
+import HelpWindow from "../helpWindow";
+import Input from '../input';
 import SourceWindow from "../sourceWindow";
-import { useAuthApi } from "@/app/hooks/useAuthApi";
-import { redirect } from "next/navigation";
-import { FinalAnalysis, Search, Source, Claim } from "@/app/types";
-import Link from "next/link";
-import { API_URL} from "@/app/constants";
 
 export default function ChatWindow() {
   const t = useTranslations('chatpage');
@@ -236,8 +236,11 @@ export default function ChatWindow() {
           const data = JSON.parse(event.data);
           
           if (data.type === 'error') {
-            throw new Error('Connection error: Please re-submit the claim')
-            // throw new Error(data.content);
+            console.error('Backend analysis error:', data);
+           throw new Error(
+          data.content || 'Analysis failed. Please re-submit the claim.'
+          );
+
           }
           
   
