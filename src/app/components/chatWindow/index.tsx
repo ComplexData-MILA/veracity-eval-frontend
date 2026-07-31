@@ -238,9 +238,7 @@ export default function ChatWindow() {
           if (data.type === 'error') {
             console.error('Backend analysis error:', data);
            throw new Error(
-          data.content || 'Analysis failed. Please re-submit the claim.'
-          );
-
+          data.content || 'Analysis failed. Please re-submit the claim.' );
           }
           
   
