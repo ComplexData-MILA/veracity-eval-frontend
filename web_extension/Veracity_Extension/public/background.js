@@ -2,8 +2,7 @@
  * background.js — Extension service worker
  *
  * Handles: (1) Context menu "Send to Veracity" and action click → open side panel.
- * (2) Message router: VERIFY_CLAIM (run verification flow), GET_ME, GET_DISCUSSIONS,
- * GET_DISCUSSION, GET_POSTS, CREATE_DISCUSSION, CREATE_POST, VOTE_POST. Panel and
+ * (2) Message router: VERIFY_CLAIM (run verification flow) and GET_ME. Panel and
  * content scripts send messages here; this script calls the backend API with the
  * panel’s access token.
  */
@@ -122,30 +121,6 @@ async function apiGet(apiUrl, path, accessToken) {
   return text ? JSON.parse(text) : null;
 }
 
-async function apiPost(apiUrl, path, accessToken, body) {
-  const url = `${apiUrl}${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `Bearer ${accessToken}` },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`${res.status}: ${text}`);
-  return text ? JSON.parse(text) : null;
-}
-
-async function apiPut(apiUrl, path, accessToken, body) {
-  const url = `${apiUrl}${path}`;
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `Bearer ${accessToken}` },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`${res.status}: ${text}`);
-  return text ? JSON.parse(text) : null;
-}
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "ping") {
     sendResponse({ ok: true, source: "background" });
@@ -184,75 +159,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
     return true;
   }
-  if (message?.type === "GET_DISCUSSIONS") {
-    const { apiUrl, accessToken } = message;
-    if (!apiUrl || !accessToken) {
-      sendResponse({ success: false, error: "Missing apiUrl or accessToken" });
-      return;
-    }
-    (async () => {
-      try {
-        let data = await apiGet(apiUrl, "/v1/discussions/user", accessToken);
-        if (!Array.isArray(data)) data = data?.discussions || data?.items || (data ? [data] : []);
-        if (!Array.isArray(data)) {
-          data = await apiGet(apiUrl, "/v1/discussions/", accessToken);
-          if (!Array.isArray(data)) data = data?.discussions || data?.items || (data ? [data] : []);
-        }
-        sendResponse({ success: true, discussions: Array.isArray(data) ? data : [] });
-      } catch (err) {
-        sendResponse({ success: false, error: err?.message || String(err) });
-      }
-    })();
-    return true;
-  }
-  if (message?.type === "GET_DISCUSSION") {
-    const { apiUrl, accessToken, discussionId } = message;
-    if (!apiUrl || !accessToken || !discussionId) {
-      sendResponse({ success: false, error: "Missing apiUrl, accessToken, or discussionId" });
-      return;
-    }
-    apiGet(apiUrl, `/v1/discussions/${discussionId}`, accessToken)
-      .then((data) => sendResponse({ success: true, discussion: data }))
-      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
-    return true;
-  }
-  if (message?.type === "GET_POSTS") {
-    const { apiUrl, accessToken, discussionId } = message;
-    if (!apiUrl || !accessToken || !discussionId) {
-      sendResponse({ success: false, error: "Missing apiUrl, accessToken, or discussionId" });
-      return;
-    }
-    apiGet(apiUrl, `/v1/posts/discussion/${discussionId}`, accessToken)
-      .then((data) => {
-        const posts = Array.isArray(data) ? data : (data?.posts || data?.items || []);
-        sendResponse({ success: true, posts });
-      })
-      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
-    return true;
-  }
-  if (message?.type === "CREATE_DISCUSSION") {
-    const { apiUrl, accessToken, title, description, analysis_id } = message;
-    if (!apiUrl || !accessToken || !title || !description) {
-      sendResponse({ success: false, error: "Missing apiUrl, accessToken, title, or description" });
-      return;
-    }
-    const body = { title, description, analysis_id };
-    apiPost(apiUrl, "/v1/discussions/", accessToken, body)
-      .then((data) => sendResponse({ success: true, discussion: data }))
-      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
-    return true;
-  }
-  if (message?.type === "CREATE_POST") {
-    const { apiUrl, accessToken, discussion_id, text } = message;
-    if (!apiUrl || !accessToken || !discussion_id || !text) {
-      sendResponse({ success: false, error: "Missing apiUrl, accessToken, discussion_id, or text" });
-      return;
-    }
-    apiPost(apiUrl, "/v1/posts/", accessToken, { discussion_id, text })
-      .then((data) => sendResponse({ success: true, post: data }))
-      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
-    return true;
-  }
   if (message?.type === "GET_ME") {
     const { apiUrl, accessToken } = message;
     if (!apiUrl || !accessToken) {
@@ -261,17 +167,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     apiGet(apiUrl, "/v1/users/me", accessToken)
       .then((data) => sendResponse({ success: true, id: data?.id ?? data?.user_id ?? data?.sub, user: data }))
-      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
-    return true;
-  }
-  if (message?.type === "VOTE_POST") {
-    const { apiUrl, accessToken, post_id, vote } = message;
-    if (!apiUrl || !accessToken || !post_id || !vote) {
-      sendResponse({ success: false, error: "Missing apiUrl, accessToken, post_id, or vote" });
-      return;
-    }
-    apiPut(apiUrl, `/v1/posts/${post_id}/vote`, accessToken, { vote_type: vote })
-      .then((data) => sendResponse({ success: true, data }))
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
     return true;
   }

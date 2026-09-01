@@ -1,4 +1,19 @@
-# Veracity Side Panel Extension 
+# Veracity Side Panel Extension
+
+Chrome side-panel extension for Veracity. This build is **fact verification only**:
+paste or highlight a claim, get a reliability score, an explanation and sources.
+
+> **Note on the two extension folders in `web_extension/`:**
+> `Veracity_Extension/` (this one) is the full side-panel app — build it with npm, load `dist/`.
+> `VeracityExtension/` is a separate, much simpler popup that just redirects a query to the
+> Veracity website. They are unrelated; this README covers only `Veracity_Extension/`.
+
+## Two ways to verify a claim
+
+1. **Type it** — open the side panel, paste a claim into the box, click **Verify**.
+2. **Highlight it** — select text on any page, right-click → **Send to Veracity**. The side
+   panel opens, prefills the selection and starts verifying automatically.
+
 
 
 ## Project structure 
@@ -80,3 +95,36 @@ Edit **`public/config.json`** (or **`dist/config.json`** after a build) to set:
 - **`AUTH0_CLIENT_ID`** — Auth0 client ID for sign‑in.
 
 Rebuild after changing `public/config.json` so `dist/config.json` is updated.
+
+---
+
+## Reloading after a code change
+
+The extension is built, not live-reloaded. After editing anything under `public/`,
+`scripts/` or `pages/`:
+
+```bash
+npm run build
+```
+
+then go to `chrome://extensions/` and click the **reload** (↻) icon on the Veracity card.
+Close and reopen the side panel to pick up the new `panel.js`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| "Load unpacked" is greyed out | Turn on **Developer mode** (top-right of `chrome://extensions/`). |
+| Chrome rejects the folder | You selected `Veracity_Extension/`, not `Veracity_Extension/dist/`. Pick the folder that directly contains `manifest.json`. |
+| Panel is blank or shows "Panel error:" | Open the side panel, right-click inside it → **Inspect**, and read the console. |
+| Right-click has no "Send to Veracity" | You must have text selected, and the page must have been loaded *after* the extension. Reload the page. |
+| Verifying never finishes | Check `API_URL` in `dist/config.json` and the service-worker console (`chrome://extensions/` → **service worker** link on the Veracity card). |
+| Login loops back to the landing screen | Confirm `AUTH0_CLIENT_ID` in `config.json`, and that the extension's redirect URL is registered in Auth0. |
+
+## Scope of this build
+
+The side panel intentionally ships a single view, **AI Fact Verification**. The earlier
+*Discussion Hub* and *Contact an Expert* tabs, and the "Create discussion" action on a
+result, have been removed, along with the discussion/post/vote API routing in
+`background.js`. The extension now calls only `/v1/claims/`, `/v1/analysis/*`,
+`/v1/sources/*` and `/v1/users/me`.
