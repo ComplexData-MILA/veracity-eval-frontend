@@ -203,6 +203,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let minPreferredSources = 5;
   let preferredDomains = [];
   let activeView = 'verify';
+  let domainCredibility = {};
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -326,6 +327,82 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       resolve();
     }
   });
+
+  const DOMAIN_CRED_KEY = 'veracity_domain_credibility';
+
+  /** Seed the credibility map from sources.json so something shows before lookups land. */
+  const seedDomainCredibility = () => {
+    sourceCatalog.forEach((cat) => {
+      ((cat && cat.domains) || []).forEach((d) => {
+        if (d && d.domain && Number.isFinite(d.credibility) && !(d.domain in domainCredibility)) {
+          domainCredibility[d.domain] = d.credibility;
+        }
+      });
+    });
+  };
+
+  const loadCachedCredibility = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([DOMAIN_CRED_KEY], (res) => {
+        const stored = res && res[DOMAIN_CRED_KEY];
+        resolve(stored && typeof stored === 'object' ? stored : {});
+      });
+    } catch (_) {
+      resolve({});
+    }
+  });
+
+  const cacheCredibility = () => {
+    const payload = {};
+    payload[DOMAIN_CRED_KEY] = domainCredibility;
+    try {
+      chrome.storage.local.set(payload, () => {});
+    } catch (_) {}
+  };
+
+  /**
+   * Fetch DQR credibility for every catalog domain we do not have a live value for.
+   * Failures are recorded as null ("Not rated") so we do not re-request them each time.
+   */
+  const refreshDomainCredibility = async (onUpdate) => {
+    if (!API_URL || sourceCatalog.length === 0) return;
+    let token = null;
+    try {
+      token = await ensureAccessToken();
+    } catch (_) {
+      return;
+    }
+    if (!token) return;
+    const domains = [];
+    sourceCatalog.forEach((cat) => {
+      ((cat && cat.domains) || []).forEach((d) => {
+        if (d && d.domain && !(d.domain in domainCredibility)) domains.push(d.domain);
+      });
+    });
+    if (domains.length === 0) return;
+    await Promise.all(domains.map(async (name) => {
+      try {
+        const res = await sendBackgroundMessage({
+          type: 'GET_DOMAIN', apiUrl: API_URL, accessToken: token, domainName: name,
+        });
+        const score = res && res.success && res.domain ? res.domain.credibility_score : null;
+        domainCredibility[name] = Number.isFinite(score) ? score : null;
+      } catch (_) {
+        domainCredibility[name] = null;
+      }
+    }));
+    cacheCredibility();
+    if (typeof onUpdate === 'function') onUpdate();
+  };
+
+  const credibilityLabel = (domain) => {
+    const v = domainCredibility[domain];
+    if (v === undefined) return { text: '\u2026', cls: 'isPending' };
+    if (v === null || !Number.isFinite(v)) return { text: 'Not rated', cls: 'isUnrated' };
+    const pct = Math.round(v * 100);
+    const cls = pct >= 80 ? 'isHigh' : (pct >= 60 ? 'isMedium' : 'isLow');
+    return { text: pct + '%', cls: cls };
+  };
 
   const catalogDomainCount = () => sourceCatalog.reduce((n, c) => n + ((c && c.domains) || []).length, 0);
 
@@ -863,6 +940,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       const items = ((cat && cat.domains) || []).map((d, di) => {
         const id = 'srcOpt_' + ci + '_' + di;
         const checked = draft.has(d.domain) ? ' checked' : '';
+        const cred = credibilityLabel(d.domain);
         return '' +
           '<label class="sourceOption" for="' + id + '">' +
             '<input type="checkbox" id="' + id + '" class="sourceOptionInput" value="' + escapeHtml(d.domain) + '"' + checked + ' />' +
@@ -870,6 +948,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
               '<span class="sourceOptionLabel">' + escapeHtml(d.label || d.domain) + '</span>' +
               '<span class="sourceOptionDomain">' + escapeHtml(d.domain) + '</span>' +
             '</span>' +
+            '<span class="sourceOptionScore ' + cred.cls + '" data-domain="' + escapeHtml(d.domain) + '" ' +
+              'title="Domain Quality Rating credibility score">' + escapeHtml(cred.text) + '</span>' +
           '</label>';
       }).join('');
       return '' +
@@ -889,6 +969,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         '</div>' +
         '<p class="sourcePrefsIntro">Pick the sources you personally consider high quality. Evidence from these is ' +
           'shown first and marked in your results. Choose at least ' + minPreferredSources + '.</p>' +
+        '<p class="sourcePrefsLegend">Percentages are Domain Quality Ratings, an external credibility ' +
+          'measure aggregated from media organisations and fact-checkers.</p>' +
         (sourceCatalog.length ? '<div class="sourcePrefsList">' + groupsHtml + '</div>' : emptyHtml) +
         '<div class="sourcePrefsFooter">' +
           '<span id="sourcePrefsCount" class="sourcePrefsCount"></span>' +
@@ -918,6 +1000,18 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       });
     });
     refresh();
+
+    /** Repaint the score pills in place once live credibility values arrive. */
+    const paintScores = () => {
+      panelEl.querySelectorAll('.sourceOptionScore').forEach((el) => {
+        const cred = credibilityLabel(el.getAttribute('data-domain'));
+        el.textContent = cred.text;
+        el.className = 'sourceOptionScore ' + cred.cls;
+      });
+    };
+    refreshDomainCredibility(() => {
+      if (activeView === 'sources') paintScores();
+    });
 
     panelEl.querySelector('#sourcePrefsBackBtn')?.addEventListener('click', () => {
       renderVerifyView(panelEl);
@@ -1007,6 +1101,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
     await loadSourceCatalog();
     preferredDomains = await loadPreferredDomains();
+    domainCredibility = await loadCachedCredibility();
+    seedDomainCredibility();
   };
 
   const init = async () => {

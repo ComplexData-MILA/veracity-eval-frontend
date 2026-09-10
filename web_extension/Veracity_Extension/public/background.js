@@ -3,7 +3,7 @@
  *
  * Handles: (1) Context menu "Send to Veracity" and action click → open side panel.
  * (2) Message router: VERIFY_CLAIM (run verification flow, carrying the user's
- * preferred domains) and GET_ME. Panel and
+ * preferred domains), GET_DOMAIN (credibility lookup) and GET_ME. Panel and
  * content scripts send messages here; this script calls the backend API with the
  * panel’s access token.
  */
@@ -166,6 +166,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     runVerification(apiUrl, accessToken, claimText.trim(), preferredDomains)
       .then((data) => sendResponse({ success: true, ...data }))
+      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
+    return true;
+  }
+  // Domain credibility (DQR) for the source picker. One domain per call; the panel
+  // fans these out and caches the results.
+  if (message?.type === "GET_DOMAIN") {
+    const { apiUrl, accessToken, domainName } = message;
+    if (!apiUrl || !accessToken || !domainName) {
+      sendResponse({ success: false, error: "Missing apiUrl, accessToken, or domainName" });
+      return;
+    }
+    apiGet(apiUrl, `/v1/domains/lookup/${encodeURIComponent(domainName)}`, accessToken)
+      .then((data) => sendResponse({ success: true, domain: data }))
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
     return true;
   }

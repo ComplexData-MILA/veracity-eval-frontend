@@ -1156,9 +1156,9 @@ input.Home_textarea__k243o {
 
 #root .sourceOption {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
-  align-items: start;
+  align-items: center;
   padding: 7px 8px;
   border-radius: 6px;
   cursor: pointer;
@@ -1171,7 +1171,7 @@ input.Home_textarea__k243o {
 #root .sourceOptionInput {
   width: 16px;
   height: 16px;
-  margin: 1px 0 0;
+  margin: 0;
   accent-color: #0d7a68;
   cursor: pointer;
   flex: none;
@@ -1241,3 +1241,29 @@ input.Home_textarea__k243o {
   padding: 2px 8px;
   margin-bottom: 6px;
 }
+
+/* DQR credibility score shown against each candidate domain */
+
+#root .sourcePrefsLegend {
+  margin: -4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #9ca3af;
+}
+
+#root .sourceOptionScore {
+  flex: none;
+  min-width: 44px;
+  text-align: right;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #6b7280;
+}
+
+#root .sourceOptionScore.isPending { color: #d1d5db; }
+#root .sourceOptionScore.isUnrated { font-weight: 600; font-size: 10.5px; color: #9ca3af; }
+#root .sourceOptionScore.isHigh { color: #1f7a45; }
+#root .sourceOptionScore.isMedium { color: #7d6a12; }
+#root .sourceOptionScore.isLow { color: #b4600f; }

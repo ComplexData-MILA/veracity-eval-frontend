@@ -3,6 +3,10 @@
 Chrome side-panel extension for Veracity. This build is **fact verification only**:
 paste or highlight a claim, get a reliability score, an explanation and sources.
 
+> **Study build.** This branch (`veracity-extension-study-ver`) adds custom source selection
+> for the source-preference user study. The plain product build, without the picker, is on
+> `veracity-extension-factcheck-only`.
+
 > **Note on the two extension folders in `web_extension/`:**
 > `Veracity_Extension/` (this one) is the full side-panel app — build it with npm, load `dist/`.
 > `VeracityExtension/` is a separate, much simpler popup that just redirects a query to the
@@ -34,14 +38,21 @@ claims schema does not accept `preferred_domains` yet, so `background.js` retrie
 without the field on a 400/422 — the extension keeps working against a backend that has no
 source prioritisation, and starts driving it the moment one ships.
 
-Credibility ratings are deliberately **not** shown in the picker: the study this supports
-measures each participant's own perception of source quality, and showing an expert score
-would anchor it.
+Each domain shows its **Domain Quality Rating** credibility score. Values are fetched from
+`GET /v1/domains/lookup/{domain}` through the background script on first open, cached in
+`chrome.storage.local`, and shown as a percentage; a domain with no rating (or a failed
+lookup) reads *Not rated*, which is itself meaningful — a share of the domains Veracity cites
+are absent from DQR. `public/sources.json` carries seed values for the domains published in
+Kelly's Table 1 so something sensible renders before the lookups return.
+
+Note for study design: participants see the expert rating alongside the instruction to pick
+what *they* consider high quality, so their selections are informed by DQR rather than
+independent of it. Worth recording as a deliberate design choice when writing up.
 
 ### Editing the source set
 
-`public/sources.json` holds the catalog and the minimum selection count. Add or remove
-categories and domains there and rebuild — no code changes needed.
+`public/sources.json` holds the catalog, the minimum selection count, and optional DQR seed
+values. Add or remove categories and domains there and rebuild — no code changes needed.
 
 
 

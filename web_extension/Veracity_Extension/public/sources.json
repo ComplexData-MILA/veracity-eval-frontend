@@ -1,65 +1,161 @@
 {
   "minSelected": 5,
-  "note": "Candidate source set S shown in the picker. Curated from Veracity's most-cited domains, restricted to high-credibility domains and excluding social platforms. Edit this file and rebuild to change the set; no code changes needed.",
+  "note": "Candidate source set S shown in the picker. Curated from Veracity's most-cited domains, restricted to high-credibility domains and excluding social platforms. Edit this file and rebuild to change the set; no code changes needed. 'credibility' is an optional DQR seed used only until the live value is fetched from /v1/domains/lookup, or if that lookup fails.",
   "categories": [
     {
       "name": "Science & medicine",
       "domains": [
-        { "domain": "nih.gov", "label": "National Institutes of Health" },
-        { "domain": "sciencedirect.com", "label": "ScienceDirect" },
-        { "domain": "nature.com", "label": "Nature" },
-        { "domain": "nejm.org", "label": "New England Journal of Medicine" },
-        { "domain": "thelancet.com", "label": "The Lancet" },
-        { "domain": "mayoclinic.org", "label": "Mayo Clinic" }
+        {
+          "domain": "nih.gov",
+          "label": "National Institutes of Health",
+          "credibility": 0.89
+        },
+        {
+          "domain": "sciencedirect.com",
+          "label": "ScienceDirect",
+          "credibility": 0.91
+        },
+        {
+          "domain": "nature.com",
+          "label": "Nature"
+        },
+        {
+          "domain": "nejm.org",
+          "label": "New England Journal of Medicine"
+        },
+        {
+          "domain": "thelancet.com",
+          "label": "The Lancet"
+        },
+        {
+          "domain": "mayoclinic.org",
+          "label": "Mayo Clinic"
+        }
       ]
     },
     {
       "name": "Government & public health",
       "domains": [
-        { "domain": "who.int", "label": "World Health Organization" },
-        { "domain": "cdc.gov", "label": "Centers for Disease Control" },
-        { "domain": "nasa.gov", "label": "NASA" },
-        { "domain": "noaa.gov", "label": "NOAA" },
-        { "domain": "census.gov", "label": "US Census Bureau" },
-        { "domain": "canada.ca", "label": "Government of Canada" }
+        {
+          "domain": "who.int",
+          "label": "World Health Organization"
+        },
+        {
+          "domain": "cdc.gov",
+          "label": "Centers for Disease Control"
+        },
+        {
+          "domain": "nasa.gov",
+          "label": "NASA",
+          "credibility": 0.96
+        },
+        {
+          "domain": "noaa.gov",
+          "label": "NOAA"
+        },
+        {
+          "domain": "census.gov",
+          "label": "US Census Bureau"
+        },
+        {
+          "domain": "canada.ca",
+          "label": "Government of Canada"
+        }
       ]
     },
     {
       "name": "News",
       "domains": [
-        { "domain": "bbc.com", "label": "BBC" },
-        { "domain": "reuters.com", "label": "Reuters" },
-        { "domain": "apnews.com", "label": "Associated Press" },
-        { "domain": "npr.org", "label": "NPR" },
-        { "domain": "theguardian.com", "label": "The Guardian" },
-        { "domain": "nytimes.com", "label": "The New York Times" },
-        { "domain": "washingtonpost.com", "label": "The Washington Post" },
-        { "domain": "economist.com", "label": "The Economist" }
+        {
+          "domain": "bbc.com",
+          "label": "BBC",
+          "credibility": 0.88
+        },
+        {
+          "domain": "reuters.com",
+          "label": "Reuters"
+        },
+        {
+          "domain": "apnews.com",
+          "label": "Associated Press"
+        },
+        {
+          "domain": "npr.org",
+          "label": "NPR"
+        },
+        {
+          "domain": "theguardian.com",
+          "label": "The Guardian"
+        },
+        {
+          "domain": "nytimes.com",
+          "label": "The New York Times"
+        },
+        {
+          "domain": "washingtonpost.com",
+          "label": "The Washington Post"
+        },
+        {
+          "domain": "economist.com",
+          "label": "The Economist"
+        }
       ]
     },
     {
       "name": "Reference",
       "domains": [
-        { "domain": "wikipedia.org", "label": "Wikipedia" },
-        { "domain": "britannica.com", "label": "Encyclopaedia Britannica" }
+        {
+          "domain": "wikipedia.org",
+          "label": "Wikipedia",
+          "credibility": 0.83
+        },
+        {
+          "domain": "britannica.com",
+          "label": "Encyclopaedia Britannica"
+        }
       ]
     },
     {
       "name": "Fact-checking",
       "domains": [
-        { "domain": "snopes.com", "label": "Snopes" },
-        { "domain": "politifact.com", "label": "PolitiFact" },
-        { "domain": "factcheck.org", "label": "FactCheck.org" },
-        { "domain": "fullfact.org", "label": "Full Fact" }
+        {
+          "domain": "snopes.com",
+          "label": "Snopes"
+        },
+        {
+          "domain": "politifact.com",
+          "label": "PolitiFact"
+        },
+        {
+          "domain": "factcheck.org",
+          "label": "FactCheck.org"
+        },
+        {
+          "domain": "fullfact.org",
+          "label": "Full Fact"
+        }
       ]
     },
     {
       "name": "Research & data",
       "domains": [
-        { "domain": "pewresearch.org", "label": "Pew Research Center" },
-        { "domain": "ourworldindata.org", "label": "Our World in Data" },
-        { "domain": "statista.com", "label": "Statista" },
-        { "domain": "arxiv.org", "label": "arXiv" }
+        {
+          "domain": "pewresearch.org",
+          "label": "Pew Research Center",
+          "credibility": 0.92
+        },
+        {
+          "domain": "ourworldindata.org",
+          "label": "Our World in Data"
+        },
+        {
+          "domain": "statista.com",
+          "label": "Statista"
+        },
+        {
+          "domain": "arxiv.org",
+          "label": "arXiv"
+        }
       ]
     }
   ]
