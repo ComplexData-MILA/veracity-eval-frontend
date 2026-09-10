@@ -84,6 +84,7 @@ if (!fs.existsSync(out)) {
   copyRecursive(path.join(publicDir, "content.js"), path.join(out, "content.js"));
   copyRecursive(path.join(publicDir, "icons"), path.join(out, "icons"));
   copyRecursive(path.join(publicDir, "config.json"), path.join(out, "config.json"));
+  copyRecursive(path.join(publicDir, "sources.json"), path.join(out, "sources.json"));
 }
 
 // Rename out -> dist
@@ -94,6 +95,13 @@ const heroCssSrc = path.join(root, "styles", "webapp-hero.css");
 const heroCssDest = path.join(dist, "webapp-hero.css");
 if (fs.existsSync(heroCssSrc)) {
   fs.copyFileSync(heroCssSrc, heroCssDest);
+}
+
+// Copy source-preference catalog into dist (read at runtime by the picker)
+const sourcesJsonSrc = path.join(root, "public", "sources.json");
+const sourcesJsonDest = path.join(dist, "sources.json");
+if (fs.existsSync(sourcesJsonSrc)) {
+  fs.copyFileSync(sourcesJsonSrc, sourcesJsonDest);
 }
 
 // Copy panel stylesheet into dist (plain CSS for panel.js UI)
@@ -191,6 +199,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let lastVerifiedClaim = '';
   let lastFactCheck = null;
   let lastAnalysisResult = null;
+  let sourceCatalog = [];
+  let minPreferredSources = 5;
+  let preferredDomains = [];
+  let activeView = 'verify';
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -273,6 +285,84 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  /**
+   * Source preferences.
+   *
+   * The catalog (set S) ships as public/sources.json; the user's selection (subset P)
+   * lives in chrome.storage.local so it survives the panel being closed. P is sent to
+   * the backend with every claim and, independently, is used to order and mark the
+   * evidence shown in the result.
+   */
+  const SOURCE_PREFS_KEY = 'veracity_preferred_domains';
+
+  const loadSourceCatalog = async () => {
+    try {
+      const res = await fetch(chrome.runtime.getURL('sources.json'));
+      const data = await res.json();
+      sourceCatalog = Array.isArray(data && data.categories) ? data.categories : [];
+      if (Number.isFinite(data && data.minSelected)) minPreferredSources = data.minSelected;
+    } catch (_) {
+      sourceCatalog = [];
+    }
+  };
+
+  const loadPreferredDomains = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([SOURCE_PREFS_KEY], (res) => {
+        const stored = res && res[SOURCE_PREFS_KEY];
+        resolve(Array.isArray(stored) ? stored : []);
+      });
+    } catch (_) {
+      resolve([]);
+    }
+  });
+
+  const savePreferredDomains = (domains) => new Promise((resolve) => {
+    const payload = {};
+    payload[SOURCE_PREFS_KEY] = domains;
+    try {
+      chrome.storage.local.set(payload, () => resolve());
+    } catch (_) {
+      resolve();
+    }
+  });
+
+  const catalogDomainCount = () => sourceCatalog.reduce((n, c) => n + ((c && c.domains) || []).length, 0);
+
+  /** Host for a source, preferring the backend's domain record over parsing the URL. */
+  const hostFromSource = (source) => {
+    const direct = (source && source.domain && source.domain.domain_name) || (source && source.domain_name);
+    if (direct) return String(direct).toLowerCase().replace(/^www\./, '');
+    const raw = (source && (source.url || source.link)) || '';
+    try {
+      return new URL(raw).hostname.toLowerCase().replace(/^www\./, '');
+    } catch (_) {
+      return '';
+    }
+  };
+
+  const isPreferredSource = (source) => {
+    const host = hostFromSource(source);
+    if (!host || preferredDomains.length === 0) return false;
+    return preferredDomains.some((d) => {
+      const dd = String(d).toLowerCase();
+      return host === dd || host.endsWith('.' + dd);
+    });
+  };
+
+  /**
+   * Stable partition: sources from the user's chosen domains first, original order
+   * preserved within each group. Display-order only — this does not change which
+   * evidence the model read, or the veracity score.
+   */
+  const prioritizeSources = (sources) => {
+    if (!Array.isArray(sources) || preferredDomains.length === 0) return sources || [];
+    const preferred = [];
+    const rest = [];
+    sources.forEach((s) => { (isPreferredSource(s) ? preferred : rest).push(s); });
+    return preferred.concat(rest);
+  };
+
   const getCredibilityPercent = (source, index, mode) => {
     if (mode === 'test') {
       const mockValues = [93, 88, 79, 91, 85];
@@ -315,8 +405,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     const credibilityHtml = credibility === null
       ? ''
       : '<div class="sourceCredibilityPill">Credibility: ' + credibility + '%</div>';
+    const preferredHtml = isPreferredSource(source)
+      ? '<div class="sourcePreferredPill" title="From a source you chose">Your source</div>'
+      : '';
     const contentHtml =
       '<div class="sourceCard">' +
+        preferredHtml +
         credibilityHtml +
         '<div class="sourceHeading">' + escapeHtml(title) + '</div>' +
         (snippet ? '<div class="sourcesDescription">' + escapeHtml(snippet) + '</div>' : '') +
@@ -382,7 +476,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const sources = extractSources(result);
+    const sources = prioritizeSources(extractSources(result));
     currentSourceIndex = 0;
     const clamped = Math.max(0, Math.min(100, parseFloat(score)));
     const deg = clamped * 3.6;
@@ -586,7 +680,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     }
 
     chrome.runtime.sendMessage(
-      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL },
+      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL, preferredDomains },
       (response) => {
         if (chrome.runtime.lastError) {
           const msg = 'Something went wrong. Please try again.';
@@ -703,6 +797,138 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  /** One-line reminder of the active selection, with a way into the picker. */
+  const renderSourcePrefsSummary = (panelEl) => {
+    const el = panelEl && panelEl.querySelector('#sourcePrefsSummary');
+    if (!el) return;
+    const n = preferredDomains.length;
+    const text = n === 0
+      ? 'No preferred sources chosen yet'
+      : ('Prioritizing ' + n + ' of ' + catalogDomainCount() + ' sources');
+    el.innerHTML =
+      '<span class="sourcePrefsSummaryText">' + escapeHtml(text) + '</span>' +
+      '<button id="sourcePrefsEditBtn" class="sourcePrefsEditBtn" type="button">' +
+        (n === 0 ? 'Choose' : 'Edit') +
+      '</button>';
+    el.querySelector('#sourcePrefsEditBtn')?.addEventListener('click', () => {
+      renderSourcesView(panelEl);
+    });
+  };
+
+  const renderVerifyView = (panelEl) => {
+    if (!panelEl) return;
+    activeView = 'verify';
+    panelEl.innerHTML =
+      '<div id="aiTabPanel">' +
+        '<textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>' +
+        '<div id="sourcePrefsSummary" class="sourcePrefsSummary"></div>' +
+        '<div class="Home_buttonRow__Cnhie">' +
+          '<button id="verifyBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Verify</button>' +
+        '</div>' +
+        '<div class="statusRow" id="verifyingStatusContainer"></div>' +
+        '<div id="authStatusText" class="inlineInfo"></div>' +
+        '<div id="resultMount"></div>' +
+      '</div>';
+    setVerifying(false);
+    renderSourcePrefsSummary(panelEl);
+    const verifyBtn = panelEl.querySelector('#verifyBtn');
+    const claimInput = panelEl.querySelector('#claimInput');
+    updateVerifyButtonState();
+    claimInput?.addEventListener('input', updateVerifyButtonState);
+    claimInput?.addEventListener('change', updateVerifyButtonState);
+    verifyBtn?.addEventListener('click', async () => {
+      await startVerification();
+    });
+    if (lastAnalysisResult) {
+      lastClaimText = lastAnalysisResult.claim;
+      lastVerifiedClaim = lastAnalysisResult.claim;
+      if (claimInput) claimInput.value = lastAnalysisResult.claim;
+      setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
+      updateVerifyButtonState();
+    }
+  };
+
+  /**
+   * Source picker: the catalog grouped by category, with a minimum-selection gate.
+   * Credibility ratings are deliberately not shown — the study measures the
+   * participant's own perception of source quality.
+   */
+  const renderSourcesView = (panelEl) => {
+    if (!panelEl) return;
+    activeView = 'sources';
+    setVerifying(false);
+    const draft = new Set(preferredDomains);
+
+    const groupsHtml = sourceCatalog.map((cat, ci) => {
+      const items = ((cat && cat.domains) || []).map((d, di) => {
+        const id = 'srcOpt_' + ci + '_' + di;
+        const checked = draft.has(d.domain) ? ' checked' : '';
+        return '' +
+          '<label class="sourceOption" for="' + id + '">' +
+            '<input type="checkbox" id="' + id + '" class="sourceOptionInput" value="' + escapeHtml(d.domain) + '"' + checked + ' />' +
+            '<span class="sourceOptionText">' +
+              '<span class="sourceOptionLabel">' + escapeHtml(d.label || d.domain) + '</span>' +
+              '<span class="sourceOptionDomain">' + escapeHtml(d.domain) + '</span>' +
+            '</span>' +
+          '</label>';
+      }).join('');
+      return '' +
+        '<section class="sourceGroup">' +
+          '<h3 class="sourceGroupTitle">' + escapeHtml(cat.name || 'Sources') + '</h3>' +
+          '<div class="sourceGroupItems">' + items + '</div>' +
+        '</section>';
+    }).join('');
+
+    const emptyHtml = '<p class="sourcePrefsIntro">Source list unavailable. Rebuild the extension so sources.json is present in dist/.</p>';
+
+    panelEl.innerHTML =
+      '<div class="sourcePrefs">' +
+        '<div class="sourcePrefsHeader">' +
+          '<button id="sourcePrefsBackBtn" class="sourcePrefsBackBtn" type="button">Back</button>' +
+          '<h2 class="sourcePrefsTitle">Your trusted sources</h2>' +
+        '</div>' +
+        '<p class="sourcePrefsIntro">Pick the sources you personally consider high quality. Evidence from these is ' +
+          'shown first and marked in your results. Choose at least ' + minPreferredSources + '.</p>' +
+        (sourceCatalog.length ? '<div class="sourcePrefsList">' + groupsHtml + '</div>' : emptyHtml) +
+        '<div class="sourcePrefsFooter">' +
+          '<span id="sourcePrefsCount" class="sourcePrefsCount"></span>' +
+          '<button id="sourcePrefsSaveBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Save</button>' +
+        '</div>' +
+      '</div>';
+
+    const countEl = panelEl.querySelector('#sourcePrefsCount');
+    const saveBtn = panelEl.querySelector('#sourcePrefsSaveBtn');
+    const refresh = () => {
+      const n = draft.size;
+      const enough = n >= minPreferredSources;
+      if (countEl) {
+        countEl.textContent = enough
+          ? (n + ' selected')
+          : (n + ' of ' + minPreferredSources + ' selected');
+        countEl.classList.toggle('isIncomplete', !enough);
+      }
+      if (saveBtn) saveBtn.disabled = !enough;
+    };
+
+    panelEl.querySelectorAll('.sourceOptionInput').forEach((input) => {
+      input.addEventListener('change', () => {
+        if (input.checked) draft.add(input.value);
+        else draft.delete(input.value);
+        refresh();
+      });
+    });
+    refresh();
+
+    panelEl.querySelector('#sourcePrefsBackBtn')?.addEventListener('click', () => {
+      renderVerifyView(panelEl);
+    });
+    saveBtn?.addEventListener('click', async () => {
+      preferredDomains = Array.from(draft);
+      await savePreferredDomains(preferredDomains);
+      renderVerifyView(panelEl);
+    });
+  };
+
   const renderAppScreen = async () => {
     if (!root) return;
     root.innerHTML = '';
@@ -712,6 +938,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
           <div class="Home_tabButton__yY1n3 Home_tabButtonActive__zVobV">
             <span class="Home_tabLabel__IC30v">AI Fact Verification</span>
           </div>
+          <button id="sourcesNavBtn" class="sourcesNavBtn" type="button" title="Choose your trusted sources">Sources</button>
         </div>
         <div class="Home_card__E5spL" id="tabPanel"></div>
         <footer class="Home_footer__yFiaX">
@@ -722,35 +949,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     \`;
 
     const panelEl = root.querySelector('#tabPanel');
-    if (panelEl) {
-      panelEl.innerHTML = \`
-        <div id="aiTabPanel">
-          <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
-          <div class="Home_buttonRow__Cnhie">
-            <button id="verifyBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Verify</button>
-          </div>
-          <div class="statusRow" id="verifyingStatusContainer"></div>
-          <div id="authStatusText" class="inlineInfo"></div>
-          <div id="resultMount"></div>
-        </div>
-      \`;
-      setVerifying(false);
-      const verifyBtn = panelEl.querySelector('#verifyBtn');
-      const claimInput = panelEl.querySelector('#claimInput');
-      updateVerifyButtonState();
-      claimInput?.addEventListener('input', updateVerifyButtonState);
-      claimInput?.addEventListener('change', updateVerifyButtonState);
-      verifyBtn?.addEventListener('click', async () => {
-        await startVerification();
-      });
-      if (lastAnalysisResult) {
-        lastClaimText = lastAnalysisResult.claim;
-        lastVerifiedClaim = lastAnalysisResult.claim;
-        if (claimInput) claimInput.value = lastAnalysisResult.claim;
-        setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
-        updateVerifyButtonState();
-      }
-    }
+    renderVerifyView(panelEl);
+
+    root.querySelector('#sourcesNavBtn')?.addEventListener('click', () => {
+      if (activeView === 'sources') renderVerifyView(panelEl);
+      else renderSourcesView(panelEl);
+    });
 
     const logoutBtn = root.querySelector('#logoutBtn');
     logoutBtn?.addEventListener('click', async () => {
@@ -780,6 +984,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     await syncAuthUI();
+    if (activeView !== 'verify') {
+      const panelEl = root?.querySelector('#tabPanel');
+      if (panelEl) renderVerifyView(panelEl);
+    }
     const claimInput = root?.querySelector('#claimInput');
     if (claimInput) claimInput.value = text;
     await startVerification(text);
@@ -797,6 +1005,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     API_URL = cfg.API_URL || '';
     AUTH0_CLIENT_ID = cfg.AUTH0_CLIENT_ID || '';
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
+    await loadSourceCatalog();
+    preferredDomains = await loadPreferredDomains();
   };
 
   const init = async () => {

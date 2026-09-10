@@ -14,6 +14,35 @@ paste or highlight a claim, get a reliability score, an explanation and sources.
 2. **Highlight it** — select text on any page, right-click → **Send to Veracity**. The side
    panel opens, prefills the selection and starts verifying automatically.
 
+## Choosing your trusted sources
+
+The **Sources** button in the panel header opens a picker of curated domains grouped by
+category. Pick at least five you personally consider high quality; the selection is stored in
+`chrome.storage.local` and persists across sessions. A summary line under the claim box
+(`Prioritizing 5 of 30 sources · Edit`) is the second way in.
+
+What the selection does today:
+
+- Evidence from your chosen domains is **sorted to the top of the result and marked
+  "Your source"**. This is display ordering only.
+- The selection is **sent to the backend** as `preferred_domains` on `POST /v1/claims/`.
+
+What it does **not** do yet: change which search results the model reads, or the veracity
+score. That is a re-ranking step in the backend RAG pipeline (take 30 search results, send the
+5 highest-ranked from the user's domains, topped up with the best remaining results). The
+claims schema does not accept `preferred_domains` yet, so `background.js` retries the request
+without the field on a 400/422 — the extension keeps working against a backend that has no
+source prioritisation, and starts driving it the moment one ships.
+
+Credibility ratings are deliberately **not** shown in the picker: the study this supports
+measures each participant's own perception of source quality, and showing an expert score
+would anchor it.
+
+### Editing the source set
+
+`public/sources.json` holds the catalog and the minimum selection count. Add or remove
+categories and domains there and rebuild — no code changes needed.
+
 
 
 ## Project structure 
@@ -36,6 +65,7 @@ Veracity_Extension/
 │   ├── content.js            # Injected script: selection → REQUEST_SELECTION
 │   ├── panel.css             # Panel UI styles (verify button, results, discussion)
 │   ├── config.json           # API_URL, AUTH0_CLIENT_ID (runtime config)
+│   ├── sources.json          # Source picker catalog (categories, domains, minimum)
 │   └── icons/
 │       └── icon128.png
 │

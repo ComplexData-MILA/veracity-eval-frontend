@@ -2,7 +2,8 @@
  * background.js — Extension service worker
  *
  * Handles: (1) Context menu "Send to Veracity" and action click → open side panel.
- * (2) Message router: VERIFY_CLAIM (run verification flow) and GET_ME. Panel and
+ * (2) Message router: VERIFY_CLAIM (run verification flow, carrying the user's
+ * preferred domains) and GET_ME. Panel and
  * content scripts send messages here; this script calls the backend API with the
  * panel’s access token.
  */
@@ -41,7 +42,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   });
 });
 
-async function runVerification(apiUrl, accessToken, claimText) {
+async function runVerification(apiUrl, accessToken, claimText, preferredDomains) {
   const headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -49,11 +50,20 @@ async function runVerification(apiUrl, accessToken, claimText) {
   };
 
   const url1 = `${apiUrl}/v1/claims/`;
-  const res1 = await fetch(url1, {
+  const basePayload = { claim_text: claimText, context: "veracity_chrome_extension" };
+  const domains = Array.isArray(preferredDomains) ? preferredDomains.filter(Boolean) : [];
+
+  // Send the user's preferred domains when there are any. The field is not yet part of
+  // the claims schema, so a validation error means this build is talking to a backend
+  // without source prioritisation — retry without it rather than failing the claim.
+  let res1 = await fetch(url1, {
     method: "POST",
     headers,
-    body: JSON.stringify({ claim_text: claimText, context: "veracity_chrome_extension" }),
+    body: JSON.stringify(domains.length ? { ...basePayload, preferred_domains: domains } : basePayload),
   });
+  if (!res1.ok && domains.length && (res1.status === 400 || res1.status === 422)) {
+    res1 = await fetch(url1, { method: "POST", headers, body: JSON.stringify(basePayload) });
+  }
   const body1 = await res1.text();
   if (!res1.ok) throw new Error(`POST ${url1} ${res1.status}: ${body1}`);
   const claimData = JSON.parse(body1);
@@ -149,12 +159,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   // Full verification: claim → embedding → stream → analysis → sources.
   if (message?.type === "VERIFY_CLAIM") {
-    const { claimText, accessToken, apiUrl } = message;
+    const { claimText, accessToken, apiUrl, preferredDomains } = message;
     if (!apiUrl || !accessToken || typeof claimText !== "string") {
       sendResponse({ success: false, error: "Missing apiUrl, accessToken, or claimText" });
       return;
     }
-    runVerification(apiUrl, accessToken, claimText.trim())
+    runVerification(apiUrl, accessToken, claimText.trim(), preferredDomains)
       .then((data) => sendResponse({ success: true, ...data }))
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
     return true;

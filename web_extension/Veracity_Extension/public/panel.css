@@ -1018,3 +1018,226 @@ input.Home_textarea__k243o {
   }
 }
 
+
+/* ---------------------------------------------------------------
+   Source preferences: header entry point, picker, and result marker
+   --------------------------------------------------------------- */
+
+#root .sourcesNavBtn {
+  flex: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text, #1f2937);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#root .sourcesNavBtn:hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+/* Summary line under the claim box */
+
+#root .sourcePrefsSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: -4px;
+}
+
+#root .sourcePrefsSummaryText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#root .sourcePrefsEditBtn {
+  flex: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0d7a68;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#root .sourcePrefsEditBtn:hover {
+  opacity: 0.8;
+}
+
+/* Picker */
+
+#root .sourcePrefs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#root .sourcePrefsHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#root .sourcePrefsBackBtn {
+  flex: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+
+#root .sourcePrefsBackBtn:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+#root .sourcePrefsTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#root .sourcePrefsIntro {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+#root .sourcePrefsList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+#root .sourceGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#root .sourceGroupTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+#root .sourceGroupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#root .sourceOption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 7px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#root .sourceOption:hover {
+  background: #f3f4f6;
+}
+
+#root .sourceOptionInput {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: #0d7a68;
+  cursor: pointer;
+  flex: none;
+}
+
+#root .sourceOptionText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#root .sourceOptionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1f2937;
+}
+
+#root .sourceOptionDomain {
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#root .sourcePrefsFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+#root .sourcePrefsCount {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+#root .sourcePrefsCount.isIncomplete {
+  color: #b4600f;
+}
+
+#root .sourcePrefsFooter .Home_primaryBtn__nO8b8 {
+  flex: none;
+  width: auto;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+/* "Your source" marker on a result card */
+
+#root .sourcePreferredPill {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0d7a68;
+  background: #e2f0ec;
+  border: 1px solid #b9ddd4;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 6px;
+}
