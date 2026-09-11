@@ -150,6 +150,27 @@
           "label": "arXiv"
         }
       ]
+    },
+    {
+      "name": "Social & community",
+      "domains": [
+        {
+          "domain": "reddit.com",
+          "label": "Reddit"
+        },
+        {
+          "domain": "youtube.com",
+          "label": "YouTube"
+        },
+        {
+          "domain": "facebook.com",
+          "label": "Facebook"
+        },
+        {
+          "domain": "quora.com",
+          "label": "Quora"
+        }
+      ]
     }
   ]
 }

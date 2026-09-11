@@ -18,7 +18,9 @@ paste or highlight a claim, get a reliability score, an explanation and sources.
 
 Switch the input to **Image**, then drop a file on the panel or click to choose one. JPEG,
 PNG, WebP and GIF are accepted. The result gives a reliability score, a verdict and an
-explanation.
+explanation. When a file is judged uncertain or fake, the most likely generator is shown too;
+that ranking is conditional on the media being fake, so it is hidden on a file judged real,
+where the top entry is noise.
 
 The image is posted as `multipart/form-data` to `POST /v1/media/verify` **directly from the
 panel**, not through the background service worker — `chrome.runtime` messaging cannot carry
@@ -49,7 +51,8 @@ the field on a 400/422. Until the backend honours it, the choice affects the ord
 labelling of displayed evidence, not the veracity score.
 
 No credibility ratings are shown against domains — this build presents the source list as a
-plain choice.
+plain choice. The catalog includes Veracity's ten most-cited domains, four of which are social
+platforms; they are grouped under **Social & community** so the choice is informed.
 
 ### Editing the source set
 

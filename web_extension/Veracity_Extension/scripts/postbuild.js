@@ -839,18 +839,29 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         '</div>' +
       '</div>';
 
-    // Extra signal the detector returns: manipulation probability, and which
-    // generator it thinks produced the image.
-    const pFake = parseFloat(data.p_fake);
+    // The detector returns generators as [{ name, p }] ranked by probability. That
+    // ranking is conditional on the media being fake, so on something judged real
+    // the top entry is noise — only surface it once the verdict is not "real".
+    // p_fake is deliberately not repeated here: the explanation above already states it.
     const factRows = [];
-    if (Number.isFinite(pFake)) {
-      factRows.push('<div class="mediaFact"><span>Chance manipulated</span><b>' +
-        Math.round(Math.max(0, Math.min(1, pFake)) * 100) + '%</b></div>');
-    }
-    const gens = Array.isArray(data.generators) ? data.generators.filter(Boolean) : [];
-    if (gens.length) {
-      factRows.push('<div class="mediaFact"><span>Likely generator</span><b>' +
-        escapeHtml(gens.slice(0, 2).join(', ')) + '</b></div>');
+    const band = verdictClass(verdict);
+    if (band !== 'isReal') {
+      const gens = (Array.isArray(data.generators) ? data.generators : [])
+        .map((g) => {
+          if (typeof g === 'string') return { name: g, p: null };
+          if (!g || typeof g !== 'object') return null;
+          const name = g.name || g.label || g.generator || g.model;
+          if (!name) return null;
+          const prob = parseFloat(g.p !== undefined ? g.p : g.probability);
+          return { name: String(name), p: Number.isFinite(prob) ? prob : null };
+        })
+        .filter(Boolean);
+      if (gens.length) {
+        const top = gens[0];
+        const pct = top.p === null ? '' : ' ' + Math.round(Math.max(0, Math.min(1, top.p)) * 100) + '%';
+        factRows.push('<div class="mediaFact"><span>Likely generator</span><b>' +
+          escapeHtml(top.name) + escapeHtml(pct) + '</b></div>');
+      }
     }
     if (Number.isFinite(parseFloat(data.n_frames)) && parseFloat(data.n_frames) > 1) {
       factRows.push('<div class="mediaFact"><span>Frames analysed</span><b>' +
