@@ -797,19 +797,36 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------------- image verification ---------------- */
 
-  /** Backend returns reliability_score on a 0-100 scale; tolerate a 0-1 fraction. */
-  const normalizeMediaScore = (value) => {
-    const n = parseFloat(value);
-    if (!Number.isFinite(n)) return null;
-    const pct = n <= 1 ? n * 100 : n;
-    return Math.max(0, Math.min(100, Math.round(pct)));
+  /**
+   * Reliability percentage from a media result.
+   *
+   * The detector returns reliability_score as an integer 0-100 and reliability as
+   * the same value as a 0-1 float. Read the integer directly — never infer the
+   * scale from magnitude, or a genuine score of 1 (1%, a near-certain fake) would
+   * be read as a fraction and shown as 100%.
+   */
+  const mediaReliabilityPercent = (data) => {
+    const score = parseFloat(data && data.reliability_score);
+    if (Number.isFinite(score)) return Math.max(0, Math.min(100, Math.round(score)));
+    const frac = parseFloat(data && data.reliability);
+    if (Number.isFinite(frac)) return Math.max(0, Math.min(100, Math.round(frac * 100)));
+    return null;
+  };
+
+  /** Band by the verdict text, so the colour always agrees with the words shown. */
+  const verdictClass = (verdict) => {
+    const v = String(verdict || '').toLowerCase();
+    if (v.indexOf('fake') !== -1) return 'isFake';
+    if (v.indexOf('uncertain') !== -1) return 'isUncertain';
+    if (v.indexOf('real') !== -1) return 'isReal';
+    return '';
   };
 
   const renderMediaResult = (data) => {
     const mount = root?.querySelector('#resultMount');
     if (!mount) return;
     if (!data) { mount.innerHTML = ''; return; }
-    const score = normalizeMediaScore(data.reliability_score !== undefined ? data.reliability_score : data.reliability);
+    const score = mediaReliabilityPercent(data);
     const verdict = data.verdict || 'Result';
     const explanation = data.explanation || '';
     const deg = (score === null ? 0 : score) * 3.6;
@@ -821,13 +838,32 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
           '<div class="reliabilityValue">' + score + '%</div>' +
         '</div>' +
       '</div>';
+
+    // Extra signal the detector returns: manipulation probability, and which
+    // generator it thinks produced the image.
+    const pFake = parseFloat(data.p_fake);
+    const factRows = [];
+    if (Number.isFinite(pFake)) {
+      factRows.push('<div class="mediaFact"><span>Chance manipulated</span><b>' +
+        Math.round(Math.max(0, Math.min(1, pFake)) * 100) + '%</b></div>');
+    }
+    const gens = Array.isArray(data.generators) ? data.generators.filter(Boolean) : [];
+    if (gens.length) {
+      factRows.push('<div class="mediaFact"><span>Likely generator</span><b>' +
+        escapeHtml(gens.slice(0, 2).join(', ')) + '</b></div>');
+    }
+    if (Number.isFinite(parseFloat(data.n_frames)) && parseFloat(data.n_frames) > 1) {
+      factRows.push('<div class="mediaFact"><span>Frames analysed</span><b>' +
+        Math.round(parseFloat(data.n_frames)) + '</b></div>');
+    }
+
     mount.innerHTML =
       '<div class="reliabilityCard">' +
         '<div class="reliabilityGrid">' +
           gaugeHtml +
           '<div class="reliabilityCopy">' +
-            '<div class="reliabilityHeadline">' + escapeHtml(verdict) + '</div>' +
-            '<div class="reliabilitySubhead">Image analysis</div>' +
+            '<div class="reliabilityHeadline ' + verdictClass(verdict) + '">' + escapeHtml(verdict) + '</div>' +
+            '<div class="reliabilitySubhead">' + escapeHtml(data.media_type === 'video' ? 'Video analysis' : 'Image analysis') + '</div>' +
             (explanation
               ? '<div class="reliabilitySummaryWrap">' +
                   '<div class="reliabilitySummary">' + escapeHtml(explanation) + '</div>' +
@@ -835,6 +871,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
               : '') +
           '</div>' +
         '</div>' +
+        (factRows.length ? '<div class="mediaFacts">' + factRows.join('') + '</div>' : '') +
       '</div>';
   };
 
@@ -870,20 +907,45 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       const token = await ensureAccessToken();
       const form = new FormData();
       form.append('file', selectedMediaFile);
-      const res = await fetch(API_URL + '/v1/media/verify', {
-        method: 'POST',
-        headers: { Accept: 'application/json', Authorization: 'Bearer ' + token },
-        body: form,
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 150000);
+      let res;
+      try {
+        res = await fetch(API_URL + '/v1/media/verify', {
+          method: 'POST',
+          headers: { Accept: 'application/json', Authorization: 'Bearer ' + token },
+          body: form,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
       if (!res.ok) {
-        if (status) status.textContent = res.status === 413
-          ? 'That image is too large to verify.'
-          : 'Could not verify this image. Please try again.';
+        let detail = '';
+        try {
+          const body = await res.json();
+          if (body && typeof body.detail === 'string') detail = body.detail;
+        } catch (_) {}
+        if (status) {
+          if (res.status === 400) {
+            status.textContent = detail || 'That file type is not supported.';
+          } else if (res.status === 413) {
+            status.textContent = 'That image is too large to verify.';
+          } else if (res.status === 502) {
+            status.textContent = 'The image detector is unavailable right now. Please try again later.';
+          } else {
+            status.textContent = 'Could not verify this image. Please try again.';
+          }
+        }
         return;
       }
       renderMediaResult(await res.json());
-    } catch (_) {
-      if (status) status.textContent = 'Could not verify this image. Please try again.';
+    } catch (err) {
+      if (status) {
+        status.textContent = (err && err.name === 'AbortError')
+          ? 'Verifying took too long. Please try again.'
+          : 'Could not verify this image. Please try again.';
+      }
     } finally {
       setVerifying(false);
     }
