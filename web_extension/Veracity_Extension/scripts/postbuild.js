@@ -203,6 +203,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let inputMode = 'text';
   let selectedMediaFile = null;
   let selectedMediaUrl = '';
+  let lastMediaResult = null;
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -824,6 +825,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
 
   const renderMediaResult = (data) => {
     const mount = root?.querySelector('#resultMount');
+    lastMediaResult = data || null;
     if (!mount) return;
     if (!data) { mount.innerHTML = ''; return; }
     const score = mediaReliabilityPercent(data);
@@ -1128,8 +1130,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     updateVerifyButtonState();
   };
 
-  const setInputMode = (mode) => {
-    inputMode = mode === 'image' ? 'image' : 'text';
+  /** Show the pane for the current mode. View only — keeps whatever is on screen. */
+  const applyInputMode = () => {
     const textWrap = root?.querySelector('#textInputWrap');
     const imageWrap = root?.querySelector('#imageInputWrap');
     if (textWrap) textWrap.classList.toggle('isHidden', inputMode !== 'text');
@@ -1139,6 +1141,15 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       btn.classList.toggle('isActive', on);
       btn.setAttribute('aria-selected', String(on));
     });
+    updateVerifyButtonState();
+  };
+
+  /** User switched mode: swap the pane and clear the previous result. */
+  const setInputMode = (mode) => {
+    const next = mode === 'image' ? 'image' : 'text';
+    if (next === inputMode) return;
+    inputMode = next;
+    applyInputMode();
     const status = root?.querySelector('#authStatusText');
     if (status) status.textContent = '';
     const mount = root?.querySelector('#resultMount');
@@ -1146,6 +1157,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     lastAnalysisResult = null;
     lastFactCheck = null;
     lastVerifiedClaim = '';
+    lastMediaResult = null;
     currentSourceIndex = 0;
     setVerifying(false);
     updateVerifyButtonState();
@@ -1159,7 +1171,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         <div class="Home_card__E5spL" id="tabPanel">
           <div class="inputBar">
             <div class="modeToggle" role="tablist" aria-label="What to verify">
-              <button type="button" role="tab" class="modeBtn isActive" data-mode="text" aria-selected="true">Text</button>
+              <button type="button" role="tab" class="modeBtn" data-mode="text" aria-selected="false">Text</button>
               <button type="button" role="tab" class="modeBtn" data-mode="image" aria-selected="false">Image</button>
             </div>
             <button id="sourcesOpenBtn" class="sourcesOpenBtn" type="button">Sources</button>
@@ -1169,7 +1181,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
             <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
           </div>
 
-          <div id="imageInputWrap" class="isHidden">
+          <div id="imageInputWrap">
             <label id="mediaDrop" class="mediaDrop" for="mediaInput">
               <span class="mediaDropTitle">Drop an image here</span>
               <span class="mediaDropHint">or click to choose a file</span>
@@ -1226,14 +1238,20 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       acceptMediaFile(file);
     });
 
+    // A re-render can be triggered by the panel simply regaining focus — which is
+    // exactly what happens when the OS file picker closes. Restore the mode and the
+    // result that were on screen rather than dropping back to a blank text panel.
+    applyInputMode();
     if (selectedMediaFile) renderMediaPreview();
-    if (lastAnalysisResult) {
+    if (inputMode === 'image') {
+      if (lastMediaResult) renderMediaResult(lastMediaResult);
+    } else if (lastAnalysisResult) {
       lastClaimText = lastAnalysisResult.claim;
       lastVerifiedClaim = lastAnalysisResult.claim;
       if (claimInput) claimInput.value = lastAnalysisResult.claim;
       setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
-      updateVerifyButtonState();
     }
+    updateVerifyButtonState();
 
     const logoutBtn = root.querySelector('#logoutBtn');
     logoutBtn?.addEventListener('click', async () => {
