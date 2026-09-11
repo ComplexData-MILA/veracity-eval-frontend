@@ -84,6 +84,7 @@ if (!fs.existsSync(out)) {
   copyRecursive(path.join(publicDir, "content.js"), path.join(out, "content.js"));
   copyRecursive(path.join(publicDir, "icons"), path.join(out, "icons"));
   copyRecursive(path.join(publicDir, "config.json"), path.join(out, "config.json"));
+  copyRecursive(path.join(publicDir, "sources.json"), path.join(out, "sources.json"));
 }
 
 // Rename out -> dist
@@ -94,6 +95,12 @@ const heroCssSrc = path.join(root, "styles", "webapp-hero.css");
 const heroCssDest = path.join(dist, "webapp-hero.css");
 if (fs.existsSync(heroCssSrc)) {
   fs.copyFileSync(heroCssSrc, heroCssDest);
+}
+
+// Copy the source picker catalog into dist (read at runtime by the panel)
+const sourcesJsonSrc = path.join(root, "public", "sources.json");
+if (fs.existsSync(sourcesJsonSrc)) {
+  fs.copyFileSync(sourcesJsonSrc, path.join(dist, "sources.json"));
 }
 
 // Copy panel stylesheet into dist (plain CSS for panel.js UI)
@@ -191,6 +198,11 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let lastVerifiedClaim = '';
   let lastFactCheck = null;
   let lastAnalysisResult = null;
+  let sourceCatalog = [];
+  let preferredDomains = [];
+  let inputMode = 'text';
+  let selectedMediaFile = null;
+  let selectedMediaUrl = '';
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -244,11 +256,16 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateVerifyButtonState = () => {
-    const claimInput = root?.querySelector('#claimInput');
     const verifyBtn = root?.querySelector('#verifyBtn');
     if (!verifyBtn) return;
+    if (isVerifying) { verifyBtn.disabled = true; return; }
+    if (inputMode === 'image') {
+      verifyBtn.disabled = !selectedMediaFile;
+      return;
+    }
+    const claimInput = root?.querySelector('#claimInput');
     const trimmed = (claimInput?.value || '').trim();
-    verifyBtn.disabled = isVerifying || trimmed.length === 0 || trimmed === lastVerifiedClaim;
+    verifyBtn.disabled = trimmed.length === 0 || trimmed === lastVerifiedClaim;
   };
 
   const escapeHtml = (value) => {
@@ -271,6 +288,77 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {
       return null;
     }
+  };
+
+  /**
+   * Source preferences.
+   *
+   * The catalog ships as public/sources.json; the selection lives in
+   * chrome.storage.local. It is sent with every claim so retrieval can prioritise
+   * those domains, and is used locally to order and mark the evidence shown.
+   * An empty selection means "no preference" and leaves retrieval untouched.
+   */
+  const SOURCE_PREFS_KEY = 'veracity_preferred_domains';
+
+  const loadSourceCatalog = async () => {
+    try {
+      const res = await fetch(chrome.runtime.getURL('sources.json'));
+      const data = await res.json();
+      sourceCatalog = Array.isArray(data && data.categories) ? data.categories : [];
+    } catch (_) {
+      sourceCatalog = [];
+    }
+  };
+
+  const loadPreferredDomains = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([SOURCE_PREFS_KEY], (res) => {
+        const stored = res && res[SOURCE_PREFS_KEY];
+        resolve(Array.isArray(stored) ? stored : []);
+      });
+    } catch (_) {
+      resolve([]);
+    }
+  });
+
+  const savePreferredDomains = (domains) => new Promise((resolve) => {
+    const payload = {};
+    payload[SOURCE_PREFS_KEY] = domains;
+    try {
+      chrome.storage.local.set(payload, () => resolve());
+    } catch (_) {
+      resolve();
+    }
+  });
+
+  /** Host for a source, preferring the backend's domain record over parsing the URL. */
+  const hostFromSource = (source) => {
+    const direct = (source && source.domain && source.domain.domain_name) || (source && source.domain_name);
+    if (direct) return String(direct).toLowerCase().replace(/^www\./, '');
+    const raw = (source && (source.url || source.link)) || '';
+    try {
+      return new URL(raw).hostname.toLowerCase().replace(/^www\./, '');
+    } catch (_) {
+      return '';
+    }
+  };
+
+  const isPreferredSource = (source) => {
+    const host = hostFromSource(source);
+    if (!host || preferredDomains.length === 0) return false;
+    return preferredDomains.some((d) => {
+      const dd = String(d).toLowerCase();
+      return host === dd || host.endsWith('.' + dd);
+    });
+  };
+
+  /** Stable partition: chosen domains first, search order kept within each group. */
+  const prioritizeSources = (sources) => {
+    if (!Array.isArray(sources) || preferredDomains.length === 0) return sources || [];
+    const preferred = [];
+    const rest = [];
+    sources.forEach((x) => { (isPreferredSource(x) ? preferred : rest).push(x); });
+    return preferred.concat(rest);
   };
 
   const getCredibilityPercent = (source, index, mode) => {
@@ -315,8 +403,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     const credibilityHtml = credibility === null
       ? ''
       : '<div class="sourceCredibilityPill">Credibility: ' + credibility + '%</div>';
+    const preferredHtml = isPreferredSource(source)
+      ? '<div class="sourcePreferredPill" title="From a source you chose">Your source</div>'
+      : '';
     const contentHtml =
       '<div class="sourceCard">' +
+        preferredHtml +
         credibilityHtml +
         '<div class="sourceHeading">' + escapeHtml(title) + '</div>' +
         (snippet ? '<div class="sourcesDescription">' + escapeHtml(snippet) + '</div>' : '') +
@@ -382,7 +474,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const sources = extractSources(result);
+    const sources = prioritizeSources(extractSources(result));
     currentSourceIndex = 0;
     const clamped = Math.max(0, Math.min(100, parseFloat(score)));
     const deg = clamped * 3.6;
@@ -586,7 +678,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     }
 
     chrome.runtime.sendMessage(
-      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL },
+      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL, preferredDomains },
       (response) => {
         if (chrome.runtime.lastError) {
           const msg = 'Something went wrong. Please try again.';
@@ -703,29 +795,316 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  /* ---------------- image verification ---------------- */
+
+  /** Backend returns reliability_score on a 0-100 scale; tolerate a 0-1 fraction. */
+  const normalizeMediaScore = (value) => {
+    const n = parseFloat(value);
+    if (!Number.isFinite(n)) return null;
+    const pct = n <= 1 ? n * 100 : n;
+    return Math.max(0, Math.min(100, Math.round(pct)));
+  };
+
+  const renderMediaResult = (data) => {
+    const mount = root?.querySelector('#resultMount');
+    if (!mount) return;
+    if (!data) { mount.innerHTML = ''; return; }
+    const score = normalizeMediaScore(data.reliability_score !== undefined ? data.reliability_score : data.reliability);
+    const verdict = data.verdict || 'Result';
+    const explanation = data.explanation || '';
+    const deg = (score === null ? 0 : score) * 3.6;
+    const gaugeHtml = score === null ? '' :
+      '<div class="reliabilityGauge">' +
+        '<div class="reliabilityGaugeRing" style="--score-value:' + score + '; --score-deg:' + deg + 'deg;"></div>' +
+        '<div class="reliabilityGaugeInner">' +
+          '<div class="reliabilityGaugeLabel">Reliability</div>' +
+          '<div class="reliabilityValue">' + score + '%</div>' +
+        '</div>' +
+      '</div>';
+    mount.innerHTML =
+      '<div class="reliabilityCard">' +
+        '<div class="reliabilityGrid">' +
+          gaugeHtml +
+          '<div class="reliabilityCopy">' +
+            '<div class="reliabilityHeadline">' + escapeHtml(verdict) + '</div>' +
+            '<div class="reliabilitySubhead">Image analysis</div>' +
+            (explanation
+              ? '<div class="reliabilitySummaryWrap">' +
+                  '<div class="reliabilitySummary">' + escapeHtml(explanation) + '</div>' +
+                '</div>'
+              : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  };
+
+  /**
+   * Verify the selected image.
+   *
+   * This one call goes straight from the panel rather than through background.js:
+   * chrome.runtime messaging cannot carry a File, and multipart bodies have to be
+   * built where the file lives. The manifest already allows api.veri-fact.ai in
+   * connect-src and host_permissions.
+   */
+  const startMediaVerification = async () => {
+    if (isVerifying) return;
+    const status = root?.querySelector('#authStatusText');
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    if (!selectedMediaFile) {
+      if (status) status.textContent = 'Choose an image to verify.';
+      return;
+    }
+    setVerifying(true);
+    if (status) status.textContent = '';
+    try {
+      const authed = typeof VeracityAuth !== 'undefined' && await VeracityAuth.isAuthenticated();
+      if (!authed) {
+        if (status) status.textContent = 'Please sign in to verify images.';
+        return;
+      }
+      if (!API_URL) {
+        if (status) status.textContent = 'Something went wrong. Please try again.';
+        return;
+      }
+      const token = await ensureAccessToken();
+      const form = new FormData();
+      form.append('file', selectedMediaFile);
+      const res = await fetch(API_URL + '/v1/media/verify', {
+        method: 'POST',
+        headers: { Accept: 'application/json', Authorization: 'Bearer ' + token },
+        body: form,
+      });
+      if (!res.ok) {
+        if (status) status.textContent = res.status === 413
+          ? 'That image is too large to verify.'
+          : 'Could not verify this image. Please try again.';
+        return;
+      }
+      renderMediaResult(await res.json());
+    } catch (_) {
+      if (status) status.textContent = 'Could not verify this image. Please try again.';
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  /* ---------------- source picker (modal) ---------------- */
+
+  const updateSourcesButton = () => {
+    const btn = root?.querySelector('#sourcesOpenBtn');
+    if (!btn) return;
+    const n = preferredDomains.length;
+    btn.innerHTML = 'Sources' + (n > 0 ? '<span class="sourcesCount">' + n + '</span>' : '');
+    btn.setAttribute('title', n > 0
+      ? ('Prioritising ' + n + ' chosen ' + (n === 1 ? 'source' : 'sources'))
+      : 'Choose sources to prioritise');
+  };
+
+  const closeSourcesModal = () => {
+    const modal = root?.querySelector('#sourcesModal');
+    if (modal) modal.classList.remove('isOpen');
+    document.removeEventListener('keydown', onSourcesKeydown);
+    root?.querySelector('#sourcesOpenBtn')?.focus();
+  };
+
+  function onSourcesKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeSourcesModal();
+    }
+  }
+
+  /**
+   * Source picker, opened as an overlay. Any number of domains may be chosen,
+   * including none — an empty selection means no preference.
+   */
+  const openSourcesModal = () => {
+    const modal = root?.querySelector('#sourcesModal');
+    if (!modal) return;
+    const draft = new Set(preferredDomains);
+
+    const groupsHtml = sourceCatalog.map((cat, ci) => {
+      const items = ((cat && cat.domains) || []).map((d, di) => {
+        const id = 'srcOpt_' + ci + '_' + di;
+        const checked = draft.has(d.domain) ? ' checked' : '';
+        return '' +
+          '<label class="sourceOption" for="' + id + '">' +
+            '<input type="checkbox" id="' + id + '" class="sourceOptionInput" value="' + escapeHtml(d.domain) + '"' + checked + ' />' +
+            '<span class="sourceOptionText">' +
+              '<span class="sourceOptionLabel">' + escapeHtml(d.label || d.domain) + '</span>' +
+              '<span class="sourceOptionDomain">' + escapeHtml(d.domain) + '</span>' +
+            '</span>' +
+          '</label>';
+      }).join('');
+      return '' +
+        '<section class="sourceGroup">' +
+          '<h3 class="sourceGroupTitle">' + escapeHtml(cat.name || 'Sources') + '</h3>' +
+          '<div class="sourceGroupItems">' + items + '</div>' +
+        '</section>';
+    }).join('');
+
+    modal.innerHTML =
+      '<div class="modalScrim" data-close="1"></div>' +
+      '<div class="modalDialog" role="dialog" aria-modal="true" aria-labelledby="sourcesModalTitle">' +
+        '<div class="modalHead">' +
+          '<h2 class="modalTitle" id="sourcesModalTitle">Your sources</h2>' +
+          '<button class="modalClose" type="button" data-close="1" aria-label="Close">&times;</button>' +
+        '</div>' +
+        '<p class="modalIntro">Evidence from the sources you choose is prioritised when verifying, ' +
+          'and marked in your results. Choose as many or as few as you like — with none chosen, ' +
+          'all sources are treated equally.</p>' +
+        (sourceCatalog.length
+          ? '<div class="modalBody">' + groupsHtml + '</div>'
+          : '<p class="modalIntro">Source list unavailable. Rebuild so sources.json is present in dist/.</p>') +
+        '<div class="modalFoot">' +
+          '<button id="sourcesClearBtn" class="modalGhostBtn" type="button">Clear all</button>' +
+          '<span id="sourcesCountText" class="modalCount"></span>' +
+          '<button id="sourcesSaveBtn" class="Home_primaryBtn__nO8b8 verifyButton modalSaveBtn" type="button">Done</button>' +
+        '</div>' +
+      '</div>';
+
+    modal.classList.add('isOpen');
+
+    const countEl = modal.querySelector('#sourcesCountText');
+    const refresh = () => {
+      const n = draft.size;
+      if (countEl) countEl.textContent = n === 0 ? 'None chosen' : (n + ' chosen');
+    };
+    modal.querySelectorAll('.sourceOptionInput').forEach((input) => {
+      input.addEventListener('change', () => {
+        if (input.checked) draft.add(input.value);
+        else draft.delete(input.value);
+        refresh();
+      });
+    });
+    refresh();
+
+    modal.querySelector('#sourcesClearBtn')?.addEventListener('click', () => {
+      draft.clear();
+      modal.querySelectorAll('.sourceOptionInput').forEach((i) => { i.checked = false; });
+      refresh();
+    });
+
+    modal.querySelectorAll('[data-close]').forEach((el) => {
+      el.addEventListener('click', () => { closeSourcesModal(); });
+    });
+
+    modal.querySelector('#sourcesSaveBtn')?.addEventListener('click', async () => {
+      preferredDomains = Array.from(draft);
+      await savePreferredDomains(preferredDomains);
+      updateSourcesButton();
+      closeSourcesModal();
+      if (lastAnalysisResult) {
+        setScore(lastAnalysisResult.score, {
+          summary: lastAnalysisResult.summary,
+          result: lastAnalysisResult.result,
+        });
+      }
+    });
+
+    document.addEventListener('keydown', onSourcesKeydown);
+    modal.querySelector('.sourceOptionInput')?.focus();
+  };
+
+  /* ---------------- input mode (text / image) ---------------- */
+
+  const clearSelectedMedia = () => {
+    if (selectedMediaUrl) {
+      try { URL.revokeObjectURL(selectedMediaUrl); } catch (_) {}
+    }
+    selectedMediaFile = null;
+    selectedMediaUrl = '';
+  };
+
+  const renderMediaPreview = () => {
+    const mount = root?.querySelector('#mediaPreview');
+    if (!mount) return;
+    if (!selectedMediaFile) {
+      mount.innerHTML = '';
+      return;
+    }
+    mount.innerHTML =
+      '<div class="mediaPreviewCard">' +
+        '<img class="mediaPreviewThumb" src="' + escapeHtml(selectedMediaUrl) + '" alt="" />' +
+        '<div class="mediaPreviewMeta">' +
+          '<div class="mediaPreviewName">' + escapeHtml(selectedMediaFile.name) + '</div>' +
+          '<div class="mediaPreviewSize">' + Math.max(1, Math.round(selectedMediaFile.size / 1024)) + ' KB</div>' +
+        '</div>' +
+        '<button id="mediaClearBtn" class="mediaClearBtn" type="button" aria-label="Remove image">&times;</button>' +
+      '</div>';
+    mount.querySelector('#mediaClearBtn')?.addEventListener('click', () => {
+      clearSelectedMedia();
+      renderMediaPreview();
+      updateVerifyButtonState();
+    });
+  };
+
+  const acceptMediaFile = (file) => {
+    const status = root?.querySelector('#authStatusText');
+    if (!file) return;
+    if (!String(file.type || '').startsWith('image/')) {
+      if (status) status.textContent = 'Choose an image file.';
+      return;
+    }
+    if (status) status.textContent = '';
+    clearSelectedMedia();
+    selectedMediaFile = file;
+    try { selectedMediaUrl = URL.createObjectURL(file); } catch (_) { selectedMediaUrl = ''; }
+    renderMediaPreview();
+    updateVerifyButtonState();
+  };
+
+  const setInputMode = (mode) => {
+    inputMode = mode === 'image' ? 'image' : 'text';
+    const textWrap = root?.querySelector('#textInputWrap');
+    const imageWrap = root?.querySelector('#imageInputWrap');
+    if (textWrap) textWrap.classList.toggle('isHidden', inputMode !== 'text');
+    if (imageWrap) imageWrap.classList.toggle('isHidden', inputMode !== 'image');
+    root?.querySelectorAll('[data-mode]').forEach((btn) => {
+      const on = btn.getAttribute('data-mode') === inputMode;
+      btn.classList.toggle('isActive', on);
+      btn.setAttribute('aria-selected', String(on));
+    });
+    const status = root?.querySelector('#authStatusText');
+    if (status) status.textContent = '';
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    lastAnalysisResult = null;
+    lastFactCheck = null;
+    lastVerifiedClaim = '';
+    currentSourceIndex = 0;
+    setVerifying(false);
+    updateVerifyButtonState();
+  };
+
   const renderAppScreen = async () => {
     if (!root) return;
     root.innerHTML = '';
     root.innerHTML = \`
       <div class="Home_panel__UGulu">
-        <div class="Home_tabList__81_8M">
-          <div class="Home_tabButton__yY1n3 Home_tabButtonActive__zVobV">
-            <span class="Home_tabLabel__IC30v">AI Fact Verification</span>
+        <div class="Home_card__E5spL" id="tabPanel">
+          <div class="inputBar">
+            <div class="modeToggle" role="tablist" aria-label="What to verify">
+              <button type="button" role="tab" class="modeBtn isActive" data-mode="text" aria-selected="true">Text</button>
+              <button type="button" role="tab" class="modeBtn" data-mode="image" aria-selected="false">Image</button>
+            </div>
+            <button id="sourcesOpenBtn" class="sourcesOpenBtn" type="button">Sources</button>
           </div>
-        </div>
-        <div class="Home_card__E5spL" id="tabPanel"></div>
-        <footer class="Home_footer__yFiaX">
-          © ComplexData Lab · McGill · Mila
-          <button id="logoutBtn" class="forgotLink logout-link" type="button" style="margin-left:8px;">Logout</button>
-        </footer>
-      </div>
-    \`;
 
-    const panelEl = root.querySelector('#tabPanel');
-    if (panelEl) {
-      panelEl.innerHTML = \`
-        <div id="aiTabPanel">
-          <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
+          <div id="textInputWrap">
+            <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
+          </div>
+
+          <div id="imageInputWrap" class="isHidden">
+            <label id="mediaDrop" class="mediaDrop" for="mediaInput">
+              <span class="mediaDropTitle">Drop an image here</span>
+              <span class="mediaDropHint">or click to choose a file</span>
+              <input id="mediaInput" class="mediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+            </label>
+            <div id="mediaPreview"></div>
+          </div>
+
           <div class="Home_buttonRow__Cnhie">
             <button id="verifyBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Verify</button>
           </div>
@@ -733,23 +1112,54 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
           <div id="authStatusText" class="inlineInfo"></div>
           <div id="resultMount"></div>
         </div>
-      \`;
-      setVerifying(false);
-      const verifyBtn = panelEl.querySelector('#verifyBtn');
-      const claimInput = panelEl.querySelector('#claimInput');
+        <footer class="Home_footer__yFiaX">
+          © ComplexData Lab · McGill · Mila
+          <button id="logoutBtn" class="forgotLink logout-link" type="button" style="margin-left:8px;">Logout</button>
+        </footer>
+      </div>
+      <div id="sourcesModal" class="modalRoot"></div>
+    \`;
+
+    const panelEl = root.querySelector('#tabPanel');
+    setVerifying(false);
+    updateSourcesButton();
+
+    const verifyBtn = panelEl.querySelector('#verifyBtn');
+    const claimInput = panelEl.querySelector('#claimInput');
+    updateVerifyButtonState();
+    claimInput?.addEventListener('input', updateVerifyButtonState);
+    claimInput?.addEventListener('change', updateVerifyButtonState);
+    verifyBtn?.addEventListener('click', async () => {
+      if (inputMode === 'image') await startMediaVerification();
+      else await startVerification();
+    });
+
+    root.querySelector('#sourcesOpenBtn')?.addEventListener('click', () => { openSourcesModal(); });
+    panelEl.querySelectorAll('[data-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => { setInputMode(btn.getAttribute('data-mode')); });
+    });
+
+    const mediaInput = panelEl.querySelector('#mediaInput');
+    mediaInput?.addEventListener('change', () => { acceptMediaFile(mediaInput.files && mediaInput.files[0]); });
+    const drop = panelEl.querySelector('#mediaDrop');
+    ['dragenter', 'dragover'].forEach((evt) => {
+      drop?.addEventListener(evt, (e) => { e.preventDefault(); drop.classList.add('isDragging'); });
+    });
+    ['dragleave', 'drop'].forEach((evt) => {
+      drop?.addEventListener(evt, (e) => { e.preventDefault(); drop.classList.remove('isDragging'); });
+    });
+    drop?.addEventListener('drop', (e) => {
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      acceptMediaFile(file);
+    });
+
+    if (selectedMediaFile) renderMediaPreview();
+    if (lastAnalysisResult) {
+      lastClaimText = lastAnalysisResult.claim;
+      lastVerifiedClaim = lastAnalysisResult.claim;
+      if (claimInput) claimInput.value = lastAnalysisResult.claim;
+      setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
       updateVerifyButtonState();
-      claimInput?.addEventListener('input', updateVerifyButtonState);
-      claimInput?.addEventListener('change', updateVerifyButtonState);
-      verifyBtn?.addEventListener('click', async () => {
-        await startVerification();
-      });
-      if (lastAnalysisResult) {
-        lastClaimText = lastAnalysisResult.claim;
-        lastVerifiedClaim = lastAnalysisResult.claim;
-        if (claimInput) claimInput.value = lastAnalysisResult.claim;
-        setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
-        updateVerifyButtonState();
-      }
     }
 
     const logoutBtn = root.querySelector('#logoutBtn');
@@ -780,6 +1190,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     await syncAuthUI();
+    if (inputMode !== 'text') setInputMode('text');
     const claimInput = root?.querySelector('#claimInput');
     if (claimInput) claimInput.value = text;
     await startVerification(text);
@@ -797,6 +1208,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     API_URL = cfg.API_URL || '';
     AUTH0_CLIENT_ID = cfg.AUTH0_CLIENT_ID || '';
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
+    await loadSourceCatalog();
+    preferredDomains = await loadPreferredDomains();
   };
 
   const init = async () => {

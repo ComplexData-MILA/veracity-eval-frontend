@@ -8,11 +8,53 @@ paste or highlight a claim, get a reliability score, an explanation and sources.
 > `VeracityExtension/` is a separate, much simpler popup that just redirects a query to the
 > Veracity website. They are unrelated; this README covers only `Veracity_Extension/`.
 
-## Two ways to verify a claim
+## Verifying text
 
 1. **Type it** — open the side panel, paste a claim into the box, click **Verify**.
 2. **Highlight it** — select text on any page, right-click → **Send to Veracity**. The side
    panel opens, prefills the selection and starts verifying automatically.
+
+## Verifying an image
+
+Switch the input to **Image**, then drop a file on the panel or click to choose one. JPEG,
+PNG, WebP and GIF are accepted. The result gives a reliability score, a verdict and an
+explanation.
+
+The image is posted as `multipart/form-data` to `POST /v1/media/verify` **directly from the
+panel**, not through the background service worker — `chrome.runtime` messaging cannot carry
+a `File`, and the multipart body has to be built where the file lives. `api.veri-fact.ai` is
+already in the manifest's `connect-src` and `host_permissions`, so no manifest change is
+needed. Nothing is uploaded until Verify is pressed, and the file is never stored locally.
+
+The backend endpoint also accepts video; the picker is restricted to images. Widen the
+`accept` attribute and the type check in `acceptMediaFile` if you want video too.
+
+## Choosing your sources
+
+The **Sources** button opens a pop-up listing candidate domains grouped by subject area.
+Choose as many or as few as you like — **there is no minimum**, and choosing none means no
+preference, leaving retrieval untouched. The selection persists in `chrome.storage.local`,
+and the button carries a count badge. Close with **Done**, the ✕, Escape, or by clicking the
+backdrop; **Clear all** resets to no preference.
+
+The selection does two things:
+
+- Evidence from your chosen domains is **sorted to the top of the result and marked
+  "Your source"**.
+- The selection is **sent to the backend** as `preferred_domains` on `POST /v1/claims/`, so
+  retrieval can prioritise those domains.
+
+The claims schema does not accept `preferred_domains` yet, so `background.js` retries without
+the field on a 400/422. Until the backend honours it, the choice affects the ordering and
+labelling of displayed evidence, not the veracity score.
+
+No credibility ratings are shown against domains — this build presents the source list as a
+plain choice.
+
+### Editing the source set
+
+`public/sources.json` holds the catalog. Add or remove categories and domains there and
+rebuild — no code changes needed.
 
 
 
@@ -36,6 +78,7 @@ Veracity_Extension/
 │   ├── content.js            # Injected script: selection → REQUEST_SELECTION
 │   ├── panel.css             # Panel UI styles (verify button, results, discussion)
 │   ├── config.json           # API_URL, AUTH0_CLIENT_ID (runtime config)
+│   ├── sources.json          # Source picker catalog (subject-area groups, domains)
 │   └── icons/
 │       └── icon128.png
 │
