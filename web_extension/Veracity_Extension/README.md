@@ -16,8 +16,15 @@ paste or highlight a claim, get a reliability score, an explanation and sources.
 
 ## Verifying an image
 
-Switch the input to **Image**, then drop a file on the panel or click to choose one. JPEG,
-PNG, WebP and GIF are accepted. The result gives a reliability score, a verdict and an
+Two ways:
+
+1. **Right-click an image on any page** → **Verify image with Veracity**. The side panel
+   opens, loads that image and starts verifying — the counterpart to *Send to Veracity* for
+   text, and the reason you do not have to save a picture just to check it.
+2. **Upload it** — switch the input to **Image**, then drop a file on the panel or click to
+   choose one.
+
+JPEG, PNG, WebP and GIF are accepted. The result gives a reliability score, a verdict and an
 explanation. When a file is judged uncertain or fake, the most likely generator is shown too;
 that ranking is conditional on the media being fake, so it is hidden on a file judged real,
 where the top entry is noise.
@@ -28,8 +35,17 @@ a `File`, and the multipart body has to be built where the file lives. `api.veri
 already in the manifest's `connect-src` and `host_permissions`, so no manifest change is
 needed. Nothing is uploaded until Verify is pressed, and the file is never stored locally.
 
-The backend endpoint also accepts video; the picker is restricted to images. Widen the
-`accept` attribute and the type check in `acceptMediaFile` if you want video too.
+The backend endpoint also accepts video, but the extension stays with images on purpose: a
+video would have to be downloaded and re-uploaded, which is exactly the round trip the
+right-click flow exists to avoid.
+
+A right-clicked image is fetched by **background.js**, not the panel. The service worker holds
+the host permissions that let it read an image from any origin without CORS, so the manifest
+declares `<all_urls>` and a `connect-src` wide enough to reach it. The extension already ran
+content scripts on all URLs, so the install prompt is unchanged. The bytes are handed to the
+panel as base64 and parked until collected, because a context-menu click often lands before
+the panel has finished booting. Images above 8 MB, and formats the detector does not accept,
+are refused in the background with a message shown in the panel.
 
 ## Recent checks
 

@@ -9,8 +9,20 @@
   "action": {
     "default_title": "Veracity"
   },
-  "permissions": ["sidePanel", "activeTab", "storage", "contextMenus", "tabs", "identity"],
-  "host_permissions": ["https://www.veri-fact.ai/*", "https://api.veri-fact.ai/*", "https://veri-fact.ca.auth0.com/*"],
+  "permissions": [
+    "sidePanel",
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "tabs",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://www.veri-fact.ai/*",
+    "https://api.veri-fact.ai/*",
+    "https://veri-fact.ca.auth0.com/*",
+    "<all_urls>"
+  ],
   "side_panel": {
     "default_path": "index.html"
   },
@@ -19,20 +31,33 @@
     "type": "module"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://www.veri-fact.ai https://api.veri-fact.ai https://veri-fact.ca.auth0.com;"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https: http: data: blob:;"
   },
   "content_scripts": [
     {
-      "matches": ["https://*/*", "http://*/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["next/**", "icons/*", "panel.js", "index.html", "content.js", "background.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "next/**",
+        "icons/*",
+        "panel.js",
+        "index.html",
+        "content.js",
+        "background.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }
-

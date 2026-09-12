@@ -1,7 +1,10 @@
 /**
  * background.js — Extension service worker
  *
- * Handles: (1) Context menu "Send to Veracity" and action click → open side panel.
+ * Handles: (1) Context menus — "Send to Veracity" for selected text and "Verify
+ * image with Veracity" for images, plus action click → open side panel. Images are
+ * fetched here, where host permissions allow reading any origin, and parked for the
+ * panel to collect.
  * (2) Message router: VERIFY_CLAIM (run verification flow, carrying the user's
  * chosen domains) and GET_ME. Image verification posts multipart directly from the
  * panel, since messaging cannot carry a File. Panel and
@@ -14,6 +17,11 @@ chrome.runtime.onInstalled.addListener(() => {
       id: "veracitySendSelection",
       title: "Send to Veracity",
       contexts: ["selection"],
+    });
+    chrome.contextMenus.create({
+      id: "veracityVerifyImage",
+      title: "Verify image with Veracity",
+      contexts: ["image"],
     });
   } catch (err) {
     console.error("Veracity: context menu creation failed", err);
@@ -30,18 +38,104 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 // Context menu: open panel and broadcast selection so panel can prefill and start verify.
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== "veracitySendSelection" || !info.selectionText) return;
   const tabId = tab?.id;
-  if (chrome.sidePanel?.open && tabId) {
-    chrome.sidePanel.open({ tabId }).catch((e) => console.error("Veracity: side panel open failed", e));
+  const openPanel = () => {
+    if (chrome.sidePanel?.open && tabId) {
+      chrome.sidePanel.open({ tabId }).catch((e) => console.error("Veracity: side panel open failed", e));
+    }
+  };
+
+  if (info.menuItemId === "veracitySendSelection" && info.selectionText) {
+    openPanel();
+    chrome.runtime.sendMessage({
+      type: "SELECTION_TO_VERIFY",
+      text: info.selectionText,
+      pageUrl: info.pageUrl || "",
+      pageTitle: tab?.title || "",
+    });
+    return;
   }
-  chrome.runtime.sendMessage({
-    type: "SELECTION_TO_VERIFY",
-    text: info.selectionText,
-    pageUrl: info.pageUrl || "",
-    pageTitle: tab?.title || "",
-  });
+
+  if (info.menuItemId === "veracityVerifyImage" && info.srcUrl) {
+    openPanel();
+    handleImageContextClick(info.srcUrl);
+  }
 });
+
+// An image the panel has not collected yet. The panel may still be booting when a
+// context-menu click arrives, so the payload is parked here and the panel asks for
+// it on load; whichever path wins, the image is delivered exactly once.
+let pendingImage = null;
+
+const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+function fileNameFromUrl(url, mimeType) {
+  let base = "image";
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split("/").filter(Boolean).pop();
+    if (last) base = decodeURIComponent(last).split("?")[0];
+  } catch (_) {}
+  if (/\.[a-z0-9]{2,5}$/i.test(base)) return base;
+  const ext = (mimeType || "").split("/")[1] || "jpg";
+  return base + "." + (ext === "jpeg" ? "jpg" : ext);
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Fetch the right-clicked image and hand it to the panel.
+ *
+ * The fetch runs here rather than in the panel: the service worker holds the host
+ * permissions that let it read an image from any origin without CORS, while the
+ * panel's own CSP stays narrow.
+ */
+async function handleImageContextClick(srcUrl) {
+  const deliver = (payload) => {
+    pendingImage = payload;
+    chrome.runtime.sendMessage({ type: "IMAGE_TO_VERIFY" }, () => {
+      // No receiver yet just means the panel is still booting; it will ask for this.
+      void chrome.runtime.lastError;
+    });
+  };
+
+  try {
+    const res = await fetch(srcUrl);
+    if (!res.ok) {
+      deliver({ error: "Could not download that image from the page." });
+      return;
+    }
+    const blob = await res.blob();
+    const type = (blob.type || "").toLowerCase().split(";")[0];
+    if (!IMAGE_TYPES.has(type)) {
+      deliver({ error: type
+        ? ("Veracity cannot verify " + type + " images.")
+        : "That image is in a format Veracity cannot verify." });
+      return;
+    }
+    if (blob.size > IMAGE_MAX_BYTES) {
+      deliver({ error: "That image is too large to verify (limit 8 MB)." });
+      return;
+    }
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    deliver({
+      base64: bytesToBase64(bytes),
+      type,
+      name: fileNameFromUrl(srcUrl, type),
+      size: blob.size,
+    });
+  } catch (err) {
+    deliver({ error: "Could not download that image from the page." });
+  }
+}
 
 async function runVerification(apiUrl, accessToken, claimText, preferredDomains) {
   const headers = {
@@ -168,6 +262,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     runVerification(apiUrl, accessToken, claimText.trim(), preferredDomains)
       .then((data) => sendResponse({ success: true, ...data }))
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
+    return true;
+  }
+  // Panel collects a right-clicked image; the slot is cleared as it is handed over.
+  if (message?.type === "TAKE_PENDING_IMAGE") {
+    const payload = pendingImage;
+    pendingImage = null;
+    sendResponse({ success: true, image: payload });
     return true;
   }
   if (message?.type === "GET_ME") {

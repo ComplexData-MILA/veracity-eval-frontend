@@ -1522,6 +1522,67 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
    * - Prefills the claim textarea with the selected text
    * - Delegates to startVerification(text) so lifecycle matches a manual click
    */
+  /**
+   * Collect an image the user right-clicked and verify it.
+   *
+   * background.js has already fetched the bytes and parked them, so this asks for
+   * the payload rather than receiving it: a context-menu click can land while the
+   * panel is still booting, and the message would otherwise be lost.
+   */
+  const collectPendingImage = async () => {
+    let res;
+    try {
+      res = await sendBackgroundMessage({ type: 'TAKE_PENDING_IMAGE' });
+    } catch (_) {
+      return;
+    }
+    const image = res && res.success && res.image;
+    if (!image) return;
+
+    if (inputMode !== 'image') {
+      inputMode = 'image';
+      applyInputMode();
+      const mount = root?.querySelector('#resultMount');
+      if (mount) mount.innerHTML = '';
+      lastAnalysisResult = null;
+      lastMediaResult = null;
+    }
+
+    const status = root?.querySelector('#authStatusText');
+    if (image.error) {
+      clearSelectedMedia();
+      renderMediaPreview();
+      updateVerifyButtonState();
+      if (status) status.textContent = image.error;
+      return;
+    }
+
+    let file;
+    try {
+      const binary = atob(image.base64 || '');
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      file = new File([bytes], image.name || 'image.png', { type: image.type || 'image/png' });
+    } catch (_) {
+      if (status) status.textContent = 'Could not read that image. Please try again.';
+      return;
+    }
+
+    clearSelectedMedia();
+    selectedMediaFile = file;
+    try { selectedMediaUrl = URL.createObjectURL(file); } catch (_) { selectedMediaUrl = ''; }
+    if (status) status.textContent = '';
+    renderMediaPreview();
+    updateVerifyButtonState();
+
+    const authed = typeof VeracityAuth !== 'undefined' && await VeracityAuth.isAuthenticated();
+    if (!authed) {
+      await syncAuthUI();
+      return;
+    }
+    await startMediaVerification();
+  };
+
   const handleSelectionToVerify = async (payload) => {
     const text = (payload?.text || '').trim();
     if (!text) return;
@@ -1540,6 +1601,9 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg?.type === 'SELECTION_TO_VERIFY') {
       handleSelectionToVerify(msg);
+    }
+    if (msg?.type === 'IMAGE_TO_VERIFY') {
+      collectPendingImage();
     }
   });
 
@@ -1560,6 +1624,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     try {
       await loadConfig();
       await syncAuthUI();
+      await collectPendingImage();
     } catch (err) {
       setInlineMessage(normalizeError(err));
       await syncAuthUI();
