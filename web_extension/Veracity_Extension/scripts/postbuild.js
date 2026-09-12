@@ -204,6 +204,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let selectedMediaFile = null;
   let selectedMediaUrl = '';
   let lastMediaResult = null;
+  let history = [];
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -702,6 +703,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         const analysis_id = response.analysis_id ?? null;
         setScore(score, { summary, result, claim_id, analysis_id });
         lastAnalysisResult = { claim: claimText, score, summary, result, claim_id, analysis_id };
+        pushHistory({ kind: 'text', label: claimText, score, payload: lastAnalysisResult });
         finalizeVerification();
       }
     );
@@ -794,6 +796,75 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         await startWebAuthFlow();
       } catch {}
     });
+  };
+
+  const truncateClaim = (text) => {
+    const str = String(text || '').replace(/\\s+/g, ' ').trim();
+    return str.length <= 84 ? str : str.slice(0, 84).trim() + '\u2026';
+  };
+
+  /** Same thresholds the result card uses, for the history badge. */
+  const scoreBandClass = (score) => {
+    const n = parseFloat(score);
+    if (!Number.isFinite(n)) return '';
+    if (n >= 85) return 'isReal';
+    if (n >= 60) return '';
+    if (n >= 40) return 'isUncertain';
+    return 'isFake';
+  };
+
+  /* ---------------- history ---------------- */
+
+  /**
+   * Recent checks, kept in chrome.storage.local.
+   *
+   * In-memory results only survive while the panel is open; closing the side panel
+   * unloads the page and loses them. Persisting here means a check is still there
+   * tomorrow, and lets the user page back through earlier ones.
+   */
+  const HISTORY_KEY = 'veracity_history';
+  const HISTORY_MAX = 25;
+
+  const loadHistory = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([HISTORY_KEY], (res) => {
+        const stored = res && res[HISTORY_KEY];
+        resolve(Array.isArray(stored) ? stored : []);
+      });
+    } catch (_) {
+      resolve([]);
+    }
+  });
+
+  const saveHistory = () => {
+    const payload = {};
+    payload[HISTORY_KEY] = history.slice(0, HISTORY_MAX);
+    try {
+      chrome.storage.local.set(payload, () => {});
+    } catch (_) {}
+  };
+
+  const pushHistory = (entry) => {
+    if (!entry) return;
+    const withMeta = Object.assign({ id: String(Date.now()) + '_' + Math.random().toString(36).slice(2, 7), ts: Date.now() }, entry);
+    history.unshift(withMeta);
+    if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+    saveHistory();
+    updateHistoryButton();
+  };
+
+  const relativeTime = (ts) => {
+    const diff = Date.now() - (Number(ts) || 0);
+    if (!Number.isFinite(diff) || diff < 0) return '';
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return min + 'm ago';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    const day = Math.floor(hr / 24);
+    if (day < 7) return day + 'd ago';
+    const d = new Date(Number(ts));
+    return (d.getMonth() + 1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(2);
   };
 
   /* ---------------- image verification ---------------- */
@@ -952,7 +1023,15 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         }
         return;
       }
-      renderMediaResult(await res.json());
+      const mediaData = await res.json();
+      renderMediaResult(mediaData);
+      pushHistory({
+        kind: 'image',
+        label: selectedMediaFile.name,
+        score: mediaReliabilityPercent(mediaData),
+        verdict: mediaData && mediaData.verdict,
+        payload: mediaData,
+      });
     } catch (err) {
       if (status) {
         status.textContent = (err && err.name === 'AbortError')
@@ -1082,6 +1161,144 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     modal.querySelector('.sourceOptionInput')?.focus();
   };
 
+  const WEB_APP_CHAT_URL = 'https://www.veri-fact.ai/chat/';
+
+  /**
+   * Footer link out to the full web app. The original popup extension opened
+   * /chat/?q=<claim>, so carry the claim across and land the user mid-task.
+   */
+  const updateWebAppLink = () => {
+    const link = root?.querySelector('#webAppLink');
+    if (!link) return;
+    const claim = (root?.querySelector('#claimInput')?.value || lastClaimText || '').trim();
+    link.setAttribute('href', claim
+      ? WEB_APP_CHAT_URL + '?q=' + encodeURIComponent(claim)
+      : WEB_APP_CHAT_URL);
+    link.setAttribute('title', claim
+      ? 'Open this claim in the Veracity web app'
+      : 'Open the Veracity web app');
+  };
+
+  const updateHistoryButton = () => {
+    const btn = root?.querySelector('#historyOpenBtn');
+    if (!btn) return;
+    btn.disabled = history.length === 0;
+    btn.setAttribute('title', history.length === 0
+      ? 'No recent checks yet'
+      : (history.length + ' recent ' + (history.length === 1 ? 'check' : 'checks')));
+  };
+
+  /** Put a stored check back on screen, switching mode to match it. */
+  const restoreHistoryEntry = (entry) => {
+    if (!entry || !entry.payload) return;
+    const panelEl = root?.querySelector('#tabPanel');
+    if (entry.kind === 'image') {
+      inputMode = 'image';
+      applyInputMode();
+      lastMediaResult = entry.payload;
+      lastAnalysisResult = null;
+      renderMediaResult(entry.payload);
+    } else {
+      inputMode = 'text';
+      applyInputMode();
+      lastMediaResult = null;
+      lastAnalysisResult = entry.payload;
+      lastClaimText = entry.payload.claim || '';
+      lastVerifiedClaim = lastClaimText;
+      currentSourceIndex = 0;
+      const claimInput = panelEl?.querySelector('#claimInput');
+      if (claimInput) claimInput.value = lastClaimText;
+      setScore(entry.payload.score, {
+        summary: entry.payload.summary,
+        result: entry.payload.result,
+      });
+      updateWebAppLink();
+    }
+    const status = root?.querySelector('#authStatusText');
+    if (status) status.textContent = '';
+    updateVerifyButtonState();
+  };
+
+  const closeHistoryModal = () => {
+    const modal = root?.querySelector('#historyModal');
+    if (modal) modal.classList.remove('isOpen');
+    document.removeEventListener('keydown', onHistoryKeydown);
+    root?.querySelector('#historyOpenBtn')?.focus();
+  };
+
+  function onHistoryKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeHistoryModal();
+    }
+  }
+
+  const openHistoryModal = () => {
+    const modal = root?.querySelector('#historyModal');
+    if (!modal) return;
+
+    const rowsHtml = history.map((entry) => {
+      const label = entry.kind === 'image'
+        ? (entry.label || 'Image')
+        : truncateClaim(entry.label || '');
+      const badge = entry.kind === 'image'
+        ? escapeHtml(entry.verdict || 'Image')
+        : (Number.isFinite(parseFloat(entry.score)) ? Math.round(parseFloat(entry.score)) + '%' : '');
+      const band = entry.kind === 'image'
+        ? verdictClass(entry.verdict)
+        : scoreBandClass(entry.score);
+      return '' +
+        '<button class="historyItem" type="button" data-entry-id="' + escapeHtml(entry.id) + '">' +
+          '<span class="historyKind ' + (entry.kind === 'image' ? 'isImage' : 'isText') + '">' +
+            (entry.kind === 'image' ? 'Image' : 'Text') +
+          '</span>' +
+          '<span class="historyBody">' +
+            '<span class="historyLabel">' + escapeHtml(label) + '</span>' +
+            '<span class="historyTime">' + escapeHtml(relativeTime(entry.ts)) + '</span>' +
+          '</span>' +
+          (badge ? '<span class="historyScore ' + band + '">' + badge + '</span>' : '') +
+        '</button>';
+    }).join('');
+
+    modal.innerHTML =
+      '<div class="modalScrim" data-close="1"></div>' +
+      '<div class="modalDialog" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">' +
+        '<div class="modalHead">' +
+          '<h2 class="modalTitle" id="historyModalTitle">Recent checks</h2>' +
+          '<button class="modalClose" type="button" data-close="1" aria-label="Close">&times;</button>' +
+        '</div>' +
+        (history.length
+          ? '<div class="modalBody"><div class="historyList">' + rowsHtml + '</div></div>'
+          : '<p class="modalIntro">Nothing checked yet. Results you get will be listed here.</p>') +
+        '<div class="modalFoot">' +
+          '<button id="historyClearBtn" class="modalGhostBtn" type="button"' + (history.length ? '' : ' disabled') + '>Clear history</button>' +
+          '<span class="modalCount">' + (history.length ? history.length + ' saved' : '') + '</span>' +
+          '<button id="historyDoneBtn" class="Home_primaryBtn__nO8b8 verifyButton modalSaveBtn" type="button">Done</button>' +
+        '</div>' +
+      '</div>';
+
+    modal.classList.add('isOpen');
+
+    modal.querySelectorAll('[data-entry-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const entry = history.find((h) => String(h.id) === btn.getAttribute('data-entry-id'));
+        closeHistoryModal();
+        restoreHistoryEntry(entry);
+      });
+    });
+    modal.querySelector('#historyClearBtn')?.addEventListener('click', () => {
+      history = [];
+      saveHistory();
+      updateHistoryButton();
+      closeHistoryModal();
+    });
+    modal.querySelectorAll('[data-close]').forEach((el) => {
+      el.addEventListener('click', () => { closeHistoryModal(); });
+    });
+    modal.querySelector('#historyDoneBtn')?.addEventListener('click', () => { closeHistoryModal(); });
+    document.addEventListener('keydown', onHistoryKeydown);
+  };
+
   /* ---------------- input mode (text / image) ---------------- */
 
   const clearSelectedMedia = () => {
@@ -1174,7 +1391,15 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
               <button type="button" role="tab" class="modeBtn" data-mode="text" aria-selected="false">Text</button>
               <button type="button" role="tab" class="modeBtn" data-mode="image" aria-selected="false">Image</button>
             </div>
-            <button id="sourcesOpenBtn" class="sourcesOpenBtn" type="button">Sources</button>
+            <div class="barActions">
+              <button id="historyOpenBtn" class="iconBtn" type="button" aria-label="Recent checks" title="Recent checks">
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                  <circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  <path d="M10 5.6V10l2.9 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button id="sourcesOpenBtn" class="sourcesOpenBtn" type="button">Sources</button>
+            </div>
           </div>
 
           <div id="textInputWrap">
@@ -1198,11 +1423,15 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
           <div id="resultMount"></div>
         </div>
         <footer class="Home_footer__yFiaX">
-          © ComplexData Lab · McGill · Mila
-          <button id="logoutBtn" class="forgotLink logout-link" type="button" style="margin-left:8px;">Logout</button>
+          <div class="footerLinks">
+            <a id="webAppLink" class="footerLink" href="https://www.veri-fact.ai/chat/" target="_blank" rel="noreferrer noopener">Open in Veracity</a>
+            <button id="logoutBtn" class="forgotLink logout-link" type="button">Logout</button>
+          </div>
+          <div class="footerCredit">© ComplexData Lab · McGill · Mila</div>
         </footer>
       </div>
       <div id="sourcesModal" class="modalRoot"></div>
+      <div id="historyModal" class="modalRoot"></div>
     \`;
 
     const panelEl = root.querySelector('#tabPanel');
@@ -1220,6 +1449,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
 
     root.querySelector('#sourcesOpenBtn')?.addEventListener('click', () => { openSourcesModal(); });
+    root.querySelector('#historyOpenBtn')?.addEventListener('click', () => { openHistoryModal(); });
+    updateHistoryButton();
+    updateWebAppLink();
+    claimInput?.addEventListener('input', updateWebAppLink);
     panelEl.querySelectorAll('[data-mode]').forEach((btn) => {
       btn.addEventListener('click', () => { setInputMode(btn.getAttribute('data-mode')); });
     });
@@ -1301,6 +1534,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
     await loadSourceCatalog();
     preferredDomains = await loadPreferredDomains();
+    history = await loadHistory();
   };
 
   const init = async () => {

@@ -31,6 +31,18 @@ needed. Nothing is uploaded until Verify is pressed, and the file is never store
 The backend endpoint also accepts video; the picker is restricted to images. Widen the
 `accept` attribute and the type check in `acceptMediaFile` if you want video too.
 
+## Recent checks
+
+The clock button keeps the last 25 checks, text and image alike, in `chrome.storage.local`.
+Because the side panel unloads when it is closed, in-memory results do not survive; history
+does, so a result is still there after closing the panel or restarting the browser. Clicking
+an entry restores its mode, its claim and its result. **Clear history** empties the store.
+
+## Open in Veracity
+
+The footer links to the web app, carrying the current claim as `/chat/?q=<claim>` — the same
+hand-off the original popup extension made. With the box empty it opens the chat page plainly.
+
 ## Choosing your sources
 
 The **Sources** button opens a pop-up listing candidate domains grouped by subject area.
