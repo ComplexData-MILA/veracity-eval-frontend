@@ -204,7 +204,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let selectedMediaFile = null;
   let selectedMediaUrl = '';
   let lastMediaResult = null;
-  let history = [];
+  let recentChecks = [];
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -813,7 +813,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     return 'isFake';
   };
 
-  /* ---------------- history ---------------- */
+  /* ---------------- recent checks ---------------- */
 
   /**
    * Recent checks, kept in chrome.storage.local.
@@ -838,7 +838,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
 
   const saveHistory = () => {
     const payload = {};
-    payload[HISTORY_KEY] = history.slice(0, HISTORY_MAX);
+    payload[HISTORY_KEY] = recentChecks.slice(0, HISTORY_MAX);
     try {
       chrome.storage.local.set(payload, () => {});
     } catch (_) {}
@@ -847,8 +847,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   const pushHistory = (entry) => {
     if (!entry) return;
     const withMeta = Object.assign({ id: String(Date.now()) + '_' + Math.random().toString(36).slice(2, 7), ts: Date.now() }, entry);
-    history.unshift(withMeta);
-    if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+    recentChecks.unshift(withMeta);
+    if (recentChecks.length > HISTORY_MAX) recentChecks.length = HISTORY_MAX;
     saveHistory();
     updateHistoryButton();
   };
@@ -1030,7 +1030,19 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
         label: selectedMediaFile.name,
         score: mediaReliabilityPercent(mediaData),
         verdict: mediaData && mediaData.verdict,
-        payload: mediaData,
+        // Store only what the card renders. The response also carries frames and
+        // mask straight from the detector, which can be large and are never shown;
+        // keeping them would burn the extension's storage quota for nothing.
+        payload: {
+          media_type: mediaData.media_type,
+          reliability_score: mediaData.reliability_score,
+          reliability: mediaData.reliability,
+          p_fake: mediaData.p_fake,
+          verdict: mediaData.verdict,
+          explanation: mediaData.explanation,
+          generators: Array.isArray(mediaData.generators) ? mediaData.generators.slice(0, 3) : [],
+          n_frames: mediaData.n_frames,
+        },
       });
     } catch (err) {
       if (status) {
@@ -1182,10 +1194,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   const updateHistoryButton = () => {
     const btn = root?.querySelector('#historyOpenBtn');
     if (!btn) return;
-    btn.disabled = history.length === 0;
-    btn.setAttribute('title', history.length === 0
+    btn.disabled = recentChecks.length === 0;
+    btn.setAttribute('title', recentChecks.length === 0
       ? 'No recent checks yet'
-      : (history.length + ' recent ' + (history.length === 1 ? 'check' : 'checks')));
+      : (recentChecks.length + ' recent ' + (recentChecks.length === 1 ? 'check' : 'checks')));
   };
 
   /** Put a stored check back on screen, switching mode to match it. */
@@ -1197,7 +1209,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       applyInputMode();
       lastMediaResult = entry.payload;
       lastAnalysisResult = null;
+      lastClaimText = '';
+      lastVerifiedClaim = '';
+      const textInput = panelEl?.querySelector('#claimInput');
+      if (textInput) textInput.value = '';
       renderMediaResult(entry.payload);
+      updateWebAppLink();
     } else {
       inputMode = 'text';
       applyInputMode();
@@ -1237,7 +1254,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     const modal = root?.querySelector('#historyModal');
     if (!modal) return;
 
-    const rowsHtml = history.map((entry) => {
+    const rowsHtml = recentChecks.map((entry) => {
       const label = entry.kind === 'image'
         ? (entry.label || 'Image')
         : truncateClaim(entry.label || '');
@@ -1267,12 +1284,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
           '<h2 class="modalTitle" id="historyModalTitle">Recent checks</h2>' +
           '<button class="modalClose" type="button" data-close="1" aria-label="Close">&times;</button>' +
         '</div>' +
-        (history.length
+        (recentChecks.length
           ? '<div class="modalBody"><div class="historyList">' + rowsHtml + '</div></div>'
           : '<p class="modalIntro">Nothing checked yet. Results you get will be listed here.</p>') +
         '<div class="modalFoot">' +
-          '<button id="historyClearBtn" class="modalGhostBtn" type="button"' + (history.length ? '' : ' disabled') + '>Clear history</button>' +
-          '<span class="modalCount">' + (history.length ? history.length + ' saved' : '') + '</span>' +
+          '<button id="historyClearBtn" class="modalGhostBtn" type="button"' + (recentChecks.length ? '' : ' disabled') + '>Clear history</button>' +
+          '<span class="modalCount">' + (recentChecks.length ? recentChecks.length + ' saved' : '') + '</span>' +
           '<button id="historyDoneBtn" class="Home_primaryBtn__nO8b8 verifyButton modalSaveBtn" type="button">Done</button>' +
         '</div>' +
       '</div>';
@@ -1281,13 +1298,13 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
 
     modal.querySelectorAll('[data-entry-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const entry = history.find((h) => String(h.id) === btn.getAttribute('data-entry-id'));
+        const entry = recentChecks.find((h) => String(h.id) === btn.getAttribute('data-entry-id'));
         closeHistoryModal();
         restoreHistoryEntry(entry);
       });
     });
     modal.querySelector('#historyClearBtn')?.addEventListener('click', () => {
-      history = [];
+      recentChecks = [];
       saveHistory();
       updateHistoryButton();
       closeHistoryModal();
@@ -1534,7 +1551,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
     await loadSourceCatalog();
     preferredDomains = await loadPreferredDomains();
-    history = await loadHistory();
+    recentChecks = await loadHistory();
   };
 
   const init = async () => {
