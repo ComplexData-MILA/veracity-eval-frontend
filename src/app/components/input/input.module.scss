@@ -2,30 +2,40 @@
     width:80%;
     border-radius: 20px;
     margin-right:5px;
+    display: flex;
+    align-items: flex-end;
     .input{
         width: 80%;
-        padding-left: 12px;
-        height: 40px;
+        padding: 10px 12px;
+        min-height: 40px;
+        max-height: 120px;
         background: #f0f0f0;
         border:0;
         border-radius: 20px 0px 0px 20px;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 20px;
+        resize: none;
+        overflow-y: auto;
     }
     .submit{
         width: 50px;
         height: 40px;
-        position: relative;
-        top:3px;
         background: #f0f0f0;
         border:0;
         border-radius: 0px 20px 20px 0px;
         cursor: pointer;
+        &:disabled{
+            cursor: auto;
+            opacity: 0.6;
+        }
     }
     @media screen and (max-width: 850px)  {
         margin-left:15%;
         .input{
             width:70%;
             font-size: 14px;
-            
+
         }
     }
 }
