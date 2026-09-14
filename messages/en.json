@@ -40,7 +40,18 @@
         "confident": "Indicates how confident we are in its reliability.",
         "averageCredibility": "Avg. Source Credibility",
         "showAllSources": "Show all sources",
-        "close":"Close"
+        "close":"Close",
+        "extractHeading": "Here is what I found in your text. Select the statement you would like me to verify:",
+        "extractNoneNotice": "I couldn't find a verifiable factual statement in your text. You can try rephrasing it, or check your text as-is.",
+        "extractErrorNotice": "Something went wrong while reading your text. You can try again, or check your text as-is.",
+        "extractTooLongNotice": "Your text is too long to analyse in one go. Please shorten it, or check your text as-is.",
+        "checkAsIs": "Check my text as-is",
+        "back": "Back",
+        "confirm": "Verify this statement",
+        "edit": "Edit",
+        "saveEdit": "Save",
+        "cancelEdit": "Cancel",
+        "editedStatementLabel": "Edit the statement"
     },
     "userMenu":
     {

@@ -41,4 +41,21 @@ interface StreamingMessage {
   streamedContent?: string;
 }
 
-  export type {Source, Search, FinalAnalysis, AnalysisStreamEvent, StreamingMessage}
+interface ExtractedStatement {
+  id: string;
+  text: string;
+}
+
+type ExtractionReason = "ok" | "no_claims" | "llm_error" | "too_long";
+
+interface ClaimExtractionResponse {
+  statements: ExtractedStatement[];
+  reason: ExtractionReason;
+  language: string;
+}
+
+/* null means there is no notice to show */
+type ExtractionNotice = "no_claims" | "error" | "too_long" | null;
+
+  export type {Source, Search, FinalAnalysis, AnalysisStreamEvent, StreamingMessage,
+    ExtractedStatement, ClaimExtractionResponse, ExtractionReason, ExtractionNotice}

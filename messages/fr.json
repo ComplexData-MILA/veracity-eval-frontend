@@ -40,7 +40,18 @@
         "confident": "Comment Veracity sélectionne-t-il les sources?",
         "averageCredibility": "Crédibilité moy. des sources",
         "showAllSources": "Voir toutes les sources",
-        "close": "Fermez"
+        "close": "Fermez",
+        "extractHeading": "Voici ce que j'ai trouvé dans votre texte. Sélectionnez l'énoncé que vous souhaitez que je vérifie :",
+        "extractNoneNotice": "Je n'ai pas trouvé d'énoncé factuel vérifiable dans votre texte. Vous pouvez le reformuler, ou vérifier votre texte tel quel.",
+        "extractErrorNotice": "Une erreur est survenue lors de la lecture de votre texte. Vous pouvez réessayer, ou vérifier votre texte tel quel.",
+        "extractTooLongNotice": "Votre texte est trop long pour être analysé en une seule fois. Veuillez le raccourcir, ou vérifier votre texte tel quel.",
+        "checkAsIs": "Vérifier mon texte tel quel",
+        "back": "Retour",
+        "confirm": "Vérifier cet énoncé",
+        "edit": "Modifier",
+        "saveEdit": "Enregistrer",
+        "cancelEdit": "Annuler",
+        "editedStatementLabel": "Modifier l'énoncé"
     },
     "userMenu":
     {

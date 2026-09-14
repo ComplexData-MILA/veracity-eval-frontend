@@ -1,0 +1,146 @@
+.cardRow{
+    display: flex;
+    align-items: flex-start;
+    margin:20px 15px;
+
+    .card{
+        flex: 1;
+        max-width: 640px;
+        margin-left:5px;
+        padding:15px;
+        background-color: #1683FF1A;
+        border-radius: 12px;
+    }
+
+    .heading{
+        margin:0 0 12px 0;
+        color: #636363;
+    }
+
+    .statementList{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .statementRow{
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .statement, .statementActive{
+        flex: 1;
+        text-align: left;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #9B9B9B;
+        color: #636363;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .statementActive{
+        border-color: #1683FF;
+        color: black;
+        box-shadow: 0 0 0 1px #1683FF;
+    }
+
+    .editButton{
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #9B9B9B;
+        background: white;
+        color: black;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .editArea{
+        flex: 1;
+        min-height: 70px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid #1683FF;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.4;
+        resize: vertical;
+    }
+
+    .rowActions{
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .smallSecondary, .smallPrimary{
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-family: inherit;
+        font-size: 14px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .smallSecondary{
+        border: 1px solid #9B9B9B;
+        background: white;
+        color: black;
+    }
+
+    .smallPrimary{
+        border: 0;
+        color: white;
+        background: linear-gradient(89.75deg, #1683FF 7.64%, #11F90E 170.65%);
+        &:disabled{
+            background:#9B9B9B;
+            cursor: auto;
+        }
+    }
+
+    .actions{
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .secondaryButton, .primaryButton{
+        width: fit-content;
+        padding:10px 12px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-family: inherit;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .secondaryButton{
+        border: 1px solid #9B9B9B;
+        color: black;
+        background-color: white;
+    }
+
+    .primaryButton{
+        border:0;
+        color: white;
+        background: linear-gradient(89.75deg, #1683FF 7.64%, #11F90E 170.65%);
+        &:disabled{
+            background:#9B9B9B;
+            cursor: auto;
+        }
+    }
+
+    @media screen and (max-width: 850px)  {
+        .card{
+            width: 100%;
+        }
+    }
+}
