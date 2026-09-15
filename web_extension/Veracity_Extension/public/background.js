@@ -170,7 +170,15 @@ async function runVerification(apiUrl, accessToken, claimText, preferredDomains)
   const body2 = await res2.text();
   if (!res2.ok) throw new Error(`PATCH ${url2} ${res2.status}: ${body2}`);
 
-  const streamUrl = `${apiUrl}/v1/analysis/claim/${claimId}/stream`;
+  //const streamUrl = `${apiUrl}/v1/analysis/claim/${claimId}/stream`;
+  const streamParams = new URLSearchParams();
+  domains.forEach(domain => {
+  streamParams.append("preferred_domains", domain);
+  });
+
+  const streamUrl = `${apiUrl}/v1/analysis/claim/${claimId}/stream${
+  domains.length ? `?${streamParams.toString()}` : ""
+  }`;
   const streamHeaders = { Accept: "text/event-stream", Authorization: `Bearer ${accessToken}` };
   const resStream = await fetch(streamUrl, { method: "GET", headers: streamHeaders });
   if (!resStream.ok) {
