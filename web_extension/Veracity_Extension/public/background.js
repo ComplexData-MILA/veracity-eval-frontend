@@ -5,9 +5,10 @@
  * image with Veracity" for images, plus action click → open side panel. Images are
  * fetched here, where host permissions allow reading any origin, and parked for the
  * panel to collect.
- * (2) Message router: VERIFY_CLAIM (run verification flow, carrying the user's
- * chosen domains) and GET_ME. Image verification posts multipart directly from the
- * panel, since messaging cannot carry a File. Panel and
+ * (2) Message router: EXTRACT_CLAIMS (pull verifiable statements out of the user's
+ * text), VERIFY_CLAIM (run verification flow, carrying the user's chosen domains) and
+ * GET_ME. Image verification posts multipart directly from the panel, since messaging
+ * cannot carry a File. Panel and
  * content scripts send messages here; this script calls the backend API with the
  * panel’s access token.
  */
@@ -137,7 +138,47 @@ async function handleImageContextClick(srcUrl) {
   }
 }
 
-async function runVerification(apiUrl, accessToken, claimText, preferredDomains) {
+/**
+ * Pull the verifiable statements out of the user's text.
+ *
+ * Nothing is persisted: the panel shows what came back and only creates a claim once
+ * the user picks one. The backend answers 200 for every outcome it can describe
+ * (`ok`, `no_claims`, `too_long`, `llm_error`), so a rejection here means a genuine
+ * transport, auth or config problem rather than "found nothing" — the panel treats
+ * both the same way, by offering the fallback buttons.
+ */
+async function runExtraction(apiUrl, accessToken, text, language) {
+  const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": `Bearer ${accessToken}`,
+  };
+
+  const url = `${apiUrl}/v1/claims/extract`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ text, language: language || "english" }),
+  });
+  const body = await res.text();
+  if (!res.ok) throw new Error(`POST ${url} ${res.status}: ${body}`);
+
+  const data = JSON.parse(body);
+  return {
+    statements: Array.isArray(data?.statements) ? data.statements : [],
+    reason: data?.reason || "ok",
+  };
+}
+
+/**
+ * Create the claim and run it end to end.
+ *
+ * `context` is the text the claim was taken from — the panel passes the user's
+ * original selection so the analysis is generated with real surrounding context. It
+ * falls back to the historical placeholder when a caller does not supply one, which
+ * keeps older panel builds behaving exactly as before.
+ */
+async function runVerification(apiUrl, accessToken, claimText, preferredDomains, context, language) {
   const headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -145,7 +186,8 @@ async function runVerification(apiUrl, accessToken, claimText, preferredDomains)
   };
 
   const url1 = `${apiUrl}/v1/claims/`;
-  const basePayload = { claim_text: claimText, context: "veracity_chrome_extension" };
+  const basePayload = { claim_text: claimText, context: context || "veracity_chrome_extension" };
+  if (language) basePayload.language = language;
   const domains = Array.isArray(preferredDomains) ? preferredDomains.filter(Boolean) : [];
 
   // Send the user's chosen domains when there are any. The field is not yet part of
@@ -260,14 +302,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+  // Claim decomposition: read the user's text and hand back candidate statements for
+  // the panel to confirm. Creates nothing.
+  if (message?.type === "EXTRACT_CLAIMS") {
+    const { text, language, accessToken, apiUrl } = message;
+    if (!apiUrl || !accessToken || typeof text !== "string" || !text.trim()) {
+      sendResponse({ success: false, error: "Missing apiUrl, accessToken, or text" });
+      return;
+    }
+    runExtraction(apiUrl, accessToken, text.trim(), language)
+      .then((data) => sendResponse({ success: true, ...data }))
+      .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
+    return true;
+  }
   // Full verification: claim → embedding → stream → analysis → sources.
   if (message?.type === "VERIFY_CLAIM") {
-    const { claimText, accessToken, apiUrl, preferredDomains } = message;
+    const { claimText, accessToken, apiUrl, preferredDomains, context, language } = message;
     if (!apiUrl || !accessToken || typeof claimText !== "string") {
       sendResponse({ success: false, error: "Missing apiUrl, accessToken, or claimText" });
       return;
     }
-    runVerification(apiUrl, accessToken, claimText.trim(), preferredDomains)
+    runVerification(apiUrl, accessToken, claimText.trim(), preferredDomains, context, language)
       .then((data) => sendResponse({ success: true, ...data }))
       .catch((err) => sendResponse({ success: false, error: err?.message || String(err) }));
     return true;

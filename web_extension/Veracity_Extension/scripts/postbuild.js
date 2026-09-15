@@ -205,6 +205,14 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   let selectedMediaUrl = '';
   let lastMediaResult = null;
   let recentChecks = [];
+  // Claim decomposition. A non-empty statement list, or a non-null reason, means the
+  // confirm card is on screen and NO claim has been created yet.
+  let pendingOriginalText = '';
+  let pendingProcessedText = '';
+  let pendingStatements = [];
+  let pendingSelectedId = null;
+  let pendingReason = null;
+  let pendingEditingId = null;
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -261,6 +269,9 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     const verifyBtn = root?.querySelector('#verifyBtn');
     if (!verifyBtn) return;
     if (isVerifying) { verifyBtn.disabled = true; return; }
+    // While the confirm card is open, Verify would only re-run extraction on the same
+    // text; the card's own buttons are the way forward. Back re-enables this.
+    if (confirmCardIsOpen()) { verifyBtn.disabled = true; return; }
     if (inputMode === 'image') {
       verifyBtn.disabled = !selectedMediaFile;
       return;
@@ -584,6 +595,255 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  // --- Claim decomposition -------------------------------------------------
+  //
+  // The user's text goes to the backend first, which returns the factual statements
+  // it can find. Nothing is created yet: the card below is where the user confirms
+  // which statement was meant, and only then does a claim exist.
+
+  const clearPendingConfirm = () => {
+    pendingOriginalText = '';
+    pendingProcessedText = '';
+    pendingStatements = [];
+    pendingSelectedId = null;
+    pendingReason = null;
+    pendingEditingId = null;
+  };
+
+  /** True while the confirm card owns the flow and no claim has been created. */
+  const confirmCardIsOpen = () => pendingStatements.length > 0 || pendingReason !== null;
+
+  const CONFIRM_NOTICE = {
+    no_claims: 'I could not find a verifiable factual statement in your text. You can try rephrasing it, or check your text as-is.',
+    too_long: 'Your text is too long to analyse in one go. Please shorten it, or check your text as-is.',
+    llm_error: 'Something went wrong while reading your text. You can try again, or check your text as-is.',
+    error: 'Something went wrong while reading your text. You can try again, or check your text as-is.',
+  };
+
+  const closeConfirmCard = () => {
+    clearPendingConfirm();
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    updateVerifyButtonState();
+  };
+
+  /**
+   * Draw the confirm card into #resultMount.
+   *
+   * Rebuilt purely from pending* state, because renderAppScreen() has to call this
+   * again after a focus re-render wipes the panel. Statement text is model output
+   * derived from whatever page the user was reading, so every value is escaped —
+   * never interpolated raw.
+   */
+  const renderConfirmCard = () => {
+    const mount = root?.querySelector('#resultMount');
+    if (!mount) return;
+
+    let body;
+    if (pendingStatements.length > 0) {
+      const rows = pendingStatements.map((statement) => {
+        const id = escapeHtml(statement.id);
+        if (pendingEditingId === statement.id) {
+          return '<div class="claimConfirm-row">'
+            + '<textarea class="claimConfirm-editArea" rows="3" aria-label="Edit the statement">'
+            + escapeHtml(statement.text)
+            + '</textarea>'
+            + '<div class="claimConfirm-rowActions">'
+            + '<button type="button" class="claimConfirm-smallPrimary" data-action="save-edit" data-id="' + id + '">Save</button>'
+            + '<button type="button" class="claimConfirm-smallSecondary" data-action="cancel-edit">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        }
+        const active = statement.id === pendingSelectedId;
+        return '<div class="claimConfirm-row">'
+          + '<button type="button" role="radio" aria-checked="' + (active ? 'true' : 'false') + '"'
+          + ' class="claimConfirm-statement' + (active ? ' claimConfirm-statement--active' : '') + '"'
+          + ' data-action="select" data-id="' + id + '">'
+          + '<span class="claimConfirm-text">' + escapeHtml(statement.text) + '</span>'
+          + '</button>'
+          + '<button type="button" class="claimConfirm-editBtn" data-action="edit" data-id="' + id + '">Edit</button>'
+          + '</div>';
+      }).join('');
+
+      const canConfirm = !!pendingSelectedId && pendingEditingId === null;
+      body = '<p class="claimConfirm-heading">Here is what I found in your text. Select the statement you would like me to verify:</p>'
+        + '<div class="claimConfirm-list" role="radiogroup" aria-label="Statements found in your text">' + rows + '</div>'
+        + '<div class="claimConfirm-actions">'
+        + '<button type="button" class="claimConfirm-secondary" data-action="back">Back</button>'
+        + '<button type="button" class="claimConfirm-primary" data-action="confirm"' + (canConfirm ? '' : ' disabled') + '>Verify this statement</button>'
+        + '</div>';
+    } else {
+      body = '<p class="claimConfirm-heading">' + (CONFIRM_NOTICE[pendingReason] || CONFIRM_NOTICE.error) + '</p>'
+        + '<div class="claimConfirm-actions">'
+        + '<button type="button" class="claimConfirm-secondary" data-action="back">Back</button>'
+        + '<button type="button" class="claimConfirm-primary" data-action="check-as-is">Check my text as-is</button>'
+        + '</div>';
+    }
+
+    mount.innerHTML = '<div class="claimConfirm-card">' + body + '</div>';
+
+    mount.querySelectorAll('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        if (action === 'select') {
+          pendingSelectedId = id;
+          renderConfirmCard();
+        } else if (action === 'edit') {
+          pendingEditingId = id;
+          pendingSelectedId = id;
+          renderConfirmCard();
+        } else if (action === 'cancel-edit') {
+          pendingEditingId = null;
+          renderConfirmCard();
+        } else if (action === 'save-edit') {
+          // An edit goes back through extraction rather than straight to the claim:
+          // the user may have rewritten the statement into an opinion, or into two
+          // separate facts, and the card must show what actually survived.
+          const area = mount.querySelector('.claimConfirm-editArea');
+          const edited = (area && area.value ? area.value : '').trim();
+          if (!edited) return;
+          pendingEditingId = null;
+          runExtractionStep(edited);
+        } else if (action === 'confirm') {
+          const chosen = pendingStatements.filter((s) => s.id === pendingSelectedId)[0];
+          if (!chosen) return;
+          const context = pendingOriginalText;
+          closeConfirmCard();
+          runClaim(chosen.text, context);
+        } else if (action === 'check-as-is') {
+          // Whatever the last extraction attempt actually saw — which after an edit is
+          // the edited text, not the original paste. The original still travels as
+          // context so the analysis keeps the full surrounding text.
+          const context = pendingOriginalText;
+          const claim = pendingProcessedText || pendingOriginalText;
+          closeConfirmCard();
+          runClaim(claim, context);
+        } else if (action === 'back') {
+          // Leaves the textarea alone so the user can edit and resubmit; clearing the
+          // card re-enables the Verify button, which confirmCardIsOpen() had disabled.
+          closeConfirmCard();
+        }
+      });
+    });
+  };
+
+  /**
+   * Run one extraction pass and show the card for its result.
+   *
+   * Shared by the initial submission and by every edit-save — the semantics are the
+   * same, only the input differs.
+   */
+  const runExtractionStep = async (text) => {
+    pendingProcessedText = text;
+    pendingEditingId = null;
+    setVerifying(true);
+
+    let res = null;
+    try {
+      const token = await ensureAccessToken();
+      if (token) {
+        res = await sendBackgroundMessage({
+          type: 'EXTRACT_CLAIMS',
+          text,
+          language: detectLanguage(),
+          accessToken: token,
+          apiUrl: API_URL,
+        });
+      }
+    } catch (_) {
+      res = null;
+    }
+
+    // Every failure — transport, auth, or a response we cannot read — ends in the same
+    // notice with the same two escape buttons as "found nothing"; only the wording
+    // differs. There is deliberately no dead end here.
+    const statements = (res && res.success === true && Array.isArray(res.statements)) ? res.statements : [];
+    pendingStatements = statements;
+    if (statements.length > 0) {
+      pendingSelectedId = statements[0].id;
+      pendingReason = null;
+    } else {
+      pendingSelectedId = null;
+      const reason = (res && res.success === true) ? res.reason : 'error';
+      pendingReason = (!reason || reason === 'ok') ? 'no_claims' : reason;
+    }
+
+    // Cleared before the card renders so confirmCardIsOpen() is already true when
+    // updateVerifyButtonState() runs.
+    setVerifying(false);
+    renderConfirmCard();
+  };
+
+  /**
+   * Create the claim and run it end to end.
+   *
+   * The context argument is the text the claim was drawn from, so the analysis is
+   * generated with the real surrounding text rather than a placeholder.
+   */
+  const runClaim = async (claimText, context) => {
+    if (isVerifying) return;
+    setVerifying(true);
+
+    const authStatusText = root?.querySelector('#authStatusText');
+
+    let token;
+    try {
+      token = await ensureAccessToken();
+    } catch (err) {
+      const msg = 'Something went wrong. Please try again.';
+      setInlineMessage(msg);
+      if (authStatusText) authStatusText.textContent = msg;
+      finalizeVerification();
+      return;
+    }
+
+    if (!token) {
+      const msg = 'Please sign in to verify claims.';
+      if (authStatusText) authStatusText.textContent = msg;
+      setInlineMessage(msg);
+      finalizeVerification();
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      {
+        type: 'VERIFY_CLAIM',
+        claimText,
+        context,
+        language: detectLanguage(),
+        accessToken: token,
+        apiUrl: API_URL,
+        preferredDomains,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          const msg = 'Something went wrong. Please try again.';
+          setInlineMessage(msg);
+          if (authStatusText) authStatusText.textContent = msg;
+          finalizeVerification();
+          return;
+        }
+        if (!response || response.success !== true) {
+          const msg = 'Something went wrong. Please try again.';
+          setInlineMessage(msg);
+          if (authStatusText) authStatusText.textContent = msg;
+          finalizeVerification();
+          return;
+        }
+        const score = Math.round((response.veracity_score || 0) * 100);
+        const summary = response.analysis_text || '';
+        const result = { sources: Array.isArray(response.sources) ? response.sources : [] };
+        const claim_id = response.claim_id ?? null;
+        const analysis_id = response.analysis_id ?? null;
+        setScore(score, { summary, result, claim_id, analysis_id });
+        lastAnalysisResult = { claim: claimText, score, summary, result, claim_id, analysis_id };
+        pushHistory({ kind: 'text', label: claimText, score, payload: lastAnalysisResult });
+        finalizeVerification();
+      }
+    );
+  };
+
   /**
    * Single public verification entry point for all flows.
    *
@@ -595,8 +855,9 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
    * - Guard against concurrent runs via isVerifying
    * - Normalize + persist claim text and reset result UI
    * - Enforce auth and API configuration
-   * - Delegate to background.js VERIFY_CLAIM and map the response into score card UI
-   * - Always end via finalizeVerification() so button + status reset correctly
+   * - Decompose the text and hand over to the confirm card; runClaim() takes it from
+   *   there once the user has picked a statement
+   * - Every exit path either calls finalizeVerification() or leaves the card in charge
    */
   const startVerification = async (claimTextOverride) => {
     // Ignore if a verification is already in progress.
@@ -679,34 +940,11 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    chrome.runtime.sendMessage(
-      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL, preferredDomains },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          const msg = 'Something went wrong. Please try again.';
-          setInlineMessage(msg);
-          if (authStatusText) authStatusText.textContent = msg;
-          finalizeVerification();
-          return;
-        }
-        if (!response || response.success !== true) {
-          const msg = 'Something went wrong. Please try again.';
-          setInlineMessage(msg);
-          if (authStatusText) authStatusText.textContent = msg;
-          finalizeVerification();
-          return;
-        }
-        const score = Math.round((response.veracity_score || 0) * 100);
-        const summary = response.analysis_text || '';
-        const result = { sources: Array.isArray(response.sources) ? response.sources : [] };
-        const claim_id = response.claim_id ?? null;
-        const analysis_id = response.analysis_id ?? null;
-        setScore(score, { summary, result, claim_id, analysis_id });
-        lastAnalysisResult = { claim: claimText, score, summary, result, claim_id, analysis_id };
-        pushHistory({ kind: 'text', label: claimText, score, payload: lastAnalysisResult });
-        finalizeVerification();
-      }
-    );
+    // Drop anything left over from a previous run, then decompose. The claim itself
+    // is created by runClaim() once the user has confirmed a statement.
+    clearPendingConfirm();
+    pendingOriginalText = claimText;
+    await runExtractionStep(claimText);
   };
 
   const startWebAuthFlow = async () => {
@@ -1393,6 +1631,7 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     lastVerifiedClaim = '';
     lastMediaResult = null;
     currentSourceIndex = 0;
+    clearPendingConfirm();
     setVerifying(false);
     updateVerifyButtonState();
   };
@@ -1495,6 +1734,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (selectedMediaFile) renderMediaPreview();
     if (inputMode === 'image') {
       if (lastMediaResult) renderMediaResult(lastMediaResult);
+    } else if (confirmCardIsOpen()) {
+      // A pending choice has to survive too, or clicking away mid-confirm would throw
+      // the extraction away. The card rebuilds from state; the textarea gets the text
+      // the user submitted back so the panel looks the way they left it.
+      if (claimInput) claimInput.value = pendingOriginalText;
+      renderConfirmCard();
     } else if (lastAnalysisResult) {
       lastClaimText = lastAnalysisResult.claim;
       lastVerifiedClaim = lastAnalysisResult.claim;
