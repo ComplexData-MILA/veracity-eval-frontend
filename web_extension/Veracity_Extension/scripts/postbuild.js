@@ -5,8 +5,8 @@
  * Next.js output: rewrites _next → next for Chrome, injects CSP and panel loader
  * into HTML, copies public assets and inlines auth + panel UI into panel.js.
  * Panel lifecycle: DOMContentLoaded → loadConfig → syncAuthUI (auth gate) →
- * renderAppScreen (tabs: AI / Discussion / Expert) or landing; verify flow and
- * discussion hub talk to backend via background script messaging.
+ * renderAppScreen (AI fact verification only) or landing; the verify flow talks
+ * to the backend via background script messaging.
  */
 (function () {
 const fs = require("fs");
@@ -84,6 +84,7 @@ if (!fs.existsSync(out)) {
   copyRecursive(path.join(publicDir, "content.js"), path.join(out, "content.js"));
   copyRecursive(path.join(publicDir, "icons"), path.join(out, "icons"));
   copyRecursive(path.join(publicDir, "config.json"), path.join(out, "config.json"));
+  copyRecursive(path.join(publicDir, "sources.json"), path.join(out, "sources.json"));
 }
 
 // Rename out -> dist
@@ -94,6 +95,12 @@ const heroCssSrc = path.join(root, "styles", "webapp-hero.css");
 const heroCssDest = path.join(dist, "webapp-hero.css");
 if (fs.existsSync(heroCssSrc)) {
   fs.copyFileSync(heroCssSrc, heroCssDest);
+}
+
+// Copy the source picker catalog into dist (read at runtime by the panel)
+const sourcesJsonSrc = path.join(root, "public", "sources.json");
+if (fs.existsSync(sourcesJsonSrc)) {
+  fs.copyFileSync(sourcesJsonSrc, path.join(dist, "sources.json"));
 }
 
 // Copy panel stylesheet into dist (plain CSS for panel.js UI)
@@ -176,24 +183,36 @@ const authJs = fs.existsSync(authJsPath) ? fs.readFileSync(authJsPath, "utf8") :
 
 /**
  * Panel script template. Injected into dist/panel.js after auth.
- * Flow: load config → syncAuthUI (if authenticated render app with tabs, else landing) →
- * AI tab: verify claim via background VERIFY_CLAIM; Discussion: list/detail + GET_* / CREATE_* / VOTE_POST.
- * Discussion store: discussions[], postsByDiscussionId[discussionId]; normalized with created_at, hasVoted, userVote.
+ * Flow: load config → syncAuthUI (if authenticated render the verification panel, else landing) →
+ * verify claim via background VERIFY_CLAIM → render score, summary and sources.
  */
 const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('root');
   try {
   let API_URL = '';
   let AUTH0_CLIENT_ID = '';
-  let activeTab = 'ai';
   let authError = null;
-  let pendingDiscussionId = null;
   let currentSourceIndex = 0;
   let isVerifying = false;
   let lastClaimText = '';
   let lastVerifiedClaim = '';
   let lastFactCheck = null;
   let lastAnalysisResult = null;
+  let sourceCatalog = [];
+  let preferredDomains = [];
+  let inputMode = 'text';
+  let selectedMediaFile = null;
+  let selectedMediaUrl = '';
+  let lastMediaResult = null;
+  let recentChecks = [];
+  // Claim decomposition. A non-empty statement list, or a non-null reason, means the
+  // confirm card is on screen and NO claim has been created yet.
+  let pendingOriginalText = '';
+  let pendingProcessedText = '';
+  let pendingStatements = [];
+  let pendingSelectedId = null;
+  let pendingReason = null;
+  let pendingEditingId = null;
   const normalizeError = (err) => {
     if (!err) return 'Something went wrong. Please try again.';
     if (typeof err === 'string') return err;
@@ -222,12 +241,6 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (statusEl) statusEl.textContent = msg || '';
   };
 
-  const tabs = {
-    ai: { label: 'AI Fact Verification', body: 'Placeholder content.' },
-    discussion: { label: 'Discussion Hub', body: 'Placeholder content.' },
-    expert: { label: 'Contact an Expert', body: 'Placeholder content.' },
-  };
-
   /** Show Verifying pill when active === true; remove from DOM when active === false. */
   const toggleVerifyingUI = (active) => {
     if (active) {
@@ -253,11 +266,19 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateVerifyButtonState = () => {
-    const claimInput = root?.querySelector('#claimInput');
     const verifyBtn = root?.querySelector('#verifyBtn');
     if (!verifyBtn) return;
+    if (isVerifying) { verifyBtn.disabled = true; return; }
+    // While the confirm card is open, Verify would only re-run extraction on the same
+    // text; the card's own buttons are the way forward. Back re-enables this.
+    if (confirmCardIsOpen()) { verifyBtn.disabled = true; return; }
+    if (inputMode === 'image') {
+      verifyBtn.disabled = !selectedMediaFile;
+      return;
+    }
+    const claimInput = root?.querySelector('#claimInput');
     const trimmed = (claimInput?.value || '').trim();
-    verifyBtn.disabled = isVerifying || trimmed.length === 0 || trimmed === lastVerifiedClaim;
+    verifyBtn.disabled = trimmed.length === 0 || trimmed === lastVerifiedClaim;
   };
 
   const escapeHtml = (value) => {
@@ -267,30 +288,6 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
-  };
-
-  const truncateAtWord = (text, maxLen) => {
-    const str = String(text || '');
-    if (str.length <= maxLen) return { display: str, isLong: false };
-    const slice = str.slice(0, maxLen);
-    const lastSpace = slice.lastIndexOf(' ');
-    const cut = lastSpace > 0 ? lastSpace : maxLen;
-    return { display: str.slice(0, cut), isLong: true };
-  };
-
-  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const formatAbsoluteTime = (timestamp) => {
-    if (timestamp == null || !Number.isFinite(timestamp)) return '';
-    const t = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-    const d = new Date(t);
-    const month = MONTH_NAMES[d.getMonth()];
-    const day = d.getDate();
-    const year = d.getFullYear();
-    const h = d.getHours();
-    const m = d.getMinutes();
-    const hh = String(h).padStart(2, '0');
-    const mm = String(m).padStart(2, '0');
-    return month + ' ' + day + ', ' + year + ' · ' + hh + ':' + mm;
   };
 
   let currentUserId = null;
@@ -306,641 +303,75 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const truncateText = (text, limit = 140) => {
-    const value = String(text || '');
-    if (value.length <= limit) return value;
-    return value.slice(0, limit).trim() + '…';
-  };
+  /**
+   * Source preferences.
+   *
+   * The catalog ships as public/sources.json; the selection lives in
+   * chrome.storage.local. It is sent with every claim so retrieval can prioritise
+   * those domains, and is used locally to order and mark the evidence shown.
+   * An empty selection means "no preference" and leaves retrieval untouched.
+   */
+  const SOURCE_PREFS_KEY = 'veracity_preferred_domains';
 
-  const discussionStore = { discussions: [], postsByDiscussionId: {} };
-
-  const parseTimestamp = (v) => {
-    if (v == null) return null;
-    if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
-    if (typeof v === 'string') { const n = Date.parse(v); return Number.isFinite(n) ? n : null; }
-    return null;
-  };
-
-  const mapApiDiscussion = (d) => {
-    const id = String(d.id ?? d.discussion_id ?? '');
-    const title = d.title ?? 'Discussion';
-    const nonEmpty = (v) => v != null && String(v).trim() !== '';
-    const trim = (v) => (v != null ? String(v).trim() : '');
-    let description = '';
-    if (nonEmpty(d.description)) description = trim(d.description);
-    else if (nonEmpty(d.text)) description = trim(d.text);
-    else if (nonEmpty(d.body)) description = trim(d.body);
-    else if (nonEmpty(d.content)) description = trim(d.content);
-    const user_id = d.user_id != null ? d.user_id : undefined;
-    const author = (user_id != null && String(user_id).trim() !== '') ? ('u/' + String(user_id).trim()) : 'u/anonymous';
-    const created_at = parseTimestamp(d.created_at) ?? parseTimestamp(d.createdAt) ?? null;
-    const updated_at = parseTimestamp(d.updated_at) ?? parseTimestamp(d.updatedAt) ?? null;
-    return {
-      id,
-      title,
-      description,
-      analysis_id: d.analysis_id ?? undefined,
-      user_id,
-      created_at,
-      updated_at,
-      author,
-      createdAt: created_at != null ? created_at : undefined,
-      voteScore: d.vote_score ?? d.voteScore ?? 0,
-      postCount: d.post_count ?? d.postCount ?? 0,
-    };
-  };
-
-  const mapApiPost = (p, discussionId) => {
-    const voteScore = p.vote_score ?? p.voteScore ?? 0;
-    const rawUp =
-      Number.isFinite(p.up_votes) ? p.up_votes :
-      Number.isFinite(p.upvotes) ? p.upvotes :
-      undefined;
-    const rawDown =
-      Number.isFinite(p.down_votes) ? p.down_votes :
-      Number.isFinite(p.downvotes) ? p.downvotes :
-      undefined;
-    const upvotes = Number.isFinite(rawUp) ? rawUp : Math.max(0, Math.floor(voteScore * 0.7));
-    const downvotes = Number.isFinite(rawDown) ? rawDown : Math.max(0, Math.round(voteScore) - upvotes);
-    const created_at = parseTimestamp(p.created_at) ?? parseTimestamp(p.createdAt) ?? null;
-    const userVoteRaw = p.user_vote ?? p.current_user_vote;
-    const userVote = (userVoteRaw === 'up' || userVoteRaw === 'down') ? userVoteRaw : null;
-    const hasVoted = userVote != null;
-    return {
-      id: String(p.id ?? p.post_id ?? ''),
-      discussionId: String(discussionId),
-      title: p.title ?? '',
-      body: p.text ?? p.body ?? '',
-      created_at,
-      createdAt: created_at != null ? created_at : (typeof p.created_at === 'number' ? (p.created_at < 1e12 ? p.created_at * 1000 : p.created_at) : (p.createdAt ?? Date.now())),
-      voteScore,
-      upvotes,
-      downvotes,
-      hasVoted,
-      userVote,
-    };
-  };
-
-
-  const discussionState = {
-    view: 'list',
-    selectedId: null,
-    discussionCursor: 0,
-    discussionsHasMore: true,
-    discussionsLoading: false,
-    discussionSort: 'new',
-    postsCursorById: {},
-    postsHasMoreById: {},
-    postsLoadingById: {},
-    postsSortById: {},
-  };
-
-  const fetchDiscussions = async ({ cursor = 0, limit = 6, sort = 'new' } = {}) => {
-    if (cursor === 0 && discussionStore.discussions.length === 0 && API_URL) {
-      try {
-        const token = await ensureAccessToken();
-        const res = await sendBackgroundMessage({ type: 'GET_DISCUSSIONS', apiUrl: API_URL, accessToken: token });
-        if (res.success && Array.isArray(res.discussions)) {
-          discussionStore.discussions = res.discussions.map(mapApiDiscussion);
-        }
-      } catch (_) {}
+  const loadSourceCatalog = async () => {
+    try {
+      const res = await fetch(chrome.runtime.getURL('sources.json'));
+      const data = await res.json();
+      sourceCatalog = Array.isArray(data && data.categories) ? data.categories : [];
+    } catch (_) {
+      sourceCatalog = [];
     }
-    const sorted = [...discussionStore.discussions].sort((a, b) => {
-      if (sort === 'top') return b.voteScore - a.voteScore;
-      return b.createdAt - a.createdAt;
-    });
-    const start = Math.max(0, cursor);
-    const items = sorted.slice(start, start + limit);
-    const nextCursor = start + limit < sorted.length ? start + limit : null;
-    return { items, nextCursor, hasMore: nextCursor !== null };
   };
 
-  const fetchPosts = ({ discussionId, cursor = 0, limit = 6, sort = 'top' } = {}) => {
-    const base = discussionStore.postsByDiscussionId[discussionId] || [];
-    const sorted = [...base].sort((a, b) => {
-      if (sort === 'new') return b.createdAt - a.createdAt;
-      return b.voteScore - a.voteScore;
-    });
-    const start = Math.max(0, cursor);
-    const items = sorted.slice(start, start + limit);
-    const nextCursor = start + limit < sorted.length ? start + limit : null;
-    return Promise.resolve({ items, nextCursor, hasMore: nextCursor !== null });
-  };
-
-  const buildFactCheckPostBody = ({ claim, score, headline, subhead, summary, sources }) => {
-    const lines = [];
-    if (claim) lines.push('Claim: ' + claim);
-    if (Number.isFinite(score)) lines.push('Reliability: ' + score + '%');
-    if (headline) lines.push('Headline: ' + headline);
-    if (subhead) lines.push('Subhead: ' + subhead);
-    if (summary) {
-      lines.push('', 'Summary:', summary);
-    }
-    if (Array.isArray(sources) && sources.length > 0) {
-      lines.push('', 'Sources:');
-      sources.forEach((source, index) => {
-        const title = source?.title || source?.name || ('Source ' + (index + 1));
-        const url = source?.url || source?.link || '';
-        const cred = getCredibilityPercent(source, index, 'real');
-        let line = '- ' + title;
-        if (url) line += ' (' + url + ')';
-        if (cred !== null) line += ' — Credibility: ' + cred + '%';
-        lines.push(line);
+  const loadPreferredDomains = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([SOURCE_PREFS_KEY], (res) => {
+        const stored = res && res[SOURCE_PREFS_KEY];
+        resolve(Array.isArray(stored) ? stored : []);
       });
+    } catch (_) {
+      resolve([]);
     }
-    lines.push('', 'Generated by Veracity AI fact verification.');
-    return lines.join(String.fromCharCode(10));
+  });
+
+  const savePreferredDomains = (domains) => new Promise((resolve) => {
+    const payload = {};
+    payload[SOURCE_PREFS_KEY] = domains;
+    try {
+      chrome.storage.local.set(payload, () => resolve());
+    } catch (_) {
+      resolve();
+    }
+  });
+
+  /** Host for a source, preferring the backend's domain record over parsing the URL. */
+  const hostFromSource = (source) => {
+    const direct = (source && source.domain && source.domain.domain_name) || (source && source.domain_name);
+    if (direct) return String(direct).toLowerCase().replace(/^www\./, '');
+    const raw = (source && (source.url || source.link)) || '';
+    try {
+      return new URL(raw).hostname.toLowerCase().replace(/^www\./, '');
+    } catch (_) {
+      return '';
+    }
   };
 
-  const buildDiscussionItemHtml = (discussion) => {
-    const titleText = discussion.title || 'Fact-check discussion';
-    const descriptionText = discussion.description || '';
-    const previewText = truncateText(descriptionText, 140);
-    const timeText = formatAbsoluteTime(discussion.created_at);
-    const metaHtml = timeText ? ('<div class="discussionMeta">' + '<span>' + escapeHtml(timeText) + '</span>' + '</div>') : '';
-    return (
-      '<div class="discussionItem" role="listitem" data-discussion-id="' + escapeHtml(discussion.id) + '">' +
-        '<div class="discussionTitle">' + escapeHtml(titleText) + '</div>' +
-        '<div class="discussionDescription discussionDescriptionPreview">' + escapeHtml(previewText) + '</div>' +
-        metaHtml +
-      '</div>'
-    );
+  const isPreferredSource = (source) => {
+    const host = hostFromSource(source);
+    if (!host || preferredDomains.length === 0) return false;
+    return preferredDomains.some((d) => {
+      const dd = String(d).toLowerCase();
+      return host === dd || host.endsWith('.' + dd);
+    });
   };
 
-  const buildPostItemHtml = (post) => {
-    const bodyHtml = escapeHtml(post.body || '').replace(__VERACITY_BODY_NEWLINE_REGEX__, '<br />');
-    const upCount = Number.isFinite(post.upvotes) ? post.upvotes : Math.max(0, Math.floor(post.voteScore * 0.7));
-    const downCount = Number.isFinite(post.downvotes) ? post.downvotes : Math.max(0, post.voteScore - upCount);
-    const timeText = formatAbsoluteTime(post.created_at ?? post.createdAt);
-    const metaHtml = timeText ? ('<div class="postMeta"><span>' + escapeHtml(timeText) + '</span></div>') : '';
-    const voted = post.hasVoted === true;
-    const upDisabled = voted ? ' disabled' : '';
-    const downDisabled = voted ? ' disabled' : '';
-    return (
-      '<div class="postCard" data-post-id="' + escapeHtml(post.id) + '">' +
-        '<div class="postContent">' +
-          '<div class="postBody">' + bodyHtml + '</div>' +
-          '<div class="postVotes">' +
-            '<div class="voteGroup up">' +
-              '<button class="voteBtn upvote" data-vote="up" data-id="' + escapeHtml(post.id) + '" type="button" aria-label="Upvote"' + upDisabled + '>▲</button>' +
-              '<span class="voteCount upCount" id="up-' + escapeHtml(post.id) + '">' + upCount + '</span>' +
-            '</div>' +
-            '<div class="voteGroup down">' +
-              '<button class="voteBtn downvote" data-vote="down" data-id="' + escapeHtml(post.id) + '" type="button" aria-label="Downvote"' + downDisabled + '>▼</button>' +
-              '<span class="voteCount downCount" id="down-' + escapeHtml(post.id) + '">' + downCount + '</span>' +
-            '</div>' +
-          '</div>' +
-          metaHtml +
-        '</div>' +
-      '</div>'
-    );
-  };
-
-  const renderDiscussionListView = (panelEl) => {
-    discussionState.view = 'list';
-    discussionState.selectedId = null;
-    panelEl.innerHTML = [
-      '<div class="discussionHub">',
-      '  <div class="discussionHeader">',
-      '    <h2 class="Home_sectionTitle__DKb2S">Discussion Hub</h2>',
-      '  </div>',
-      '  <div id="discussionScroll" class="discussionScroll">',
-      '    <div id="discussionList" class="discussionList" role="list"></div>',
-      '    <div id="discussionLoading" class="discussionLoading isHidden">Loading more…</div>',
-      '    <div id="discussionEnd" class="discussionEnd isHidden">No more discussions</div>',
-      '  </div>',
-      '</div>',
-    ].join('');
-
-    const listEl = panelEl.querySelector('#discussionList');
-    const scrollEl = panelEl.querySelector('#discussionScroll');
-    const loadingEl = panelEl.querySelector('#discussionLoading');
-    const endEl = panelEl.querySelector('#discussionEnd');
-    const appendDiscussions = (items) => {
-      if (!listEl) return;
-      const html = items.map(buildDiscussionItemHtml).join('');
-      listEl.insertAdjacentHTML('beforeend', html);
-    };
-
-    const loadMore = async () => {
-      if (discussionState.discussionsLoading || !discussionState.discussionsHasMore) return;
-      discussionState.discussionsLoading = true;
-      if (loadingEl) loadingEl.classList.remove('isHidden');
-      const result = await fetchDiscussions({
-        cursor: discussionState.discussionCursor,
-        limit: 6,
-        sort: discussionState.discussionSort,
-      });
-      appendDiscussions(result.items);
-      discussionState.discussionCursor = result.nextCursor || discussionState.discussionCursor;
-      discussionState.discussionsHasMore = result.hasMore;
-      discussionState.discussionsLoading = false;
-      if (loadingEl) loadingEl.classList.add('isHidden');
-      if (!result.hasMore && endEl) endEl.classList.remove('isHidden');
-    };
-
-    const resetListState = () => {
-      discussionState.discussionCursor = 0;
-      discussionState.discussionsHasMore = true;
-      discussionState.discussionsLoading = false;
-      if (listEl) listEl.innerHTML = '';
-      if (endEl) endEl.classList.add('isHidden');
-    };
-
-    resetListState();
-    loadMore();
-
-    scrollEl?.addEventListener('scroll', () => {
-      if (!scrollEl) return;
-      const nearBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 80;
-      if (nearBottom) loadMore();
-    });
-
-    listEl?.addEventListener('click', (event) => {
-      const target = event.target;
-      const item = target?.closest?.('[data-discussion-id]');
-      if (!item) return;
-      const id = item.getAttribute('data-discussion-id');
-      if (id) renderDiscussionDetailView(panelEl, id);
-    });
-
-  };
-
-  const renderDiscussionDetailView = async (panelEl, discussionId) => {
-    if (API_URL) {
-      try {
-        const token = await ensureAccessToken();
-        const [discRes, postsRes] = await Promise.all([
-          sendBackgroundMessage({ type: 'GET_DISCUSSION', apiUrl: API_URL, accessToken: token, discussionId }),
-          sendBackgroundMessage({ type: 'GET_POSTS', apiUrl: API_URL, accessToken: token, discussionId }),
-        ]);
-        if (discRes.success && discRes.discussion) {
-          const mapped = mapApiDiscussion(discRes.discussion);
-          const sid = String(mapped.id);
-          const idx = discussionStore.discussions.findIndex((d) => String(d.id) === sid);
-          if (idx >= 0) {
-            const existing = discussionStore.discussions[idx];
-            const hasExistingDesc = existing.description != null && String(existing.description).trim() !== '';
-            const hasIncomingDesc = mapped.description != null && String(mapped.description).trim() !== '';
-            let finalDescription = mapped.description;
-            if (hasExistingDesc && !hasIncomingDesc) finalDescription = existing.description ?? '';
-            const finalUserId = mapped.user_id != null && mapped.user_id !== '' ? mapped.user_id : (existing.user_id ?? mapped.user_id);
-            const finalCreatedAt = (mapped.created_at != null && mapped.created_at !== '') ? mapped.created_at : (existing.created_at ?? mapped.created_at);
-            const finalUpdatedAt = (mapped.updated_at != null && mapped.updated_at !== '') ? mapped.updated_at : (existing.updated_at ?? mapped.updated_at);
-            discussionStore.discussions[idx] = {
-              ...mapped,
-              description: finalDescription,
-              user_id: finalUserId,
-              created_at: finalCreatedAt,
-              updated_at: finalUpdatedAt,
-              author: (finalUserId != null && String(finalUserId).trim() !== '') ? ('u/' + String(finalUserId).trim()) : (mapped.author ?? 'u/anonymous'),
-              createdAt: finalCreatedAt != null ? finalCreatedAt : existing.createdAt,
-            };
-          } else {
-            discussionStore.discussions.unshift(mapped);
-          }
-        }
-        if (postsRes.success && Array.isArray(postsRes.posts)) {
-          const existingList = discussionStore.postsByDiscussionId[discussionId] || [];
-          const existingById = {};
-          existingList.forEach((p) => { existingById[String(p.id)] = p; });
-          const merged = postsRes.posts.map((p) => {
-            const mapped = mapApiPost(p, discussionId);
-            const existing = existingById[mapped.id];
-            if (existing) {
-              const apiUp = Number.isFinite(mapped.upvotes) ? mapped.upvotes : 0;
-              const apiDown = Number.isFinite(mapped.downvotes) ? mapped.downvotes : 0;
-              const localUp = Number.isFinite(existing.upvotes) ? existing.upvotes : 0;
-              const localDown = Number.isFinite(existing.downvotes) ? existing.downvotes : 0;
-              const mergedUp = apiUp > 0 ? apiUp : localUp;
-              const mergedDown = apiDown > 0 ? apiDown : localDown;
-              return { ...mapped, upvotes: mergedUp, downvotes: mergedDown };
-            }
-            return mapped;
-          });
-          discussionStore.postsByDiscussionId[discussionId] = merged;
-        }
-      } catch (_) {}
-    }
-    const discussion = discussionStore.discussions.find((item) => String(item.id) === String(discussionId));
-    if (!discussion) {
-      renderDiscussionListView(panelEl);
-      return;
-    }
-    const existingPosts = discussionStore.postsByDiscussionId[discussionId] || [];
-    if (!discussion.description && existingPosts.length > 0) {
-      const firstPost = existingPosts[0];
-      const body = firstPost?.body || '';
-      if (body.includes('Generated by Veracity AI fact verification.')) {
-        discussion.description = body;
-      }
-    }
-    discussionState.view = 'detail';
-    discussionState.selectedId = discussionId;
-
-    const currentSort = discussionState.postsSortById[discussionId] || 'top';
-    const discussionBody = discussion.description ?? '';
-    const descTruncated = discussionBody ? truncateAtWord(discussionBody, 300) : null;
-    const descriptionBlockHtml = !discussionBody
-      ? ''
-      : descTruncated.isLong
-        ? '<div class="discussionDetailDescriptionWrap">' +
-            '<div class="discussionDetailDescription" id="discussionDetailDescriptionText"></div>' +
-            '<span role="button" tabindex="0" class="forgotLink logout-link discussionDescriptionToggle" id="discussionDescriptionToggle">Read more</span>' +
-            '</div>'
-        : '<div class="discussionDetailDescription" id="discussionDetailDescriptionText"></div>';
-    const detailHeaderHtml =
-      '<div class="discussionDetailHeader">' +
-        '<h2 class="discussionDetailTitle">' + escapeHtml(discussion.title || 'Fact-check discussion') + '</h2>' +
-        (descriptionBlockHtml || '') +
-      '</div>';
-    panelEl.innerHTML = [
-      '<div class="discussionHub">',
-      '  <button id="discussionBackBtn" class="discussionBackBtn" type="button">← Back</button>',
-      '  ' + detailHeaderHtml,
-      '  <div class="discussionControls">',
-      '    <div class="discussionSort">',
-      '      <button class="sortPill Home_primaryBtn__nO8b8 verifyButton' + (currentSort === 'top' ? ' sortPillActive' : '') + '" data-sort="top" type="button">Top</button>',
-      '      <button class="sortPill Home_primaryBtn__nO8b8 verifyButton' + (currentSort === 'new' ? ' sortPillActive' : '') + '" data-sort="new" type="button">New</button>',
-      '    </div>',
-      '    <button id="newPostToggle" class="Home_primaryBtn__nO8b8 verifyButton discussionActionBtn" type="button">New post</button>',
-      '  </div>',
-      '  <form id="newPostForm" class="discussionForm isHidden">',
-      '    <label class="Home_label__D_5fs" for="postBody">Post</label>',
-      '    <textarea id="postBody" class="Home_textarea__k243o" rows="4" placeholder="Share your thoughts"></textarea>',
-      '    <div class="discussionFormActions">',
-      '      <button class="Home_primaryBtn__nO8b8" type="submit">Publish post</button>',
-      '      <button id="newPostCancel" class="Home_heroSecondaryBtn__2ba6l" type="button">Cancel</button>',
-      '    </div>',
-      '    <div id="postError" class="discussionError" aria-live="polite"></div>',
-      '  </form>',
-      '  <div id="postsScroll" class="discussionScroll">',
-      '    <div id="postsList" class="postsList"></div>',
-      '    <div id="postsLoading" class="discussionLoading isHidden">Loading more…</div>',
-      '    <div id="postsEnd" class="discussionEnd isHidden">No more posts</div>',
-      '  </div>',
-      '</div>',
-    ].join('');
-
-    const backBtn = panelEl.querySelector('#discussionBackBtn');
-    const postsList = panelEl.querySelector('#postsList');
-    const postsScroll = panelEl.querySelector('#postsScroll');
-    const loadingEl = panelEl.querySelector('#postsLoading');
-    const endEl = panelEl.querySelector('#postsEnd');
-    const sortButtons = Array.from(panelEl.querySelectorAll('.sortPill'));
-    const newPostToggle = panelEl.querySelector('#newPostToggle');
-    const newPostForm = panelEl.querySelector('#newPostForm');
-    const newPostCancel = panelEl.querySelector('#newPostCancel');
-    const postBody = panelEl.querySelector('#postBody');
-    const postError = panelEl.querySelector('#postError');
-
-    const descriptionTextEl = panelEl.querySelector('#discussionDetailDescriptionText');
-    if (descriptionTextEl && discussionBody) {
-      descriptionTextEl.style.whiteSpace = 'pre-wrap';
-      if (descTruncated.isLong) {
-        descriptionTextEl.textContent = descTruncated.display + '…';
-        const toggleBtn = panelEl.querySelector('#discussionDescriptionToggle');
-        if (toggleBtn) {
-          const runToggle = () => {
-            const expanded = descriptionTextEl.getAttribute('data-expanded') === '1';
-            if (expanded) {
-              descriptionTextEl.textContent = descTruncated.display + '…';
-              descriptionTextEl.removeAttribute('data-expanded');
-              toggleBtn.textContent = 'Read more';
-            } else {
-              descriptionTextEl.textContent = discussionBody;
-              descriptionTextEl.setAttribute('data-expanded', '1');
-              toggleBtn.textContent = 'Show less';
-            }
-          };
-          toggleBtn.addEventListener('click', runToggle);
-          toggleBtn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              runToggle();
-            }
-          });
-        }
-      } else {
-        descriptionTextEl.textContent = discussionBody;
-      }
-    }
-
-    const resetPostsState = () => {
-      discussionState.postsCursorById[discussionId] = 0;
-      discussionState.postsHasMoreById[discussionId] = true;
-      discussionState.postsLoadingById[discussionId] = false;
-      if (postsList) postsList.innerHTML = '';
-      if (endEl) endEl.classList.add('isHidden');
-    };
-
-    const applyVotedState = (container) => {
-      if (!container) return;
-      const posts = discussionStore.postsByDiscussionId[discussionId] || [];
-      const cards = Array.from(container.querySelectorAll('.postCard'));
-      cards.forEach((card) => {
-        const postId = card.getAttribute('data-post-id');
-        if (!postId) return;
-        const post = posts.find((p) => String(p.id) === String(postId));
-        if (!post || post.hasVoted !== true) return;
-        const upBtn = card.querySelector('.voteBtn.upvote');
-        const downBtn = card.querySelector('.voteBtn.downvote');
-        if (upBtn) upBtn.disabled = true;
-        if (downBtn) downBtn.disabled = true;
-        if (post.userVote === 'up' && upBtn) upBtn.classList.add('voted');
-        if (post.userVote === 'down' && downBtn) downBtn.classList.add('voted');
-      });
-    };
-
-    const appendPosts = (items) => {
-      if (!postsList) return;
-      const html = items.map(buildPostItemHtml).join('');
-      postsList.insertAdjacentHTML('beforeend', html);
-      applyVotedState(postsList);
-    };
-
-    const loadMorePosts = async () => {
-      if (discussionState.postsLoadingById[discussionId]) return;
-      if (!discussionState.postsHasMoreById[discussionId]) return;
-      discussionState.postsLoadingById[discussionId] = true;
-      if (loadingEl) loadingEl.classList.remove('isHidden');
-      const result = await fetchPosts({
-        discussionId,
-        cursor: discussionState.postsCursorById[discussionId] || 0,
-        limit: 6,
-        sort: discussionState.postsSortById[discussionId] || 'top',
-      });
-      appendPosts(result.items);
-      discussionState.postsCursorById[discussionId] = result.nextCursor || discussionState.postsCursorById[discussionId] || 0;
-      discussionState.postsHasMoreById[discussionId] = result.hasMore;
-      discussionState.postsLoadingById[discussionId] = false;
-      if (loadingEl) loadingEl.classList.add('isHidden');
-      if (!result.hasMore && endEl) endEl.classList.remove('isHidden');
-    };
-
-    resetPostsState();
-    loadMorePosts();
-
-    postsScroll?.addEventListener('scroll', () => {
-      if (!postsScroll) return;
-      const nearBottom = postsScroll.scrollTop + postsScroll.clientHeight >= postsScroll.scrollHeight - 80;
-      if (nearBottom) loadMorePosts();
-    });
-
-    postsList?.addEventListener('click', async (event) => {
-      const target = event.target;
-      const voteButton = target?.closest?.('.voteBtn');
-      if (!voteButton) return;
-      const postId = voteButton.getAttribute('data-id');
-      const post = (discussionStore.postsByDiscussionId[discussionId] || []).find((item) => item.id === postId);
-      if (!post) return;
-      if (post.hasVoted === true) return;
-      const voteType = voteButton.getAttribute('data-vote');
-      if (voteType !== 'up' && voteType !== 'down') return;
-      if (!Number.isFinite(post.upvotes)) post.upvotes = Math.max(0, Math.floor(post.voteScore * 0.7));
-      if (!Number.isFinite(post.downvotes)) post.downvotes = Math.max(0, post.voteScore - post.upvotes);
-      const prevUp = post.upvotes;
-      const prevDown = post.downvotes;
-      if (voteType === 'up') {
-        post.upvotes += 1;
-        const upEl = panelEl.querySelector('#up-' + post.id);
-        if (upEl) upEl.textContent = String(post.upvotes);
-      } else {
-        post.downvotes += 1;
-        const downEl = panelEl.querySelector('#down-' + post.id);
-        if (downEl) downEl.textContent = String(post.downvotes);
-      }
-      const card = voteButton.closest('.postCard');
-      if (card) {
-        const upBtn = card.querySelector('.voteBtn.upvote');
-        const downBtn = card.querySelector('.voteBtn.downvote');
-        if (upBtn) upBtn.disabled = true;
-        if (downBtn) downBtn.disabled = true;
-        if (voteType === 'up' && upBtn) upBtn.classList.add('voted');
-        if (voteType === 'down' && downBtn) downBtn.classList.add('voted');
-      }
-      if (API_URL) {
-        try {
-          const token = await ensureAccessToken();
-          const res = await sendBackgroundMessage({
-            type: 'VOTE_POST',
-            apiUrl: API_URL,
-            accessToken: token,
-            post_id: String(postId),
-            vote: voteType,
-          });
-          if (!res || !res.success) {
-            post.upvotes = prevUp;
-            post.downvotes = prevDown;
-            const upEl = panelEl.querySelector('#up-' + post.id);
-            const downEl = panelEl.querySelector('#down-' + post.id);
-            if (upEl) upEl.textContent = String(prevUp);
-            if (downEl) downEl.textContent = String(prevDown);
-            if (card) {
-              const upB = card.querySelector('.voteBtn.upvote');
-              const downB = card.querySelector('.voteBtn.downvote');
-              if (upB) { upB.disabled = false; upB.classList.remove('voted'); }
-              if (downB) { downB.disabled = false; downB.classList.remove('voted'); }
-            }
-          } else {
-            post.hasVoted = true;
-            post.userVote = voteType;
-            const data = res.data;
-            if (data && (Number.isFinite(data.upvotes) || Number.isFinite(data.downvotes))) {
-              if (Number.isFinite(data.upvotes)) post.upvotes = data.upvotes;
-              if (Number.isFinite(data.downvotes)) post.downvotes = data.downvotes;
-              const upEl = panelEl.querySelector('#up-' + post.id);
-              const downEl = panelEl.querySelector('#down-' + post.id);
-              if (upEl) upEl.textContent = String(post.upvotes);
-              if (downEl) downEl.textContent = String(post.downvotes);
-            }
-          }
-        } catch (_) {
-          post.upvotes = prevUp;
-          post.downvotes = prevDown;
-          const upEl = panelEl.querySelector('#up-' + post.id);
-          const downEl = panelEl.querySelector('#down-' + post.id);
-          if (upEl) upEl.textContent = String(prevUp);
-          if (downEl) downEl.textContent = String(prevDown);
-          if (card) {
-            const upB = card.querySelector('.voteBtn.upvote');
-            const downB = card.querySelector('.voteBtn.downvote');
-            if (upB) { upB.disabled = false; upB.classList.remove('voted'); }
-            if (downB) { downB.disabled = false; downB.classList.remove('voted'); }
-          }
-        }
-      }
-    });
-
-    sortButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sort = btn.getAttribute('data-sort');
-        if (!sort || sort === discussionState.postsSortById[discussionId]) return;
-        discussionState.postsSortById[discussionId] = sort;
-        sortButtons.forEach((inner) => {
-          inner.classList.toggle('sortPillActive', inner.getAttribute('data-sort') === sort);
-        });
-        resetPostsState();
-        loadMorePosts();
-      });
-    });
-
-    newPostToggle?.addEventListener('click', () => {
-      newPostForm?.classList.toggle('isHidden');
-      if (postError) postError.textContent = '';
-    });
-
-    newPostCancel?.addEventListener('click', () => {
-      newPostForm?.classList.add('isHidden');
-      if (postError) postError.textContent = '';
-    });
-
-    newPostForm?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const body = (postBody?.value || '').trim();
-      if (!body) {
-        if (postError) postError.textContent = 'Please enter a post.';
-        return;
-      }
-      if (postError) postError.textContent = '';
-      if (!API_URL) {
-        if (postError) postError.textContent = 'Something went wrong. Please try again.';
-        return;
-      }
-      try {
-        const token = await ensureAccessToken();
-        const res = await sendBackgroundMessage({
-          type: 'CREATE_POST',
-          apiUrl: API_URL,
-          accessToken: token,
-          discussion_id: discussionId,
-          text: body,
-        });
-        if (!res.success) {
-          if (postError) postError.textContent = 'Something went wrong. Please try again.';
-          return;
-        }
-        const postsRes = await sendBackgroundMessage({
-          type: 'GET_POSTS',
-          apiUrl: API_URL,
-          accessToken: token,
-          discussionId,
-        });
-        if (postsRes.success && Array.isArray(postsRes.posts)) {
-          discussionStore.postsByDiscussionId[discussionId] = postsRes.posts.map((p) => mapApiPost(p, discussionId));
-        }
-        resetPostsState();
-        loadMorePosts();
-        if (postBody) postBody.value = '';
-        newPostForm?.classList.add('isHidden');
-      } catch (_) {
-        if (postError) postError.textContent = 'Something went wrong. Please try again.';
-      }
-    });
-
-    backBtn?.addEventListener('click', () => {
-      renderDiscussionListView(panelEl);
-    });
+  /** Stable partition: chosen domains first, search order kept within each group. */
+  const prioritizeSources = (sources) => {
+    if (!Array.isArray(sources) || preferredDomains.length === 0) return sources || [];
+    const preferred = [];
+    const rest = [];
+    sources.forEach((x) => { (isPreferredSource(x) ? preferred : rest).push(x); });
+    return preferred.concat(rest);
   };
 
   const getCredibilityPercent = (source, index, mode) => {
@@ -985,8 +416,12 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     const credibilityHtml = credibility === null
       ? ''
       : '<div class="sourceCredibilityPill">Credibility: ' + credibility + '%</div>';
+    const preferredHtml = isPreferredSource(source)
+      ? '<div class="sourcePreferredPill" title="From a source you chose">Your source</div>'
+      : '';
     const contentHtml =
       '<div class="sourceCard">' +
+        preferredHtml +
         credibilityHtml +
         '<div class="sourceHeading">' + escapeHtml(title) + '</div>' +
         (snippet ? '<div class="sourcesDescription">' + escapeHtml(snippet) + '</div>' : '') +
@@ -1049,11 +484,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (!Number.isFinite(score)) {
       lastFactCheck = null;
       mount.innerHTML = '';
-      ensureCreateDiscussionButton();
       return;
     }
 
-    const sources = extractSources(result);
+    const sources = prioritizeSources(extractSources(result));
     currentSourceIndex = 0;
     const clamped = Math.max(0, Math.min(100, parseFloat(score)));
     const deg = clamped * 3.6;
@@ -1119,88 +553,10 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (sourcesMount && sources.length > 0) {
       renderSourcesInto(sourcesMount, sources, 'real');
     }
-    ensureCreateDiscussionButton();
   };
-  const ensureCreateDiscussionButton = () => {
-    if (activeTab !== 'ai') {
-      root?.querySelector('#createDiscussionBtn')?.remove();
-      root?.querySelector('#createDiscussionContainer')?.remove();
-      return;
-    }
-    const shouldShow = !!lastFactCheck && Number.isFinite(lastFactCheck.score) && !isVerifying;
-    const aiPanel = root?.querySelector('#aiTabPanel');
-    if (!aiPanel) return;
-    const existingBtn = aiPanel.querySelector('#createDiscussionBtn');
-    const existingContainer = aiPanel.querySelector('#createDiscussionContainer');
-    if (!shouldShow) {
-      existingBtn?.remove();
-      existingContainer?.remove();
-      return;
-    }
-    if (existingBtn || existingContainer) return;
-    root?.querySelector('#createDiscussionContainer')?.remove();
-    const anchor =
-      aiPanel.querySelector('#sourcesMount') ||
-      aiPanel.querySelector('#scoreBox') ||
-      aiPanel;
-    const container = document.createElement('div');
-    container.id = 'createDiscussionContainer';
-    container.className = 'createDiscussionCta';
-    container.innerHTML =
-      '<div class="createDiscussionHelper">Want to discuss this result?</div>' +
-      '<button id="createDiscussionBtn" class="Home_primaryBtn__nO8b8 verifyButton discussionActionBtn" type="button">Create discussion</button>' +
-      '<div id="createDiscussionFormMount"></div>';
-    if (anchor) {
-      anchor.insertAdjacentElement('afterend', container);
-      return;
-    }
-    aiPanel.insertAdjacentElement('beforeend', container);
-  };
-
-  const getDiscussionDraftDefaults = () => {
-    const claim = lastFactCheck?.claim || '';
-    const title = claim ? claim.slice(0, 120) : 'Fact-check discussion';
-    const body = buildFactCheckPostBody({
-      claim: lastFactCheck?.claim,
-      score: lastFactCheck?.score,
-      headline: lastFactCheck?.headline,
-      subhead: lastFactCheck?.subhead,
-      summary: lastFactCheck?.summary,
-      sources: lastFactCheck?.sources || [],
-    });
-    return { title, body };
-  };
-
-  const openCreateDiscussionDraft = () => {
-    const aiPanel = root?.querySelector('#aiTabPanel');
-    if (!aiPanel || !lastFactCheck) return;
-    const mount = aiPanel.querySelector('#createDiscussionFormMount');
-    if (!mount) return;
-    const defaults = getDiscussionDraftDefaults();
-    mount.innerHTML =
-      '<form id="createDiscussionForm" class="discussionForm createDiscussionForm">' +
-        '<label class="Home_label__D_5fs" for="discussionTitle">Title</label>' +
-        '<input id="discussionTitle" class="Home_textarea__k243o" type="text" />' +
-        '<label class="Home_label__D_5fs" for="discussionBody">Body</label>' +
-        '<textarea id="discussionBody" class="Home_textarea__k243o" rows="6"></textarea>' +
-        '<div class="discussionFormActions">' +
-          '<button class="Home_primaryBtn__nO8b8" type="submit">Create discussion</button>' +
-          '<button id="discussionCancel" class="Home_heroSecondaryBtn__2ba6l" type="button">Cancel</button>' +
-        '</div>' +
-        '<div id="discussionError" class="discussionError" aria-live="polite"></div>' +
-      '</form>';
-    const titleInput = mount.querySelector('#discussionTitle');
-    const bodyInput = mount.querySelector('#discussionBody');
-    if (titleInput) titleInput.value = defaults.title;
-    if (bodyInput) bodyInput.value = defaults.body;
-    const ctaBtn = root?.querySelector('#createDiscussionBtn');
-    if (ctaBtn) ctaBtn.classList.add('isHidden');
-  };
-
   const finalizeVerification = () => {
     setVerifying(false);
     lastVerifiedClaim = lastClaimText;
-    ensureCreateDiscussionButton();
   };
 
 
@@ -1239,19 +595,269 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  // --- Claim decomposition -------------------------------------------------
+  //
+  // The user's text goes to the backend first, which returns the factual statements
+  // it can find. Nothing is created yet: the card below is where the user confirms
+  // which statement was meant, and only then does a claim exist.
+
+  const clearPendingConfirm = () => {
+    pendingOriginalText = '';
+    pendingProcessedText = '';
+    pendingStatements = [];
+    pendingSelectedId = null;
+    pendingReason = null;
+    pendingEditingId = null;
+  };
+
+  /** True while the confirm card owns the flow and no claim has been created. */
+  const confirmCardIsOpen = () => pendingStatements.length > 0 || pendingReason !== null;
+
+  const CONFIRM_NOTICE = {
+    no_claims: 'I could not find a verifiable factual statement in your text. You can try rephrasing it, or check your text as-is.',
+    too_long: 'Your text is too long to analyse in one go. Please shorten it, or check your text as-is.',
+    llm_error: 'Something went wrong while reading your text. You can try again, or check your text as-is.',
+    error: 'Something went wrong while reading your text. You can try again, or check your text as-is.',
+  };
+
+  const closeConfirmCard = () => {
+    clearPendingConfirm();
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    updateVerifyButtonState();
+  };
+
+  /**
+   * Draw the confirm card into #resultMount.
+   *
+   * Rebuilt purely from pending* state, because renderAppScreen() has to call this
+   * again after a focus re-render wipes the panel. Statement text is model output
+   * derived from whatever page the user was reading, so every value is escaped —
+   * never interpolated raw.
+   */
+  const renderConfirmCard = () => {
+    const mount = root?.querySelector('#resultMount');
+    if (!mount) return;
+
+    let body;
+    if (pendingStatements.length > 0) {
+      const rows = pendingStatements.map((statement) => {
+        const id = escapeHtml(statement.id);
+        if (pendingEditingId === statement.id) {
+          return '<div class="claimConfirm-row">'
+            + '<textarea class="claimConfirm-editArea" rows="3" aria-label="Edit the statement">'
+            + escapeHtml(statement.text)
+            + '</textarea>'
+            + '<div class="claimConfirm-rowActions">'
+            + '<button type="button" class="claimConfirm-smallPrimary" data-action="save-edit" data-id="' + id + '">Save</button>'
+            + '<button type="button" class="claimConfirm-smallSecondary" data-action="cancel-edit">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        }
+        const active = statement.id === pendingSelectedId;
+        return '<div class="claimConfirm-row">'
+          + '<button type="button" role="radio" aria-checked="' + (active ? 'true' : 'false') + '"'
+          + ' class="claimConfirm-statement' + (active ? ' claimConfirm-statement--active' : '') + '"'
+          + ' data-action="select" data-id="' + id + '">'
+          + '<span class="claimConfirm-text">' + escapeHtml(statement.text) + '</span>'
+          + '</button>'
+          + '<button type="button" class="claimConfirm-editBtn" data-action="edit" data-id="' + id + '">Edit</button>'
+          + '</div>';
+      }).join('');
+
+      const canConfirm = !!pendingSelectedId && pendingEditingId === null;
+      body = '<p class="claimConfirm-heading">Here is what I found in your text. Select the statement you would like me to verify:</p>'
+        + '<div class="claimConfirm-list" role="radiogroup" aria-label="Statements found in your text">' + rows + '</div>'
+        + '<div class="claimConfirm-actions">'
+        + '<button type="button" class="claimConfirm-secondary" data-action="back">Back</button>'
+        + '<button type="button" class="claimConfirm-primary" data-action="confirm"' + (canConfirm ? '' : ' disabled') + '>Verify this statement</button>'
+        + '</div>';
+    } else {
+      body = '<p class="claimConfirm-heading">' + (CONFIRM_NOTICE[pendingReason] || CONFIRM_NOTICE.error) + '</p>'
+        + '<div class="claimConfirm-actions">'
+        + '<button type="button" class="claimConfirm-secondary" data-action="back">Back</button>'
+        + '<button type="button" class="claimConfirm-primary" data-action="check-as-is">Check my text as-is</button>'
+        + '</div>';
+    }
+
+    mount.innerHTML = '<div class="claimConfirm-card">' + body + '</div>';
+
+    mount.querySelectorAll('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        if (action === 'select') {
+          pendingSelectedId = id;
+          renderConfirmCard();
+        } else if (action === 'edit') {
+          pendingEditingId = id;
+          pendingSelectedId = id;
+          renderConfirmCard();
+        } else if (action === 'cancel-edit') {
+          pendingEditingId = null;
+          renderConfirmCard();
+        } else if (action === 'save-edit') {
+          // An edit goes back through extraction rather than straight to the claim:
+          // the user may have rewritten the statement into an opinion, or into two
+          // separate facts, and the card must show what actually survived.
+          const area = mount.querySelector('.claimConfirm-editArea');
+          const edited = (area && area.value ? area.value : '').trim();
+          if (!edited) return;
+          pendingEditingId = null;
+          runExtractionStep(edited);
+        } else if (action === 'confirm') {
+          const chosen = pendingStatements.filter((s) => s.id === pendingSelectedId)[0];
+          if (!chosen) return;
+          const context = pendingOriginalText;
+          closeConfirmCard();
+          runClaim(chosen.text, context);
+        } else if (action === 'check-as-is') {
+          // Whatever the last extraction attempt actually saw — which after an edit is
+          // the edited text, not the original paste. The original still travels as
+          // context so the analysis keeps the full surrounding text.
+          const context = pendingOriginalText;
+          const claim = pendingProcessedText || pendingOriginalText;
+          closeConfirmCard();
+          runClaim(claim, context);
+        } else if (action === 'back') {
+          // Leaves the textarea alone so the user can edit and resubmit; clearing the
+          // card re-enables the Verify button, which confirmCardIsOpen() had disabled.
+          closeConfirmCard();
+        }
+      });
+    });
+  };
+
+  /**
+   * Run one extraction pass and show the card for its result.
+   *
+   * Shared by the initial submission and by every edit-save — the semantics are the
+   * same, only the input differs.
+   */
+  const runExtractionStep = async (text) => {
+    pendingProcessedText = text;
+    pendingEditingId = null;
+    setVerifying(true);
+
+    let res = null;
+    try {
+      const token = await ensureAccessToken();
+      if (token) {
+        res = await sendBackgroundMessage({
+          type: 'EXTRACT_CLAIMS',
+          text,
+          language: detectLanguage(),
+          accessToken: token,
+          apiUrl: API_URL,
+        });
+      }
+    } catch (_) {
+      res = null;
+    }
+
+    // Every failure — transport, auth, or a response we cannot read — ends in the same
+    // notice with the same two escape buttons as "found nothing"; only the wording
+    // differs. There is deliberately no dead end here.
+    const statements = (res && res.success === true && Array.isArray(res.statements)) ? res.statements : [];
+    pendingStatements = statements;
+    if (statements.length > 0) {
+      pendingSelectedId = statements[0].id;
+      pendingReason = null;
+    } else {
+      pendingSelectedId = null;
+      const reason = (res && res.success === true) ? res.reason : 'error';
+      pendingReason = (!reason || reason === 'ok') ? 'no_claims' : reason;
+    }
+
+    // Cleared before the card renders so confirmCardIsOpen() is already true when
+    // updateVerifyButtonState() runs.
+    setVerifying(false);
+    renderConfirmCard();
+  };
+
+  /**
+   * Create the claim and run it end to end.
+   *
+   * The context argument is the text the claim was drawn from, so the analysis is
+   * generated with the real surrounding text rather than a placeholder.
+   */
+  const runClaim = async (claimText, context) => {
+    if (isVerifying) return;
+    setVerifying(true);
+
+    const authStatusText = root?.querySelector('#authStatusText');
+
+    let token;
+    try {
+      token = await ensureAccessToken();
+    } catch (err) {
+      const msg = 'Something went wrong. Please try again.';
+      setInlineMessage(msg);
+      if (authStatusText) authStatusText.textContent = msg;
+      finalizeVerification();
+      return;
+    }
+
+    if (!token) {
+      const msg = 'Please sign in to verify claims.';
+      if (authStatusText) authStatusText.textContent = msg;
+      setInlineMessage(msg);
+      finalizeVerification();
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      {
+        type: 'VERIFY_CLAIM',
+        claimText,
+        context,
+        language: detectLanguage(),
+        accessToken: token,
+        apiUrl: API_URL,
+        preferredDomains,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          const msg = 'Something went wrong. Please try again.';
+          setInlineMessage(msg);
+          if (authStatusText) authStatusText.textContent = msg;
+          finalizeVerification();
+          return;
+        }
+        if (!response || response.success !== true) {
+          const msg = 'Something went wrong. Please try again.';
+          setInlineMessage(msg);
+          if (authStatusText) authStatusText.textContent = msg;
+          finalizeVerification();
+          return;
+        }
+        const score = Math.round((response.veracity_score || 0) * 100);
+        const summary = response.analysis_text || '';
+        const result = { sources: Array.isArray(response.sources) ? response.sources : [] };
+        const claim_id = response.claim_id ?? null;
+        const analysis_id = response.analysis_id ?? null;
+        setScore(score, { summary, result, claim_id, analysis_id });
+        lastAnalysisResult = { claim: claimText, score, summary, result, claim_id, analysis_id };
+        pushHistory({ kind: 'text', label: claimText, score, payload: lastAnalysisResult });
+        finalizeVerification();
+      }
+    );
+  };
+
   /**
    * Single public verification entry point for all flows.
    *
    * Callers:
-   * - AI tab Verify button (no argument → read from textarea)
+   * - Verify button (no argument → read from textarea)
    * - Context menu “Send to Veracity” (passes selected text)
    *
    * Responsibilities:
    * - Guard against concurrent runs via isVerifying
    * - Normalize + persist claim text and reset result UI
    * - Enforce auth and API configuration
-   * - Delegate to background.js VERIFY_CLAIM and map the response into score card UI
-   * - Always end via finalizeVerification() so button + status reset correctly
+   * - Decompose the text and hand over to the confirm card; runClaim() takes it from
+   *   there once the user has picked a statement
+   * - Every exit path either calls finalizeVerification() or leaves the card in charge
    */
   const startVerification = async (claimTextOverride) => {
     // Ignore if a verification is already in progress.
@@ -1279,7 +885,6 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     currentSourceIndex = 0;
     lastFactCheck = null;
     setScore(null);
-    ensureCreateDiscussionButton();
 
     // Core verification flow. All completion paths must call finalizeVerification().
     if (!claimText) {
@@ -1335,33 +940,11 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    chrome.runtime.sendMessage(
-      { type: 'VERIFY_CLAIM', claimText, accessToken: token, apiUrl: API_URL },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          const msg = 'Something went wrong. Please try again.';
-          setInlineMessage(msg);
-          if (authStatusText) authStatusText.textContent = msg;
-          finalizeVerification();
-          return;
-        }
-        if (!response || response.success !== true) {
-          const msg = 'Something went wrong. Please try again.';
-          setInlineMessage(msg);
-          if (authStatusText) authStatusText.textContent = msg;
-          finalizeVerification();
-          return;
-        }
-        const score = Math.round((response.veracity_score || 0) * 100);
-        const summary = response.analysis_text || '';
-        const result = { sources: Array.isArray(response.sources) ? response.sources : [] };
-        const claim_id = response.claim_id ?? null;
-        const analysis_id = response.analysis_id ?? null;
-        setScore(score, { summary, result, claim_id, analysis_id });
-        lastAnalysisResult = { claim: claimText, score, summary, result, claim_id, analysis_id };
-        finalizeVerification();
-      }
-    );
+    // Drop anything left over from a previous run, then decompose. The claim itself
+    // is created by runClaim() once the user has confirmed a statement.
+    clearPendingConfirm();
+    pendingOriginalText = claimText;
+    await runExtractionStep(claimText);
   };
 
   const startWebAuthFlow = async () => {
@@ -1453,161 +1036,717 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const truncateClaim = (text) => {
+    const str = String(text || '').replace(/\\s+/g, ' ').trim();
+    return str.length <= 84 ? str : str.slice(0, 84).trim() + '\u2026';
+  };
+
+  /** Same thresholds the result card uses, for the history badge. */
+  const scoreBandClass = (score) => {
+    const n = parseFloat(score);
+    if (!Number.isFinite(n)) return '';
+    if (n >= 85) return 'isReal';
+    if (n >= 60) return '';
+    if (n >= 40) return 'isUncertain';
+    return 'isFake';
+  };
+
+  /* ---------------- recent checks ---------------- */
+
+  /**
+   * Recent checks, kept in chrome.storage.local.
+   *
+   * In-memory results only survive while the panel is open; closing the side panel
+   * unloads the page and loses them. Persisting here means a check is still there
+   * tomorrow, and lets the user page back through earlier ones.
+   */
+  const HISTORY_KEY = 'veracity_history';
+  const HISTORY_MAX = 25;
+
+  const loadHistory = () => new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([HISTORY_KEY], (res) => {
+        const stored = res && res[HISTORY_KEY];
+        resolve(Array.isArray(stored) ? stored : []);
+      });
+    } catch (_) {
+      resolve([]);
+    }
+  });
+
+  const saveHistory = () => {
+    const payload = {};
+    payload[HISTORY_KEY] = recentChecks.slice(0, HISTORY_MAX);
+    try {
+      chrome.storage.local.set(payload, () => {});
+    } catch (_) {}
+  };
+
+  const pushHistory = (entry) => {
+    if (!entry) return;
+    const withMeta = Object.assign({ id: String(Date.now()) + '_' + Math.random().toString(36).slice(2, 7), ts: Date.now() }, entry);
+    recentChecks.unshift(withMeta);
+    if (recentChecks.length > HISTORY_MAX) recentChecks.length = HISTORY_MAX;
+    saveHistory();
+    updateHistoryButton();
+  };
+
+  const relativeTime = (ts) => {
+    const diff = Date.now() - (Number(ts) || 0);
+    if (!Number.isFinite(diff) || diff < 0) return '';
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return min + 'm ago';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    const day = Math.floor(hr / 24);
+    if (day < 7) return day + 'd ago';
+    const d = new Date(Number(ts));
+    return (d.getMonth() + 1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(2);
+  };
+
+  /* ---------------- image verification ---------------- */
+
+  /**
+   * Reliability percentage from a media result.
+   *
+   * The detector returns reliability_score as an integer 0-100 and reliability as
+   * the same value as a 0-1 float. Read the integer directly — never infer the
+   * scale from magnitude, or a genuine score of 1 (1%, a near-certain fake) would
+   * be read as a fraction and shown as 100%.
+   */
+  const mediaReliabilityPercent = (data) => {
+    const score = parseFloat(data && data.reliability_score);
+    if (Number.isFinite(score)) return Math.max(0, Math.min(100, Math.round(score)));
+    const frac = parseFloat(data && data.reliability);
+    if (Number.isFinite(frac)) return Math.max(0, Math.min(100, Math.round(frac * 100)));
+    return null;
+  };
+
+  /** Band by the verdict text, so the colour always agrees with the words shown. */
+  const verdictClass = (verdict) => {
+    const v = String(verdict || '').toLowerCase();
+    if (v.indexOf('fake') !== -1) return 'isFake';
+    if (v.indexOf('uncertain') !== -1) return 'isUncertain';
+    if (v.indexOf('real') !== -1) return 'isReal';
+    return '';
+  };
+
+  const renderMediaResult = (data) => {
+    const mount = root?.querySelector('#resultMount');
+    lastMediaResult = data || null;
+    if (!mount) return;
+    if (!data) { mount.innerHTML = ''; return; }
+    const score = mediaReliabilityPercent(data);
+    const verdict = data.verdict || 'Result';
+    const explanation = data.explanation || '';
+    const deg = (score === null ? 0 : score) * 3.6;
+    const gaugeHtml = score === null ? '' :
+      '<div class="reliabilityGauge">' +
+        '<div class="reliabilityGaugeRing" style="--score-value:' + score + '; --score-deg:' + deg + 'deg;"></div>' +
+        '<div class="reliabilityGaugeInner">' +
+          '<div class="reliabilityGaugeLabel">Reliability</div>' +
+          '<div class="reliabilityValue">' + score + '%</div>' +
+        '</div>' +
+      '</div>';
+
+    // The detector returns generators as [{ name, p }] ranked by probability. That
+    // ranking is conditional on the media being fake, so on something judged real
+    // the top entry is noise — only surface it once the verdict is not "real".
+    // p_fake is deliberately not repeated here: the explanation above already states it.
+    const factRows = [];
+    const band = verdictClass(verdict);
+    if (band !== 'isReal') {
+      const gens = (Array.isArray(data.generators) ? data.generators : [])
+        .map((g) => {
+          if (typeof g === 'string') return { name: g, p: null };
+          if (!g || typeof g !== 'object') return null;
+          const name = g.name || g.label || g.generator || g.model;
+          if (!name) return null;
+          const prob = parseFloat(g.p !== undefined ? g.p : g.probability);
+          return { name: String(name), p: Number.isFinite(prob) ? prob : null };
+        })
+        .filter(Boolean);
+      if (gens.length) {
+        const top = gens[0];
+        const pct = top.p === null ? '' : ' ' + Math.round(Math.max(0, Math.min(1, top.p)) * 100) + '%';
+        factRows.push('<div class="mediaFact"><span>Likely generator</span><b>' +
+          escapeHtml(top.name) + escapeHtml(pct) + '</b></div>');
+      }
+    }
+    if (Number.isFinite(parseFloat(data.n_frames)) && parseFloat(data.n_frames) > 1) {
+      factRows.push('<div class="mediaFact"><span>Frames analysed</span><b>' +
+        Math.round(parseFloat(data.n_frames)) + '</b></div>');
+    }
+
+    mount.innerHTML =
+      '<div class="reliabilityCard">' +
+        '<div class="reliabilityGrid">' +
+          gaugeHtml +
+          '<div class="reliabilityCopy">' +
+            '<div class="reliabilityHeadline ' + verdictClass(verdict) + '">' + escapeHtml(verdict) + '</div>' +
+            '<div class="reliabilitySubhead">' + escapeHtml(data.media_type === 'video' ? 'Video analysis' : 'Image analysis') + '</div>' +
+            (explanation
+              ? '<div class="reliabilitySummaryWrap">' +
+                  '<div class="reliabilitySummary">' + escapeHtml(explanation) + '</div>' +
+                '</div>'
+              : '') +
+          '</div>' +
+        '</div>' +
+        (factRows.length ? '<div class="mediaFacts">' + factRows.join('') + '</div>' : '') +
+      '</div>';
+  };
+
+  /**
+   * Verify the selected image.
+   *
+   * This one call goes straight from the panel rather than through background.js:
+   * chrome.runtime messaging cannot carry a File, and multipart bodies have to be
+   * built where the file lives. The manifest already allows api.veri-fact.ai in
+   * connect-src and host_permissions.
+   */
+  const startMediaVerification = async () => {
+    if (isVerifying) return;
+    const status = root?.querySelector('#authStatusText');
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    if (!selectedMediaFile) {
+      if (status) status.textContent = 'Choose an image to verify.';
+      return;
+    }
+    setVerifying(true);
+    if (status) status.textContent = '';
+    try {
+      const authed = typeof VeracityAuth !== 'undefined' && await VeracityAuth.isAuthenticated();
+      if (!authed) {
+        if (status) status.textContent = 'Please sign in to verify images.';
+        return;
+      }
+      if (!API_URL) {
+        if (status) status.textContent = 'Something went wrong. Please try again.';
+        return;
+      }
+      const token = await ensureAccessToken();
+      const form = new FormData();
+      form.append('file', selectedMediaFile);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 150000);
+      let res;
+      try {
+        res = await fetch(API_URL + '/v1/media/verify', {
+          method: 'POST',
+          headers: { Accept: 'application/json', Authorization: 'Bearer ' + token },
+          body: form,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+      if (!res.ok) {
+        let detail = '';
+        try {
+          const body = await res.json();
+          if (body && typeof body.detail === 'string') detail = body.detail;
+        } catch (_) {}
+        if (status) {
+          if (res.status === 400) {
+            status.textContent = detail || 'That file type is not supported.';
+          } else if (res.status === 413) {
+            status.textContent = 'That image is too large to verify.';
+          } else if (res.status === 502) {
+            status.textContent = 'The image detector is unavailable right now. Please try again later.';
+          } else {
+            status.textContent = 'Could not verify this image. Please try again.';
+          }
+        }
+        return;
+      }
+      const mediaData = await res.json();
+      renderMediaResult(mediaData);
+      pushHistory({
+        kind: 'image',
+        label: selectedMediaFile.name,
+        score: mediaReliabilityPercent(mediaData),
+        verdict: mediaData && mediaData.verdict,
+        // Store only what the card renders. The response also carries frames and
+        // mask straight from the detector, which can be large and are never shown;
+        // keeping them would burn the extension's storage quota for nothing.
+        payload: {
+          media_type: mediaData.media_type,
+          reliability_score: mediaData.reliability_score,
+          reliability: mediaData.reliability,
+          p_fake: mediaData.p_fake,
+          verdict: mediaData.verdict,
+          explanation: mediaData.explanation,
+          generators: Array.isArray(mediaData.generators) ? mediaData.generators.slice(0, 3) : [],
+          n_frames: mediaData.n_frames,
+        },
+      });
+    } catch (err) {
+      if (status) {
+        status.textContent = (err && err.name === 'AbortError')
+          ? 'Verifying took too long. Please try again.'
+          : 'Could not verify this image. Please try again.';
+      }
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  /* ---------------- source picker (modal) ---------------- */
+
+  const updateSourcesButton = () => {
+    const btn = root?.querySelector('#sourcesOpenBtn');
+    if (!btn) return;
+    const n = preferredDomains.length;
+    btn.innerHTML = 'Sources' + (n > 0 ? '<span class="sourcesCount">' + n + '</span>' : '');
+    btn.setAttribute('title', n > 0
+      ? ('Prioritising ' + n + ' chosen ' + (n === 1 ? 'source' : 'sources'))
+      : 'Choose sources to prioritise');
+  };
+
+  const closeSourcesModal = () => {
+    const modal = root?.querySelector('#sourcesModal');
+    if (modal) modal.classList.remove('isOpen');
+    document.removeEventListener('keydown', onSourcesKeydown);
+    root?.querySelector('#sourcesOpenBtn')?.focus();
+  };
+
+  function onSourcesKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeSourcesModal();
+    }
+  }
+
+  /**
+   * Source picker, opened as an overlay. Any number of domains may be chosen,
+   * including none — an empty selection means no preference.
+   */
+  const openSourcesModal = () => {
+    const modal = root?.querySelector('#sourcesModal');
+    if (!modal) return;
+    const draft = new Set(preferredDomains);
+
+    const groupsHtml = sourceCatalog.map((cat, ci) => {
+      const items = ((cat && cat.domains) || []).map((d, di) => {
+        const id = 'srcOpt_' + ci + '_' + di;
+        const checked = draft.has(d.domain) ? ' checked' : '';
+        return '' +
+          '<label class="sourceOption" for="' + id + '">' +
+            '<input type="checkbox" id="' + id + '" class="sourceOptionInput" value="' + escapeHtml(d.domain) + '"' + checked + ' />' +
+            '<span class="sourceOptionText">' +
+              '<span class="sourceOptionLabel">' + escapeHtml(d.label || d.domain) + '</span>' +
+              '<span class="sourceOptionDomain">' + escapeHtml(d.domain) + '</span>' +
+            '</span>' +
+          '</label>';
+      }).join('');
+      return '' +
+        '<section class="sourceGroup">' +
+          '<h3 class="sourceGroupTitle">' + escapeHtml(cat.name || 'Sources') + '</h3>' +
+          '<div class="sourceGroupItems">' + items + '</div>' +
+        '</section>';
+    }).join('');
+
+    modal.innerHTML =
+      '<div class="modalScrim" data-close="1"></div>' +
+      '<div class="modalDialog" role="dialog" aria-modal="true" aria-labelledby="sourcesModalTitle">' +
+        '<div class="modalHead">' +
+          '<h2 class="modalTitle" id="sourcesModalTitle">Your sources</h2>' +
+          '<button class="modalClose" type="button" data-close="1" aria-label="Close">&times;</button>' +
+        '</div>' +
+        '<p class="modalIntro">Evidence from the sources you choose is prioritised when verifying, ' +
+          'and marked in your results. Choose as many or as few as you like — with none chosen, ' +
+          'all sources are treated equally.</p>' +
+        (sourceCatalog.length
+          ? '<div class="modalBody">' + groupsHtml + '</div>'
+          : '<p class="modalIntro">Source list unavailable. Rebuild so sources.json is present in dist/.</p>') +
+        '<div class="modalFoot">' +
+          '<button id="sourcesClearBtn" class="modalGhostBtn" type="button">Clear all</button>' +
+          '<span id="sourcesCountText" class="modalCount"></span>' +
+          '<button id="sourcesSaveBtn" class="Home_primaryBtn__nO8b8 verifyButton modalSaveBtn" type="button">Done</button>' +
+        '</div>' +
+      '</div>';
+
+    modal.classList.add('isOpen');
+
+    const countEl = modal.querySelector('#sourcesCountText');
+    const refresh = () => {
+      const n = draft.size;
+      if (countEl) countEl.textContent = n === 0 ? 'None chosen' : (n + ' chosen');
+    };
+    modal.querySelectorAll('.sourceOptionInput').forEach((input) => {
+      input.addEventListener('change', () => {
+        if (input.checked) draft.add(input.value);
+        else draft.delete(input.value);
+        refresh();
+      });
+    });
+    refresh();
+
+    modal.querySelector('#sourcesClearBtn')?.addEventListener('click', () => {
+      draft.clear();
+      modal.querySelectorAll('.sourceOptionInput').forEach((i) => { i.checked = false; });
+      refresh();
+    });
+
+    modal.querySelectorAll('[data-close]').forEach((el) => {
+      el.addEventListener('click', () => { closeSourcesModal(); });
+    });
+
+    modal.querySelector('#sourcesSaveBtn')?.addEventListener('click', async () => {
+      preferredDomains = Array.from(draft);
+      await savePreferredDomains(preferredDomains);
+      updateSourcesButton();
+      closeSourcesModal();
+      if (lastAnalysisResult) {
+        setScore(lastAnalysisResult.score, {
+          summary: lastAnalysisResult.summary,
+          result: lastAnalysisResult.result,
+        });
+      }
+    });
+
+    document.addEventListener('keydown', onSourcesKeydown);
+    modal.querySelector('.sourceOptionInput')?.focus();
+  };
+
+  const WEB_APP_CHAT_URL = 'https://www.veri-fact.ai/chat/';
+
+  /**
+   * Footer link out to the full web app. The original popup extension opened
+   * /chat/?q=<claim>, so carry the claim across and land the user mid-task.
+   */
+  const updateWebAppLink = () => {
+    const link = root?.querySelector('#webAppLink');
+    if (!link) return;
+    const claim = (root?.querySelector('#claimInput')?.value || lastClaimText || '').trim();
+    link.setAttribute('href', claim
+      ? WEB_APP_CHAT_URL + '?q=' + encodeURIComponent(claim)
+      : WEB_APP_CHAT_URL);
+    link.setAttribute('title', claim
+      ? 'Open this claim in the Veracity web app'
+      : 'Open the Veracity web app');
+  };
+
+  const updateHistoryButton = () => {
+    const btn = root?.querySelector('#historyOpenBtn');
+    if (!btn) return;
+    btn.disabled = recentChecks.length === 0;
+    btn.setAttribute('title', recentChecks.length === 0
+      ? 'No recent checks yet'
+      : (recentChecks.length + ' recent ' + (recentChecks.length === 1 ? 'check' : 'checks')));
+  };
+
+  /** Put a stored check back on screen, switching mode to match it. */
+  const restoreHistoryEntry = (entry) => {
+    if (!entry || !entry.payload) return;
+    const panelEl = root?.querySelector('#tabPanel');
+    if (entry.kind === 'image') {
+      inputMode = 'image';
+      applyInputMode();
+      lastMediaResult = entry.payload;
+      lastAnalysisResult = null;
+      lastClaimText = '';
+      lastVerifiedClaim = '';
+      const textInput = panelEl?.querySelector('#claimInput');
+      if (textInput) textInput.value = '';
+      renderMediaResult(entry.payload);
+      updateWebAppLink();
+    } else {
+      inputMode = 'text';
+      applyInputMode();
+      lastMediaResult = null;
+      lastAnalysisResult = entry.payload;
+      lastClaimText = entry.payload.claim || '';
+      lastVerifiedClaim = lastClaimText;
+      currentSourceIndex = 0;
+      const claimInput = panelEl?.querySelector('#claimInput');
+      if (claimInput) claimInput.value = lastClaimText;
+      setScore(entry.payload.score, {
+        summary: entry.payload.summary,
+        result: entry.payload.result,
+      });
+      updateWebAppLink();
+    }
+    const status = root?.querySelector('#authStatusText');
+    if (status) status.textContent = '';
+    updateVerifyButtonState();
+  };
+
+  const closeHistoryModal = () => {
+    const modal = root?.querySelector('#historyModal');
+    if (modal) modal.classList.remove('isOpen');
+    document.removeEventListener('keydown', onHistoryKeydown);
+    root?.querySelector('#historyOpenBtn')?.focus();
+  };
+
+  function onHistoryKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeHistoryModal();
+    }
+  }
+
+  const openHistoryModal = () => {
+    const modal = root?.querySelector('#historyModal');
+    if (!modal) return;
+
+    const rowsHtml = recentChecks.map((entry) => {
+      const label = entry.kind === 'image'
+        ? (entry.label || 'Image')
+        : truncateClaim(entry.label || '');
+      const badge = entry.kind === 'image'
+        ? escapeHtml(entry.verdict || 'Image')
+        : (Number.isFinite(parseFloat(entry.score)) ? Math.round(parseFloat(entry.score)) + '%' : '');
+      const band = entry.kind === 'image'
+        ? verdictClass(entry.verdict)
+        : scoreBandClass(entry.score);
+      return '' +
+        '<button class="historyItem" type="button" data-entry-id="' + escapeHtml(entry.id) + '">' +
+          '<span class="historyKind ' + (entry.kind === 'image' ? 'isImage' : 'isText') + '">' +
+            (entry.kind === 'image' ? 'Image' : 'Text') +
+          '</span>' +
+          '<span class="historyBody">' +
+            '<span class="historyLabel">' + escapeHtml(label) + '</span>' +
+            '<span class="historyTime">' + escapeHtml(relativeTime(entry.ts)) + '</span>' +
+          '</span>' +
+          (badge ? '<span class="historyScore ' + band + '">' + badge + '</span>' : '') +
+        '</button>';
+    }).join('');
+
+    modal.innerHTML =
+      '<div class="modalScrim" data-close="1"></div>' +
+      '<div class="modalDialog" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">' +
+        '<div class="modalHead">' +
+          '<h2 class="modalTitle" id="historyModalTitle">Recent checks</h2>' +
+          '<button class="modalClose" type="button" data-close="1" aria-label="Close">&times;</button>' +
+        '</div>' +
+        (recentChecks.length
+          ? '<div class="modalBody"><div class="historyList">' + rowsHtml + '</div></div>'
+          : '<p class="modalIntro">Nothing checked yet. Results you get will be listed here.</p>') +
+        '<div class="modalFoot">' +
+          '<button id="historyClearBtn" class="modalGhostBtn" type="button"' + (recentChecks.length ? '' : ' disabled') + '>Clear history</button>' +
+          '<span class="modalCount">' + (recentChecks.length ? recentChecks.length + ' saved' : '') + '</span>' +
+          '<button id="historyDoneBtn" class="Home_primaryBtn__nO8b8 verifyButton modalSaveBtn" type="button">Done</button>' +
+        '</div>' +
+      '</div>';
+
+    modal.classList.add('isOpen');
+
+    modal.querySelectorAll('[data-entry-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const entry = recentChecks.find((h) => String(h.id) === btn.getAttribute('data-entry-id'));
+        closeHistoryModal();
+        restoreHistoryEntry(entry);
+      });
+    });
+    modal.querySelector('#historyClearBtn')?.addEventListener('click', () => {
+      recentChecks = [];
+      saveHistory();
+      updateHistoryButton();
+      closeHistoryModal();
+    });
+    modal.querySelectorAll('[data-close]').forEach((el) => {
+      el.addEventListener('click', () => { closeHistoryModal(); });
+    });
+    modal.querySelector('#historyDoneBtn')?.addEventListener('click', () => { closeHistoryModal(); });
+    document.addEventListener('keydown', onHistoryKeydown);
+  };
+
+  /* ---------------- input mode (text / image) ---------------- */
+
+  const clearSelectedMedia = () => {
+    if (selectedMediaUrl) {
+      try { URL.revokeObjectURL(selectedMediaUrl); } catch (_) {}
+    }
+    selectedMediaFile = null;
+    selectedMediaUrl = '';
+  };
+
+  const renderMediaPreview = () => {
+    const mount = root?.querySelector('#mediaPreview');
+    if (!mount) return;
+    if (!selectedMediaFile) {
+      mount.innerHTML = '';
+      return;
+    }
+    mount.innerHTML =
+      '<div class="mediaPreviewCard">' +
+        '<img class="mediaPreviewThumb" src="' + escapeHtml(selectedMediaUrl) + '" alt="" />' +
+        '<div class="mediaPreviewMeta">' +
+          '<div class="mediaPreviewName">' + escapeHtml(selectedMediaFile.name) + '</div>' +
+          '<div class="mediaPreviewSize">' + Math.max(1, Math.round(selectedMediaFile.size / 1024)) + ' KB</div>' +
+        '</div>' +
+        '<button id="mediaClearBtn" class="mediaClearBtn" type="button" aria-label="Remove image">&times;</button>' +
+      '</div>';
+    mount.querySelector('#mediaClearBtn')?.addEventListener('click', () => {
+      clearSelectedMedia();
+      renderMediaPreview();
+      updateVerifyButtonState();
+    });
+  };
+
+  const acceptMediaFile = (file) => {
+    const status = root?.querySelector('#authStatusText');
+    if (!file) return;
+    if (!String(file.type || '').startsWith('image/')) {
+      if (status) status.textContent = 'Choose an image file.';
+      return;
+    }
+    if (status) status.textContent = '';
+    clearSelectedMedia();
+    selectedMediaFile = file;
+    try { selectedMediaUrl = URL.createObjectURL(file); } catch (_) { selectedMediaUrl = ''; }
+    renderMediaPreview();
+    updateVerifyButtonState();
+  };
+
+  /** Show the pane for the current mode. View only — keeps whatever is on screen. */
+  const applyInputMode = () => {
+    const textWrap = root?.querySelector('#textInputWrap');
+    const imageWrap = root?.querySelector('#imageInputWrap');
+    if (textWrap) textWrap.classList.toggle('isHidden', inputMode !== 'text');
+    if (imageWrap) imageWrap.classList.toggle('isHidden', inputMode !== 'image');
+    root?.querySelectorAll('[data-mode]').forEach((btn) => {
+      const on = btn.getAttribute('data-mode') === inputMode;
+      btn.classList.toggle('isActive', on);
+      btn.setAttribute('aria-selected', String(on));
+    });
+    updateVerifyButtonState();
+  };
+
+  /** User switched mode: swap the pane and clear the previous result. */
+  const setInputMode = (mode) => {
+    const next = mode === 'image' ? 'image' : 'text';
+    if (next === inputMode) return;
+    inputMode = next;
+    applyInputMode();
+    const status = root?.querySelector('#authStatusText');
+    if (status) status.textContent = '';
+    const mount = root?.querySelector('#resultMount');
+    if (mount) mount.innerHTML = '';
+    lastAnalysisResult = null;
+    lastFactCheck = null;
+    lastVerifiedClaim = '';
+    lastMediaResult = null;
+    currentSourceIndex = 0;
+    clearPendingConfirm();
+    setVerifying(false);
+    updateVerifyButtonState();
+  };
+
   const renderAppScreen = async () => {
     if (!root) return;
     root.innerHTML = '';
     root.innerHTML = \`
       <div class="Home_panel__UGulu">
-        <div class="Home_tabList__81_8M" role="tablist" aria-label="Side panel sections">
-          <button type="button" role="tab" aria-selected="true" class="Home_tabButton__yY1n3" data-tab-id="ai">
-            <span class="Home_tabLabel__IC30v">AI Fact Verification</span>
-          </button>
-          <button type="button" role="tab" aria-selected="false" class="Home_tabButton__yY1n3" data-tab-id="discussion">
-            <span class="Home_tabLabel__IC30v">Discussion Hub</span>
-          </button>
-          <button type="button" role="tab" aria-selected="false" class="Home_tabButton__yY1n3" data-tab-id="expert">
-            <span class="Home_tabLabel__IC30v">Contact an Expert</span>
-          </button>
+        <div class="Home_card__E5spL" id="tabPanel">
+          <div class="inputBar">
+            <div class="modeToggle" role="tablist" aria-label="What to verify">
+              <button type="button" role="tab" class="modeBtn" data-mode="text" aria-selected="false">Text</button>
+              <button type="button" role="tab" class="modeBtn" data-mode="image" aria-selected="false">Image</button>
+            </div>
+            <div class="barActions">
+              <button id="historyOpenBtn" class="iconBtn" type="button" aria-label="Recent checks" title="Recent checks">
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                  <circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  <path d="M10 5.6V10l2.9 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button id="sourcesOpenBtn" class="sourcesOpenBtn" type="button">Sources</button>
+            </div>
+          </div>
+
+          <div id="textInputWrap">
+            <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
+          </div>
+
+          <div id="imageInputWrap">
+            <label id="mediaDrop" class="mediaDrop" for="mediaInput">
+              <span class="mediaDropTitle">Drop an image here</span>
+              <span class="mediaDropHint">or click to choose a file</span>
+              <input id="mediaInput" class="mediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+            </label>
+            <div id="mediaPreview"></div>
+          </div>
+
+          <div class="Home_buttonRow__Cnhie">
+            <button id="verifyBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Verify</button>
+          </div>
+          <div class="statusRow" id="verifyingStatusContainer"></div>
+          <div id="authStatusText" class="inlineInfo"></div>
+          <div id="resultMount"></div>
         </div>
-        <div class="Home_card__E5spL" role="tabpanel" id="tabPanel"></div>
         <footer class="Home_footer__yFiaX">
-          © ComplexData Lab · McGill · Mila
-          <button id="logoutBtn" class="forgotLink logout-link" type="button" style="margin-left:8px;">Logout</button>
+          <div class="footerLinks">
+            <a id="webAppLink" class="footerLink" href="https://www.veri-fact.ai/chat/" target="_blank" rel="noreferrer noopener">Open in Veracity</a>
+            <button id="logoutBtn" class="forgotLink logout-link" type="button">Logout</button>
+          </div>
+          <div class="footerCredit">© ComplexData Lab · McGill · Mila</div>
         </footer>
       </div>
+      <div id="sourcesModal" class="modalRoot"></div>
+      <div id="historyModal" class="modalRoot"></div>
     \`;
 
-    const tabButtons = Array.from(root.querySelectorAll('[data-tab-id]'));
     const panelEl = root.querySelector('#tabPanel');
+    setVerifying(false);
+    updateSourcesButton();
 
-    const renderTabContent = () => {
-      if (!panelEl) return;
-      if (activeTab === 'ai') {
-        panelEl.innerHTML = \`
-          <div id="aiTabPanel">
-            <textarea id="claimInput" class="Home_textarea__k243o" placeholder="What would you like to verify today?" rows="4"></textarea>
-            <div class="Home_buttonRow__Cnhie">
-              <button id="verifyBtn" class="Home_primaryBtn__nO8b8 verifyButton" type="button">Verify</button>
-            </div>
-            <div class="statusRow" id="verifyingStatusContainer"></div>
-            <div id="authStatusText" class="inlineInfo"></div>
-            <div id="resultMount"></div>
-          </div>
-        \`;
-        setVerifying(false);
-        const verifyBtn = panelEl.querySelector('#verifyBtn');
-        const claimInput = panelEl.querySelector('#claimInput');
-        updateVerifyButtonState();
-        claimInput?.addEventListener('input', updateVerifyButtonState);
-        claimInput?.addEventListener('change', updateVerifyButtonState);
-        verifyBtn?.addEventListener('click', async () => {
-          await startVerification();
-        });
-        ensureCreateDiscussionButton();
-        if (lastAnalysisResult) {
-          lastClaimText = lastAnalysisResult.claim;
-          lastVerifiedClaim = lastAnalysisResult.claim;
-          const input = panelEl.querySelector('#claimInput');
-          if (input) input.value = lastAnalysisResult.claim;
-          setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
-          ensureCreateDiscussionButton();
-          updateVerifyButtonState();
-        }
-      } else if (activeTab === 'discussion') {
-        renderDiscussionListView(panelEl);
-      } else if (activeTab === 'expert') {
-        panelEl.innerHTML = \`
-          <div class="Home_headingRow__XUO2e expertHeadingRow">
-            <h2 class="Home_sectionTitle__DKb2S subheading expertHeroHeading">Need expert insight?</h2>
-          </div>
-          <div class="Home_sectionBody__JASIX">
-            <form id="expertForm" style="display:flex;flex-direction:column;gap:10px;">
-              <label class="Home_label__D_5fs" for="expertName">Name</label>
-              <input id="expertName" class="Home_textarea__k243o" type="text" placeholder="Your name" />
-              <label class="Home_label__D_5fs" for="expertEmail">Email</label>
-              <input id="expertEmail" class="Home_textarea__k243o" type="email" placeholder="you@example.com" />
-              <label class="Home_label__D_5fs" for="expertMessage">Message</label>
-              <textarea id="expertMessage" class="Home_textarea__k243o" rows="3" placeholder="How can we help?"></textarea>
-              <div class="Home_buttonRow__Cnhie" style="justify-content:center;">
-                <button id="expertSubmitBtn" class="Home_primaryBtn__nO8b8" type="submit">Contact an Expert</button>
-              </div>
-              <div id="expertErrorText" class="expertErrorText" aria-live="polite"></div>
-            </form>
-          </div>
-        \`;
-        const expertForm = panelEl.querySelector('#expertForm');
-        const nameInput = panelEl.querySelector('#expertName');
-        const emailInput = panelEl.querySelector('#expertEmail');
-        const messageInput = panelEl.querySelector('#expertMessage');
-        const errorText = panelEl.querySelector('#expertErrorText');
-        expertForm?.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const name = (nameInput?.value || '').trim();
-          const email = (emailInput?.value || '').trim();
-          const message = (messageInput?.value || '').trim();
-          const missing = [];
-          if (!name) missing.push('name');
-          if (!email) missing.push('email');
-          if (!message) missing.push('message');
-          if (missing.length > 0) {
-            if (errorText) errorText.textContent = 'Please enter your ' + missing.join(', ') + '.';
-            return;
-          }
-          if (errorText) errorText.textContent = '';
-          const lines = [
-            'Name: ' + (name || '—'),
-            'Email: ' + (email || '—'),
-            '',
-            'Message:',
-            message || '—',
-          ];
-          const subject = 'Veracity – Contact an Expert';
-          const body = lines.join('\\n');
-          const mailto = 'mailto:veracity@mila.quebec?subject=' +
-            encodeURIComponent(subject) +
-            '&body=' +
-            encodeURIComponent(body);
-          window.location.href = mailto;
-        });
-      }
-    };
-
-    const updateActiveButtons = () => {
-      tabButtons.forEach((btn) => {
-        const isActive = btn.dataset.tabId === activeTab;
-        btn.setAttribute('aria-selected', String(isActive));
-        btn.classList.toggle('Home_tabButtonActive__zVobV', isActive);
-      });
-    };
-
-    tabButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const nextTab = btn.dataset.tabId;
-        setVerifying(false);
-        if (activeTab === 'ai' && nextTab !== 'ai') {
-          root?.querySelector('#createDiscussionBtn')?.remove();
-          root?.querySelector('#createDiscussionContainer')?.remove();
-          lastFactCheck = null;
-          lastClaimText = '';
-          lastAnalysisResult = null;
-          currentSourceIndex = 0;
-          setScore(null);
-          ensureCreateDiscussionButton();
-        }
-        activeTab = nextTab;
-        updateActiveButtons();
-        renderTabContent();
-      });
+    const verifyBtn = panelEl.querySelector('#verifyBtn');
+    const claimInput = panelEl.querySelector('#claimInput');
+    updateVerifyButtonState();
+    claimInput?.addEventListener('input', updateVerifyButtonState);
+    claimInput?.addEventListener('change', updateVerifyButtonState);
+    verifyBtn?.addEventListener('click', async () => {
+      if (inputMode === 'image') await startMediaVerification();
+      else await startVerification();
     });
 
-    updateActiveButtons();
-    renderTabContent();
-    if (pendingDiscussionId && panelEl) {
-      await renderDiscussionDetailView(panelEl, pendingDiscussionId);
-      const postsScroll = panelEl.querySelector('#postsScroll');
-      if (postsScroll) postsScroll.scrollTop = 0;
-      pendingDiscussionId = null;
+    root.querySelector('#sourcesOpenBtn')?.addEventListener('click', () => { openSourcesModal(); });
+    root.querySelector('#historyOpenBtn')?.addEventListener('click', () => { openHistoryModal(); });
+    updateHistoryButton();
+    updateWebAppLink();
+    claimInput?.addEventListener('input', updateWebAppLink);
+    panelEl.querySelectorAll('[data-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => { setInputMode(btn.getAttribute('data-mode')); });
+    });
+
+    const mediaInput = panelEl.querySelector('#mediaInput');
+    mediaInput?.addEventListener('change', () => { acceptMediaFile(mediaInput.files && mediaInput.files[0]); });
+    const drop = panelEl.querySelector('#mediaDrop');
+    ['dragenter', 'dragover'].forEach((evt) => {
+      drop?.addEventListener(evt, (e) => { e.preventDefault(); drop.classList.add('isDragging'); });
+    });
+    ['dragleave', 'drop'].forEach((evt) => {
+      drop?.addEventListener(evt, (e) => { e.preventDefault(); drop.classList.remove('isDragging'); });
+    });
+    drop?.addEventListener('drop', (e) => {
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      acceptMediaFile(file);
+    });
+
+    // A re-render can be triggered by the panel simply regaining focus — which is
+    // exactly what happens when the OS file picker closes. Restore the mode and the
+    // result that were on screen rather than dropping back to a blank text panel.
+    applyInputMode();
+    if (selectedMediaFile) renderMediaPreview();
+    if (inputMode === 'image') {
+      if (lastMediaResult) renderMediaResult(lastMediaResult);
+    } else if (confirmCardIsOpen()) {
+      // A pending choice has to survive too, or clicking away mid-confirm would throw
+      // the extraction away. The card rebuilds from state; the textarea gets the text
+      // the user submitted back so the panel looks the way they left it.
+      if (claimInput) claimInput.value = pendingOriginalText;
+      renderConfirmCard();
+    } else if (lastAnalysisResult) {
+      lastClaimText = lastAnalysisResult.claim;
+      lastVerifiedClaim = lastAnalysisResult.claim;
+      if (claimInput) claimInput.value = lastAnalysisResult.claim;
+      setScore(lastAnalysisResult.score, { summary: lastAnalysisResult.summary, result: lastAnalysisResult.result });
     }
+    updateVerifyButtonState();
 
     const logoutBtn = root.querySelector('#logoutBtn');
     logoutBtn?.addEventListener('click', async () => {
@@ -1628,6 +1767,67 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
    * - Prefills the claim textarea with the selected text
    * - Delegates to startVerification(text) so lifecycle matches a manual click
    */
+  /**
+   * Collect an image the user right-clicked and verify it.
+   *
+   * background.js has already fetched the bytes and parked them, so this asks for
+   * the payload rather than receiving it: a context-menu click can land while the
+   * panel is still booting, and the message would otherwise be lost.
+   */
+  const collectPendingImage = async () => {
+    let res;
+    try {
+      res = await sendBackgroundMessage({ type: 'TAKE_PENDING_IMAGE' });
+    } catch (_) {
+      return;
+    }
+    const image = res && res.success && res.image;
+    if (!image) return;
+
+    if (inputMode !== 'image') {
+      inputMode = 'image';
+      applyInputMode();
+      const mount = root?.querySelector('#resultMount');
+      if (mount) mount.innerHTML = '';
+      lastAnalysisResult = null;
+      lastMediaResult = null;
+    }
+
+    const status = root?.querySelector('#authStatusText');
+    if (image.error) {
+      clearSelectedMedia();
+      renderMediaPreview();
+      updateVerifyButtonState();
+      if (status) status.textContent = image.error;
+      return;
+    }
+
+    let file;
+    try {
+      const binary = atob(image.base64 || '');
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      file = new File([bytes], image.name || 'image.png', { type: image.type || 'image/png' });
+    } catch (_) {
+      if (status) status.textContent = 'Could not read that image. Please try again.';
+      return;
+    }
+
+    clearSelectedMedia();
+    selectedMediaFile = file;
+    try { selectedMediaUrl = URL.createObjectURL(file); } catch (_) { selectedMediaUrl = ''; }
+    if (status) status.textContent = '';
+    renderMediaPreview();
+    updateVerifyButtonState();
+
+    const authed = typeof VeracityAuth !== 'undefined' && await VeracityAuth.isAuthenticated();
+    if (!authed) {
+      await syncAuthUI();
+      return;
+    }
+    await startMediaVerification();
+  };
+
   const handleSelectionToVerify = async (payload) => {
     const text = (payload?.text || '').trim();
     if (!text) return;
@@ -1636,8 +1836,8 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
       await syncAuthUI();
       return;
     }
-    activeTab = 'ai';
     await syncAuthUI();
+    if (inputMode !== 'text') setInputMode('text');
     const claimInput = root?.querySelector('#claimInput');
     if (claimInput) claimInput.value = text;
     await startVerification(text);
@@ -1647,6 +1847,9 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     if (msg?.type === 'SELECTION_TO_VERIFY') {
       handleSelectionToVerify(msg);
     }
+    if (msg?.type === 'IMAGE_TO_VERIFY') {
+      collectPendingImage();
+    }
   });
 
   const loadConfig = async () => {
@@ -1655,6 +1858,9 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     API_URL = cfg.API_URL || '';
     AUTH0_CLIENT_ID = cfg.AUTH0_CLIENT_ID || '';
     if (typeof VeracityAuth !== 'undefined') VeracityAuth.init({ clientId: AUTH0_CLIENT_ID });
+    await loadSourceCatalog();
+    preferredDomains = await loadPreferredDomains();
+    recentChecks = await loadHistory();
   };
 
   const init = async () => {
@@ -1663,81 +1869,11 @@ const panelJs = `document.addEventListener('DOMContentLoaded', () => {
     try {
       await loadConfig();
       await syncAuthUI();
+      await collectPendingImage();
     } catch (err) {
       setInlineMessage(normalizeError(err));
       await syncAuthUI();
     }
-
-    root.addEventListener('click', (event) => {
-      const target = event.target;
-      const btn = target?.closest?.('#createDiscussionBtn');
-      if (btn) {
-        openCreateDiscussionDraft();
-        return;
-      }
-      const cancelBtn = target?.closest?.('#discussionCancel');
-      if (cancelBtn) {
-        const formMount = root?.querySelector('#createDiscussionFormMount');
-        if (formMount) formMount.innerHTML = '';
-        const ctaBtn = root?.querySelector('#createDiscussionBtn');
-        if (ctaBtn) ctaBtn.classList.remove('isHidden');
-      }
-    });
-
-    root.addEventListener('submit', async (event) => {
-      const form = event.target;
-      if (!form || form.id !== 'createDiscussionForm') return;
-      event.preventDefault();
-      if (!lastFactCheck) return;
-      const titleInput = form.querySelector('#discussionTitle');
-      const bodyInput = form.querySelector('#discussionBody');
-      const errorEl = form.querySelector('#discussionError');
-      const title = (titleInput?.value || '').trim();
-      const body = (bodyInput?.value || '').trim();
-      if (!title || !body) {
-        if (errorEl) errorEl.textContent = 'Please enter a title and body.';
-        return;
-      }
-      if (errorEl) errorEl.textContent = '';
-      if (!API_URL) {
-        if (errorEl) errorEl.textContent = 'Something went wrong. Please try again.';
-        return;
-      }
-      try {
-        const token = await ensureAccessToken();
-        const res = await sendBackgroundMessage({
-          type: 'CREATE_DISCUSSION',
-          apiUrl: API_URL,
-          accessToken: token,
-          title,
-          description: body,
-          analysis_id: lastFactCheck.analysis_id ?? undefined,
-        });
-        if (!res.success || !res.discussion) {
-          if (errorEl) errorEl.textContent = 'Something went wrong. Please try again.';
-          return;
-        }
-        const discussion = res.discussion;
-        const newId = String(discussion.id ?? discussion.discussion_id ?? '');
-        if (newId) {
-          const mapped = mapApiDiscussion(discussion);
-          if (!mapped.description && body) mapped.description = body;
-          const idx = discussionStore.discussions.findIndex((d) => String(d.id) === String(mapped.id));
-          if (idx >= 0) discussionStore.discussions[idx] = mapped;
-          else discussionStore.discussions.unshift(mapped);
-          discussionStore.postsByDiscussionId[newId] = [];
-        }
-        const formMount = root?.querySelector('#createDiscussionFormMount');
-        if (formMount) formMount.innerHTML = '';
-        const ctaBtn = root?.querySelector('#createDiscussionBtn');
-        if (ctaBtn) ctaBtn.classList.remove('isHidden');
-        activeTab = 'discussion';
-        pendingDiscussionId = newId;
-        await syncAuthUI();
-      } catch (_) {
-        if (errorEl) errorEl.textContent = 'Something went wrong. Please try again.';
-      }
-    });
 
     window.addEventListener('focus', () => { syncAuthUI(); });
     document.addEventListener('visibilitychange', () => {

@@ -1,4 +1,92 @@
-# Veracity Side Panel Extension 
+# Veracity Side Panel Extension
+
+Chrome side-panel extension for Veracity. This build is **fact verification only**:
+paste or highlight a claim, get a reliability score, an explanation and sources.
+
+> **Note on the two extension folders in `web_extension/`:**
+> `Veracity_Extension/` (this one) is the full side-panel app — build it with npm, load `dist/`.
+> `VeracityExtension/` is a separate, much simpler popup that just redirects a query to the
+> Veracity website. They are unrelated; this README covers only `Veracity_Extension/`.
+
+## Verifying text
+
+1. **Type it** — open the side panel, paste a claim into the box, click **Verify**.
+2. **Highlight it** — select text on any page, right-click → **Send to Veracity**. The side
+   panel opens, prefills the selection and starts verifying automatically.
+
+## Verifying an image
+
+Two ways:
+
+1. **Right-click an image on any page** → **Verify image with Veracity**. The side panel
+   opens, loads that image and starts verifying — the counterpart to *Send to Veracity* for
+   text, and the reason you do not have to save a picture just to check it.
+2. **Upload it** — switch the input to **Image**, then drop a file on the panel or click to
+   choose one.
+
+JPEG, PNG, WebP and GIF are accepted. The result gives a reliability score, a verdict and an
+explanation. When a file is judged uncertain or fake, the most likely generator is shown too;
+that ranking is conditional on the media being fake, so it is hidden on a file judged real,
+where the top entry is noise.
+
+The image is posted as `multipart/form-data` to `POST /v1/media/verify` **directly from the
+panel**, not through the background service worker — `chrome.runtime` messaging cannot carry
+a `File`, and the multipart body has to be built where the file lives. `api.veri-fact.ai` is
+already in the manifest's `connect-src` and `host_permissions`, so no manifest change is
+needed. Nothing is uploaded until Verify is pressed, and the file is never stored locally.
+
+The backend endpoint also accepts video, but the extension stays with images on purpose: a
+video would have to be downloaded and re-uploaded, which is exactly the round trip the
+right-click flow exists to avoid.
+
+A right-clicked image is fetched by **background.js**, not the panel. The service worker holds
+the host permissions that let it read an image from any origin without CORS, so the manifest
+declares `<all_urls>` and a `connect-src` wide enough to reach it. The extension already ran
+content scripts on all URLs, so the install prompt is unchanged. The bytes are handed to the
+panel as base64 and parked until collected, because a context-menu click often lands before
+the panel has finished booting. Images above 8 MB, and formats the detector does not accept,
+are refused in the background with a message shown in the panel.
+
+## Recent checks
+
+The clock button keeps the last 25 checks, text and image alike, in `chrome.storage.local`.
+Because the side panel unloads when it is closed, in-memory results do not survive; history
+does, so a result is still there after closing the panel or restarting the browser. Clicking
+an entry restores its mode, its claim and its result. **Clear history** empties the store.
+
+## Open in Veracity
+
+The footer links to the web app, carrying the current claim as `/chat/?q=<claim>` — the same
+hand-off the original popup extension made. With the box empty it opens the chat page plainly.
+
+## Choosing your sources
+
+The **Sources** button opens a pop-up listing candidate domains grouped by subject area.
+Choose as many or as few as you like — **there is no minimum**, and choosing none means no
+preference, leaving retrieval untouched. The selection persists in `chrome.storage.local`,
+and the button carries a count badge. Close with **Done**, the ✕, Escape, or by clicking the
+backdrop; **Clear all** resets to no preference.
+
+The selection does two things:
+
+- Evidence from your chosen domains is **sorted to the top of the result and marked
+  "Your source"**.
+- The selection is **sent to the backend** as `preferred_domains` on `POST /v1/claims/`, so
+  retrieval can prioritise those domains.
+
+The claims schema does not accept `preferred_domains` yet, so `background.js` retries without
+the field on a 400/422. Until the backend honours it, the choice affects the ordering and
+labelling of displayed evidence, not the veracity score.
+
+No credibility ratings are shown against domains — this build presents the source list as a
+plain choice. The catalog includes Veracity's ten most-cited domains, four of which are social
+platforms; they are grouped under **Social & community** so the choice is informed.
+
+### Editing the source set
+
+`public/sources.json` holds the catalog. Add or remove categories and domains there and
+rebuild — no code changes needed.
+
 
 
 ## Project structure 
@@ -21,6 +109,7 @@ Veracity_Extension/
 │   ├── content.js            # Injected script: selection → REQUEST_SELECTION
 │   ├── panel.css             # Panel UI styles (verify button, results, discussion)
 │   ├── config.json           # API_URL, AUTH0_CLIENT_ID (runtime config)
+│   ├── sources.json          # Source picker catalog (subject-area groups, domains)
 │   └── icons/
 │       └── icon128.png
 │
@@ -80,3 +169,36 @@ Edit **`public/config.json`** (or **`dist/config.json`** after a build) to set:
 - **`AUTH0_CLIENT_ID`** — Auth0 client ID for sign‑in.
 
 Rebuild after changing `public/config.json` so `dist/config.json` is updated.
+
+---
+
+## Reloading after a code change
+
+The extension is built, not live-reloaded. After editing anything under `public/`,
+`scripts/` or `pages/`:
+
+```bash
+npm run build
+```
+
+then go to `chrome://extensions/` and click the **reload** (↻) icon on the Veracity card.
+Close and reopen the side panel to pick up the new `panel.js`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| "Load unpacked" is greyed out | Turn on **Developer mode** (top-right of `chrome://extensions/`). |
+| Chrome rejects the folder | You selected `Veracity_Extension/`, not `Veracity_Extension/dist/`. Pick the folder that directly contains `manifest.json`. |
+| Panel is blank or shows "Panel error:" | Open the side panel, right-click inside it → **Inspect**, and read the console. |
+| Right-click has no "Send to Veracity" | You must have text selected, and the page must have been loaded *after* the extension. Reload the page. |
+| Verifying never finishes | Check `API_URL` in `dist/config.json` and the service-worker console (`chrome://extensions/` → **service worker** link on the Veracity card). |
+| Login loops back to the landing screen | Confirm `AUTH0_CLIENT_ID` in `config.json`, and that the extension's redirect URL is registered in Auth0. |
+
+## Scope of this build
+
+The side panel intentionally ships a single view, **AI Fact Verification**. The earlier
+*Discussion Hub* and *Contact an Expert* tabs, and the "Create discussion" action on a
+result, have been removed, along with the discussion/post/vote API routing in
+`background.js`. The extension now calls only `/v1/claims/`, `/v1/analysis/*`,
+`/v1/sources/*` and `/v1/users/me`.
