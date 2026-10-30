@@ -35,6 +35,8 @@ export default function ChatWindow() {
   const [sources, setSources] = useState<Source[]>([]);
   const [searchesUsed, setSearchesUsed] = useState<Search[]>([]);
   const [error, setError] = useState<string | null>(null);
+  /*set when the backend served this analysis from its cache: when the original check ran*/
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
 
   const fetchSources = async (analysisId: string) => {
     try {
@@ -94,9 +96,12 @@ export default function ChatWindow() {
       analysis_id: string;
       claim_conversation_id: string;
       conversation_id: string;
+      cached?: boolean;
+      cached_at?: string;
     }
   }, eventSource: EventSource | null) => {
     try {
+      setCachedAt(data.content.cached && data.content.cached_at ? data.content.cached_at : null);
       const analysisResponse = await fetchWithAuth(
         `${API_URL}/v1/analysis/${data.content.analysis_id}`
       );
@@ -135,6 +140,7 @@ export default function ChatWindow() {
       setSources([]);
       setSearchesUsed([]);
       setError(null);
+      setCachedAt(null);
 
       const claimResponse = await fetchWithAuth(`${API_URL}/v1/claims/`, {
         method: 'POST',
@@ -272,7 +278,8 @@ export default function ChatWindow() {
         {finalAnalysis && finalAnalysis.analysis_text ? 
         <>
         <ChatIn text={t('outputTwo')} />
-        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} claimId={claimId} /></>
+        <Analysis setSourceWindow={setSourceWindow} finalAnalysis={finalAnalysis} sources={sources} claimId={claimId} />
+        {cachedAt ? <p className={styles.disclaimer}>{t('cachedDisclaimer', { date: new Date(cachedAt).toLocaleDateString(locale, { dateStyle: 'medium' }) })}</p> : ""}</>
         :<></>}
       {error? <p>{error}</p> : ""}
       </div>

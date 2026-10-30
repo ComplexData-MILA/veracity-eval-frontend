@@ -19,6 +19,7 @@
         "learnMore": "User Guidelines",
         "help": "Help",
         "disclaimer": "Responses related to Veracity may not always be accurate.",
+        "cachedDisclaimer": "This claim was previously checked on {date}. The result may be up to a week old and may not reflect newer developments.",
         "inputPlaceholder": "Start typing or paste text of a new claim here...",
         "outputOne": "What would you like to verify today?",
         "outputTwo": "Here is my analysis:",

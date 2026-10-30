@@ -19,6 +19,7 @@
         "learnMore": "Guide d'utilisateur",
         "help": "Aide",
         "disclaimer": "Bien que nous nous efforcions d'être précis, certaines réponses de l'IA peuvent varier",
+        "cachedDisclaimer": "Cette affirmation a déjà été vérifiée le {date}. Le résultat peut dater d'une semaine et ne pas refléter les développements récents.",
         "inputPlaceholder": "Commencer à taper un nouvel énoncé...",
         "outputOne": "Que souhaitez-vous vérifier aujourd’hui ?",
         "outputTwo": "Voici mon analyse:",
