@@ -5,12 +5,11 @@ import Image from 'next/image';
 import { useEffect, useState, useRef } from "react";
 
 type Props = {
-  setClaim: (arg0: string) => void;
-  verifyClaim: () => void;
-  claim: string;
+  onSubmit: (text: string) => void;
+  placeholder?: string;
 };
 
-export default function Input({setClaim, verifyClaim, claim}: Props) {
+export default function Input({onSubmit, placeholder}: Props) {
   const t = useTranslations('chatpage');
   const [inputText, setInputText] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -20,7 +19,8 @@ export default function Input({setClaim, verifyClaim, claim}: Props) {
   }
   const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setClaim(inputText);
+    if (inputText.trim() === '') return;
+    onSubmit(inputText);
     setInputText("");
   }
   useEffect(() => {
@@ -38,15 +38,10 @@ export default function Input({setClaim, verifyClaim, claim}: Props) {
       }, 100);
     }
   }, []);
-  useEffect(() => {
-    if (claim !== '') {
-        verifyClaim();
-    }
-  }, [claim]);
 
   return (
     <form ref={formRef} className={styles.inputWrapper} onSubmit={handleSubmit}>
-                <input className={styles.input} placeholder={t('inputPlaceholder')} onChange={(e) => handleChange(e.target.value)} value={inputText} />
+                <input className={styles.input} placeholder={placeholder ?? t('inputPlaceholder')} onChange={(e) => handleChange(e.target.value)} value={inputText} />
                 <button className={styles.submit} type="submit">
                 <Image src="/assets/logoBlue.svg" alt="me" width="20" height="20" />
                 </button>

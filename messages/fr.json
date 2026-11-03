@@ -41,7 +41,17 @@
         "confident": "Comment Veracity sélectionne-t-il les sources?",
         "averageCredibility": "Crédibilité moy. des sources",
         "showAllSources": "Voir toutes les sources",
-        "close": "Fermez"
+        "close": "Fermez",
+        "skip": "Passer",
+        "skipped": "Ignorée",
+        "checking": "Je vais vérifier : « {claim} »",
+        "assuming": "Hypothèse : {assumptions}",
+        "answerPlaceholder": "Tapez votre réponse ou choisissez une option ci-dessus...",
+        "followupPlaceholder": "Posez une question de suivi sur ce résultat...",
+        "searchingMore": "Recherche de preuves supplémentaires...",
+        "followupError": "Désolé, je n'ai pas pu répondre. Veuillez réessayer.",
+        "recheck": "Vérifier « {claim} »",
+        "newClaim": "Vérifier une nouvelle affirmation"
     },
     "userMenu":
     {

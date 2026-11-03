@@ -159,3 +159,22 @@ box-shadow: 2px 2px 10px 0px #0000001A;
   }
   }
 }
+
+.optionRow{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -10px 15px 20px 60px;
+}
+.optionButton{
+  padding: 6px 14px;
+  border: 1px solid #1683FF;
+  border-radius: 20px;
+  background: #fff;
+  color: #1683FF;
+  cursor: pointer;
+  &:disabled{
+    opacity: 0.5;
+    cursor: default;
+  }
+}

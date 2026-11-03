@@ -41,7 +41,17 @@
         "confident": "Indicates how confident we are in its reliability.",
         "averageCredibility": "Avg. Source Credibility",
         "showAllSources": "Show all sources",
-        "close":"Close"
+        "close":"Close",
+        "skip": "Skip",
+        "skipped": "Skipped",
+        "checking": "I'll check: \"{claim}\"",
+        "assuming": "Assuming: {assumptions}",
+        "answerPlaceholder": "Type your answer, or pick an option above...",
+        "followupPlaceholder": "Ask a follow-up question about this result...",
+        "searchingMore": "Searching for more evidence...",
+        "followupError": "Sorry, I couldn't answer that. Please try again.",
+        "recheck": "Fact-check \"{claim}\"",
+        "newClaim": "Check a new claim"
     },
     "userMenu":
     {
