@@ -17,8 +17,8 @@ import { FinalAnalysis, Search, Source } from "@/app/types";
 import Link from "next/link";
 import { API_URL} from "@/app/constants";
 
-/*a clarifying question asked before fact-checking; answer is undefined while waiting, null if skipped*/
-type ClarifyTurn = { question: string; options: string[]; answer?: string | null };
+/*a clarifying question asked before fact-checking; answer is undefined while waiting*/
+type ClarifyTurn = { question: string; options: string[]; answer?: string };
 type ClarifyResponse = { status: 'ask' | 'ready'; claim: string; question?: string; options: string[]; assumptions: string[] };
 type DiscussionIds = { conversation_id: string; claim_conversation_id: string; claim_id: string };
 type ChatLine = { from: 'user' | 'bot'; text: string };
@@ -308,7 +308,7 @@ export default function ChatWindow() {
     clarifyClaim(text, []);
   };
 
-  const answerQuestion = (answer: string | null) => {
+  const answerQuestion = (answer: string) => {
     if (isClarifying) return;
     clarifyClaim(claim, turns.map((turn, i) => (i === turns.length - 1 ? { ...turn, answer } : turn)));
   };
@@ -439,10 +439,10 @@ export default function ChatWindow() {
                 {turn.options.map((option) => (
                   <button key={option} type="button" className={styles.optionButton} disabled={isClarifying} onClick={() => answerQuestion(option)}>{option}</button>
                 ))}
-                <button type="button" className={styles.optionButton} disabled={isClarifying} onClick={() => answerQuestion(null)}>{t('skip')}</button>
+                <button type="button" className={styles.optionButton} disabled={isClarifying} onClick={() => document.getElementById('chat-input')?.focus()}>{t('typeOwn')}</button>
               </div>
             ) : (
-              <ChatOut text={turn.answer ?? t('skipped')} />
+              <ChatOut text={turn.answer} />
             )}
           </div>
         ))}

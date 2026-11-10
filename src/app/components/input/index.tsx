@@ -41,7 +41,7 @@ export default function Input({onSubmit, placeholder}: Props) {
 
   return (
     <form ref={formRef} className={styles.inputWrapper} onSubmit={handleSubmit}>
-                <input className={styles.input} placeholder={placeholder ?? t('inputPlaceholder')} onChange={(e) => handleChange(e.target.value)} value={inputText} />
+                <input id="chat-input" className={styles.input} placeholder={placeholder ?? t('inputPlaceholder')} onChange={(e) => handleChange(e.target.value)} value={inputText} />
                 <button className={styles.submit} type="submit">
                 <Image src="/assets/logoBlue.svg" alt="me" width="20" height="20" />
                 </button>
